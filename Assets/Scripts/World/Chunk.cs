@@ -10,15 +10,17 @@ public class Chunk {
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
 
+    // Pre-allocated with reasonable initial capacities to avoid repeated resizing.
+    // These are reused every UpdateChunk() call instead of being cleared and GC'd.
     int vertexIndex = 0;
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangles = new List<int>();
-    List<int> transparentTriangles = new List<int>();
-    List<int> waterTriangles = new List<int>();
+    List<Vector3> vertices = new List<Vector3>(2048);
+    List<int> triangles = new List<int>(4096);
+    List<int> transparentTriangles = new List<int>(512);
+    List<int> waterTriangles = new List<int>(512);
     Material[] materials = new Material[3];
-    List<Vector2> uvs = new List<Vector2>();
-    List<Color> colors = new List<Color>();
-    List<Vector3> normals = new List<Vector3>();
+    List<Vector2> uvs = new List<Vector2>(2048);
+    List<Color> colors = new List<Color>(2048);
+    List<Vector3> normals = new List<Vector3>(2048);
 
     public Vector3 position;
 
@@ -26,6 +28,8 @@ public class Chunk {
 
     ChunkData chunkData;
 
+    // HashSet instead of List for O(1) Contains() checks.
+    HashSet<VoxelState> activeVoxelSet = new HashSet<VoxelState>();
     List<VoxelState> activeVoxels = new List<VoxelState>();
 
     public Chunk(ChunkCoord _coord) {
@@ -69,7 +73,8 @@ public class Chunk {
 
     public void TickUpdate() {
 
-        for (int i = activeVoxels.Count - 1; i > -1; i--) {
+        // Iterate backwards so removals don't shift indices.
+        for (int i = activeVoxels.Count - 1; i >= 0; i--) {
             if (!BlockBehaviour.Active(activeVoxels[i]))
                 RemoveActiveVoxel(activeVoxels[i]);
             else
@@ -99,20 +104,17 @@ public class Chunk {
 
     public void AddActiveVoxel(VoxelState voxel) {
 
-        if (!activeVoxels.Contains(voxel))
+        // HashSet.Add returns false if already present — no duplicate check needed.
+        if (activeVoxelSet.Add(voxel))
             activeVoxels.Add(voxel);
 
     }
 
     public void RemoveActiveVoxel(VoxelState voxel) {
 
-        for (int i = 0; i < activeVoxels.Count; i++) {
+        if (activeVoxelSet.Remove(voxel))
+            activeVoxels.Remove(voxel);
 
-            if (activeVoxels[i] == voxel) {
-                activeVoxels.RemoveAt(i);
-                return;
-            }
-        }
     }
 
     void ClearMeshData() {
@@ -193,19 +195,10 @@ public class Chunk {
 
         float rot = 0f;
         switch (voxel.orientation) {
-
-            case 0:
-                rot = 180f;
-                break;
-            case 5:
-                rot = 270f;
-                break;
-            case 1:
-                rot = 0f;
-                break;
-            default:
-                rot = 90f;
-                break;
+            case 0: rot = 180f; break;
+            case 5: rot = 270f; break;
+            case 1: rot = 0f; break;
+            default: rot = 90f; break;
         }
 
         for (int p = 0; p < 6; p++) {
@@ -233,7 +226,8 @@ public class Chunk {
 
             VoxelState neighbour = chunkData.map[x, y, z].neighbours[translatedP];
 
-            if (neighbour != null && neighbour.properties.renderNeighborFaces && !(voxel.properties.isWater && chunkData.map[x, y + 1, z].properties.isWater)) {
+            if (neighbour != null && neighbour.properties.renderNeighborFaces &&
+                !(voxel.properties.isWater && chunkData.map[x, y + 1, z].properties.isWater)) {
 
                 float lightLevel = neighbour.lightAsFloat;
                 int faceVertCount = 0;
@@ -244,21 +238,20 @@ public class Chunk {
                     vertices.Add(pos + vertData.GetRotatedPosition(new Vector3(0, rot, 0)));
                     normals.Add(VoxelData.faceChecks[p]);
                     colors.Add(new Color(0, 0, 0, lightLevel));
+
                     if (voxel.properties.isWater)
                         uvs.Add(voxel.properties.meshData.faces[p].vertData[i].uv);
                     else
                         AddTexture(voxel.properties.GetTextureID(p), vertData.uv);
+
                     faceVertCount++;
 
                 }
 
                 if (!voxel.properties.renderNeighborFaces) {
-
                     for (int i = 0; i < voxel.properties.meshData.faces[p].triangles.Length; i++)
                         triangles.Add(vertexIndex + voxel.properties.meshData.faces[p].triangles[i]);
-
                 } else {
-
                     if (voxel.properties.isWater) {
                         for (int i = 0; i < voxel.properties.meshData.faces[p].triangles.Length; i++)
                             waterTriangles.Add(vertexIndex + voxel.properties.meshData.faces[p].triangles[i]);
@@ -315,25 +308,14 @@ public class ChunkCoord {
     public int x;
     public int z;
 
-    public ChunkCoord() {
+    public ChunkCoord() { x = 0; z = 0; }
 
-        x = 0;
-        z = 0;
-
-    }
-
-    public ChunkCoord(int _x, int _z) {
-
-        x = _x;
-        z = _z;
-
-    }
+    public ChunkCoord(int _x, int _z) { x = _x; z = _z; }
 
     public ChunkCoord(Vector3 pos) {
 
         int xCheck = Mathf.FloorToInt(pos.x);
         int zCheck = Mathf.FloorToInt(pos.z);
-
         x = xCheck / VoxelData.ChunkWidth;
         z = zCheck / VoxelData.ChunkWidth;
 
@@ -341,12 +323,8 @@ public class ChunkCoord {
 
     public bool Equals(ChunkCoord other) {
 
-        if (other == null)
-            return false;
-        else if (other.x == x && other.z == z)
-            return true;
-        else
-            return false;
+        if (other == null) return false;
+        return other.x == x && other.z == z;
 
     }
 
