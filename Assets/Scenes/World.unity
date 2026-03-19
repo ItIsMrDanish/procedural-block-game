@@ -539,6 +539,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 311216139}
   m_CullTransparentMesh: 1
+--- !u!114 &321104792 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2061562842282059328, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
+  m_PrefabInstance: {fileID: 1694077346}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -2288,7 +2299,7 @@ PrefabInstance:
     - target: {fileID: 2680683177095678826, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
       propertyPath: slotImage
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 321104792}
     - target: {fileID: 4823568129388477074, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2839,6 +2850,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2074229379}
     m_Modifications:
+    - target: {fileID: 2680683177095678826, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
+      propertyPath: isLinked
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2680683177095678826, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
+      propertyPath: slotImage
+      value: 
+      objectReference: {fileID: 7562630620272236465}
     - target: {fileID: 4823568129388477074, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -2923,6 +2942,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ItemSlot
       objectReference: {fileID: 0}
+    - target: {fileID: 5369721320111526741, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2944,6 +2967,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2527b3cb65367da48b49e64d25551507, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIItemSlot
+--- !u!114 &7562630620272236465 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7561892433489661163, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
+  m_PrefabInstance: {fileID: 7562630620272236459}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
