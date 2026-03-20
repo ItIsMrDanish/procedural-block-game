@@ -9,7 +9,6 @@ public static class SaveSystem {
 
     public static void SaveWorld(WorldData world) {
 
-        // Set our save location and make sure we have a saves folder ready to go.
         string savePath = World.Instance.appPath + "/saves/" + world.worldName + "/";
 
         if (!Directory.Exists(savePath))
@@ -19,7 +18,6 @@ public static class SaveSystem {
 
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(savePath + "world.world", FileMode.Create);
-
         formatter.Serialize(stream, world);
         stream.Close();
 
@@ -29,15 +27,13 @@ public static class SaveSystem {
 
     public static void SaveChunks(WorldData world) {
 
-        // Copy modified chunks into a new list and clear the old one to prevent
-        // chunks being added to list while it is saving.
         List<ChunkData> chunks = new List<ChunkData>(world.modifiedChunks);
         world.modifiedChunks.Clear();
 
         int count = 0;
         foreach (ChunkData chunk in chunks) {
 
-            SaveSystem.SaveChunk(chunk, world.worldName);
+            SaveChunk(chunk, world.worldName);
             count++;
         }
 
@@ -54,26 +50,22 @@ public static class SaveSystem {
 
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream(loadPath + "world.world", FileMode.Open);
-
             WorldData world = formatter.Deserialize(stream) as WorldData;
             stream.Close();
             return new WorldData(world);
         } else {
 
             Debug.Log(worldName + " not found. Creating new world.");
-
             WorldData world = new WorldData(worldName, seed);
             SaveWorld(world);
-
             return world;
         }
     }
 
     public static void SaveChunk(ChunkData chunk, string worldName) {
 
-        string chunkName = chunk.position.x + "-" + chunk.position.y;
-
-        // Set our save location and make sure we have a saves folder ready to go.
+        // Include Y in filename so vertical chunks don't overwrite each other.
+        string chunkName = $"{chunk.position.x}_{chunk.position.y}_{chunk.position.z}";
         string savePath = World.Instance.appPath + "/saves/" + worldName + "/chunks/";
 
         if (!Directory.Exists(savePath))
@@ -81,26 +73,24 @@ public static class SaveSystem {
 
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(savePath + chunkName + ".chunk", FileMode.Create);
-
         formatter.Serialize(stream, chunk);
         stream.Close();
     }
 
-    public static ChunkData LoadChunk(string worldName, Vector2Int position) {
+    // Load using Vector3Int key (block-space chunk origin).
+    public static ChunkData LoadChunk(string worldName, Vector3Int blockOrigin) {
 
-        string chunkName = position.x + "-" + position.y;
-
+        string chunkName = $"{blockOrigin.x}_{blockOrigin.y}_{blockOrigin.z}";
         string loadPath = World.Instance.appPath + "/saves/" + worldName + "/chunks/" + chunkName + ".chunk";
 
         if (File.Exists(loadPath)) {
 
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream(loadPath, FileMode.Open);
-
             ChunkData chunkData = formatter.Deserialize(stream) as ChunkData;
             stream.Close();
-
             return chunkData;
+
         }
 
         return null;

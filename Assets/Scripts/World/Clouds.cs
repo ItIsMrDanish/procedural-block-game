@@ -19,22 +19,19 @@ public class Clouds : MonoBehaviour {
 
     Dictionary<Vector2Int, GameObject> clouds = new Dictionary<Vector2Int, GameObject>();
 
-    // Pre-allocated reusable structs for UpdateClouds to avoid per-call heap allocs.
-    // UpdateClouds is called every time the player crosses a chunk boundary.
     private Vector3 _cloudUpdatePos = Vector3.zero;
     private Vector2Int _cloudUpdateKey = Vector2Int.zero;
 
     private void Start() {
 
         cloudTexWidth = cloudPattern.width;
-        cloudTileSize = VoxelData.ChunkWidth;
+        cloudTileSize = VoxelData.ChunkSize; // Was ChunkWidth.
         offset = new Vector3Int(-(cloudTexWidth / 2), 0, -(cloudTexWidth / 2));
 
         transform.position = new Vector3(VoxelData.WorldCentre, cloudHeight, VoxelData.WorldCentre);
 
         LoadCloudData();
         CreateClouds();
-
     }
 
     private void LoadCloudData() {
@@ -43,11 +40,12 @@ public class Clouds : MonoBehaviour {
         Color[] cloudTex = cloudPattern.GetPixels();
 
         for (int x = 0; x < cloudTexWidth; x++) {
+
             for (int y = 0; y < cloudTexWidth; y++) {
+
                 cloudData[x, y] = (cloudTex[y * cloudTexWidth + x].a > 0);
             }
         }
-
     }
 
     private void CreateClouds() {
@@ -56,6 +54,7 @@ public class Clouds : MonoBehaviour {
             return;
 
         for (int x = 0; x < cloudTexWidth; x += cloudTileSize) {
+
             for (int y = 0; y < cloudTexWidth; y += cloudTileSize) {
 
                 Mesh cloudMesh;
@@ -68,10 +67,8 @@ public class Clouds : MonoBehaviour {
                 position += transform.position - new Vector3(cloudTexWidth / 2f, 0f, cloudTexWidth / 2f);
                 position.y = cloudHeight;
                 clouds.Add(CloudTilePosFromV3(position), CreateCloudTile(cloudMesh, position));
-
             }
         }
-
     }
 
     public void UpdateClouds() {
@@ -82,14 +79,13 @@ public class Clouds : MonoBehaviour {
         Vector3 playerPos = world.player.position;
 
         for (int x = 0; x < cloudTexWidth; x += cloudTileSize) {
+
             for (int y = 0; y < cloudTexWidth; y += cloudTileSize) {
 
-                // Reuse _cloudUpdatePos instead of allocating new Vector3 each iteration.
                 _cloudUpdatePos.x = RoundToCloud(playerPos.x + x + offset.x);
                 _cloudUpdatePos.y = cloudHeight;
                 _cloudUpdatePos.z = RoundToCloud(playerPos.z + y + offset.z);
 
-                // Reuse _cloudUpdateKey instead of allocating new Vector2Int each call.
                 _cloudUpdateKey.x = CloudTileCoordFromFloat(_cloudUpdatePos.x);
                 _cloudUpdateKey.y = CloudTileCoordFromFloat(_cloudUpdatePos.z);
 
@@ -98,13 +94,11 @@ public class Clouds : MonoBehaviour {
 
             }
         }
-
     }
 
     private int RoundToCloud(float value) {
 
         return Mathf.FloorToInt(value / cloudTileSize) * cloudTileSize;
-
     }
 
     private Mesh CreateFastCloudMesh(int x, int z) {
@@ -115,6 +109,7 @@ public class Clouds : MonoBehaviour {
         int vertCount = 0;
 
         for (int xIncrement = 0; xIncrement < cloudTileSize; xIncrement++) {
+
             for (int zIncrement = 0; zIncrement < cloudTileSize; zIncrement++) {
 
                 int xVal = x + xIncrement;
@@ -137,7 +132,6 @@ public class Clouds : MonoBehaviour {
                     triangles.Add(vertCount);
                     triangles.Add(vertCount + 3);
                     vertCount += 4;
-
                 }
             }
         }
@@ -147,7 +141,6 @@ public class Clouds : MonoBehaviour {
         mesh.triangles = triangles.ToArray();
         mesh.normals = normals.ToArray();
         return mesh;
-
     }
 
     private Mesh CreateFancyCloudMesh(int x, int z) {
@@ -175,7 +168,6 @@ public class Clouds : MonoBehaviour {
                                 vert += VoxelData.voxelVerts[VoxelData.voxelTris[p, i]];
                                 vert.y *= cloudDepth;
                                 vertices.Add(vert);
-
                             }
 
                             for (int i = 0; i < 4; i++)
@@ -189,7 +181,6 @@ public class Clouds : MonoBehaviour {
                             triangles.Add(vertCount + 3);
 
                             vertCount += 4;
-
                         }
                     }
                 }
@@ -201,7 +192,6 @@ public class Clouds : MonoBehaviour {
         mesh.triangles = triangles.ToArray();
         mesh.normals = normals.ToArray();
         return mesh;
-
     }
 
     private bool CheckCloudData(Vector3Int point) {
@@ -217,7 +207,6 @@ public class Clouds : MonoBehaviour {
         if (point.z > cloudTexWidth - 1) z = 0;
 
         return cloudData[x, z];
-
     }
 
     private GameObject CreateCloudTile(Mesh mesh, Vector3 position) {
@@ -231,13 +220,11 @@ public class Clouds : MonoBehaviour {
         mR.material = cloudMaterial;
         mF.mesh = mesh;
         return newCloudTile;
-
     }
 
     private Vector2Int CloudTilePosFromV3(Vector3 pos) {
 
         return new Vector2Int(CloudTileCoordFromFloat(pos.x), CloudTileCoordFromFloat(pos.z));
-
     }
 
     private int CloudTileCoordFromFloat(float value) {
@@ -245,12 +232,11 @@ public class Clouds : MonoBehaviour {
         float a = value / (float)cloudTexWidth;
         a -= Mathf.FloorToInt(a);
         return Mathf.FloorToInt((float)cloudTexWidth * a);
-
     }
-
 }
 
 public enum CloudStyle {
+
     Off,
     Fast,
     Fancy

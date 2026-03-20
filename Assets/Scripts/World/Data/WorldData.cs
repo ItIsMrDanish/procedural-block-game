@@ -8,8 +8,9 @@ public class WorldData {
     public string worldName = "Prototype";
     public int seed;
 
+    // Key: block-space origin of chunk (always a multiple of ChunkSize).
     [System.NonSerialized]
-    public Dictionary<Vector2Int, ChunkData> chunks = new Dictionary<Vector2Int, ChunkData>();
+    public Dictionary<Vector3Int, ChunkData> chunks = new Dictionary<Vector3Int, ChunkData>();
 
     [System.NonSerialized]
     public List<ChunkData> modifiedChunks = new List<ChunkData>();
@@ -32,96 +33,115 @@ public class WorldData {
         seed = wD.seed;
     }
 
-    public ChunkData RequestChunk(Vector2Int coord, bool create) {
+    // -------------------------------------------------------
+    // Converts any block position to the chunk origin key.
+    // -------------------------------------------------------
+    private static Vector3Int BlockToChunkOrigin(Vector3Int pos) {
+
+        return new Vector3Int(
+            Mathf.FloorToInt((float)pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt((float)pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt((float)pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+    }
+
+    private static Vector3Int BlockToChunkOrigin(Vector3 pos) {
+
+        return new Vector3Int(
+            Mathf.FloorToInt(pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt(pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt(pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+    }
+
+    public ChunkData RequestChunk(Vector3Int blockOrigin, bool create) {
 
         ChunkData c;
 
         lock (World.Instance.ChunkListThreadLock) {
 
-            if (chunks.ContainsKey(coord))
-                c = chunks[coord];
-            else if (!create)
-                c = null;
-            else {
-                LoadChunk(coord);
-                c = chunks[coord];
-            }
+            if (chunks.TryGetValue(blockOrigin, out c))
+                return c;
+
+            if (!create)
+                return null;
+
+            LoadChunk(blockOrigin);
+            chunks.TryGetValue(blockOrigin, out c);
         }
 
         return c;
     }
 
-    public void LoadChunk(Vector2Int coord) {
+    public void LoadChunk(Vector3Int blockOrigin) {
 
-        if (chunks.ContainsKey(coord))
-            return;
+        if (chunks.ContainsKey(blockOrigin)) return;
 
-        ChunkData chunk = SaveSystem.LoadChunk(worldName, coord);
+        ChunkData chunk = SaveSystem.LoadChunk(worldName, blockOrigin);
         if (chunk != null) {
-            chunks.Add(coord, chunk);
+
+            chunks.Add(blockOrigin, chunk);
             return;
         }
 
-        chunks.Add(coord, new ChunkData(coord));
-        chunks[coord].Populate();
+        chunks.Add(blockOrigin, new ChunkData(blockOrigin));
+        chunks[blockOrigin].Populate();
+    }
+
+    bool IsVoxelInWorld(Vector3Int pos) {
+
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
+               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
+               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     bool IsVoxelInWorld(Vector3 pos) {
 
-        if (pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels && pos.y >= 0 && pos.y < VoxelData.ChunkHeight && pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels)
-            return true;
-        else
-            return false;
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
+               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
+               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     public void SetVoxel(Vector3 pos, byte value, int direction) {
 
-        // If the voxel is outside of the world we don't need to do anything with it.
-        if (!IsVoxelInWorld(pos))
-            return;
+        if (!IsVoxelInWorld(pos)) return;
 
-        // Find out the ChunkDCoord value of our voxel's chunk.
-        int x = Mathf.FloorToInt(pos.x / VoxelData.ChunkWidth);
-        int z = Mathf.FloorToInt(pos.z / VoxelData.ChunkWidth);
+        Vector3Int origin = BlockToChunkOrigin(pos);
+        ChunkData chunk = RequestChunk(origin, true);
 
-        // Then reverse that to get the position of the chunk.
-        x *= VoxelData.ChunkWidth;
-        z *= VoxelData.ChunkWidth;
+        Vector3Int local = new Vector3Int(
+            Mathf.FloorToInt(pos.x) - origin.x,
+            Mathf.FloorToInt(pos.y) - origin.y,
+            Mathf.FloorToInt(pos.z) - origin.z);
 
-        // Check if the chunk exists. If not, create it.
-        ChunkData chunk = RequestChunk(new Vector2Int(x, z), true);
-
-        // Then create a Vector3Int with the position of our voxel *within* the chunk.
-        Vector3Int voxel = new Vector3Int((int)(pos.x - x), (int)pos.y, (int)(pos.z - z));
-
-        // Then set the voxel in our chunk.
-        chunk.ModifyVoxel(voxel, value, direction);
+        chunk.ModifyVoxel(local, value, direction);
     }
 
     public VoxelState GetVoxel(Vector3 pos) {
 
-        // If the voxel is outside of the world we don't need to do anything with it.
-        if (!IsVoxelInWorld(pos))
-            return null;
+        if (!IsVoxelInWorld(pos)) return null;
 
-        // Find out the ChunkDCoord value of our voxel's chunk.
-        int x = Mathf.FloorToInt(pos.x / VoxelData.ChunkWidth);
-        int z = Mathf.FloorToInt(pos.z / VoxelData.ChunkWidth);
+        Vector3Int origin = BlockToChunkOrigin(pos);
+        ChunkData chunk = RequestChunk(origin, false);
 
-        // Then reverse that to get the position of the chunk.
-        x *= VoxelData.ChunkWidth;
-        z *= VoxelData.ChunkWidth;
+        if (chunk == null) return null;
 
-        // Check if the chunk exists. If not, create it.
-        ChunkData chunk = RequestChunk(new Vector2Int(x, z), false);
+        Vector3Int local = new Vector3Int(
+            Mathf.FloorToInt(pos.x) - origin.x,
+            Mathf.FloorToInt(pos.y) - origin.y,
+            Mathf.FloorToInt(pos.z) - origin.z);
 
-        if (chunk == null)
-            return null;
+        return chunk.map[local.x, local.y, local.z];
+    }
 
-        // Then create a Vector3Int with the position of our voxel *within* the chunk.
-        Vector3Int voxel = new Vector3Int((int)(pos.x - x), (int)pos.y, (int)(pos.z - z));
+    // Integer overload — avoids float conversion for internal calls.
+    public VoxelState GetVoxel(Vector3Int pos) {
 
-        // Then set the voxel in our chunk.
-        return chunk.map[voxel.x, voxel.y, voxel.z];
+        if (!IsVoxelInWorld(pos)) return null;
+
+        Vector3Int origin = BlockToChunkOrigin(pos);
+        ChunkData chunk = RequestChunk(origin, false);
+
+        if (chunk == null) return null;
+
+        return chunk.map[pos.x - origin.x, pos.y - origin.y, pos.z - origin.z];
     }
 }

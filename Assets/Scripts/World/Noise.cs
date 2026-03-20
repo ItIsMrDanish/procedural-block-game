@@ -9,12 +9,13 @@ public static class Noise {
         position.x += (offset + VoxelData.seed + 0.1f);
         position.y += (offset + VoxelData.seed + 0.1f);
 
-        return Mathf.PerlinNoise(position.x / VoxelData.ChunkWidth * scale, position.y / VoxelData.ChunkWidth * scale);
+        // Was ChunkWidth — now ChunkSize since chunks are cubic.
+        return Mathf.PerlinNoise(
+            position.x / VoxelData.ChunkSize * scale,
+            position.y / VoxelData.ChunkSize * scale);
     }
 
     public static bool Get3DPerlin(Vector3 position, float offset, float scale, float threshold) {
-
-        // https://www.youtube.com/watch?v=Aga0TBJkchM Carpilot on YouTube
 
         float x = (position.x + offset + VoxelData.seed + 0.1f) * scale;
         float y = (position.y + offset + VoxelData.seed + 0.1f) * scale;
@@ -27,10 +28,13 @@ public static class Noise {
         float CB = Mathf.PerlinNoise(z, y);
         float CA = Mathf.PerlinNoise(z, x);
 
-        if ((AB + BC + AC + BA + CB + CA) / 6f > threshold)
-            return true;
-        else
-            return false;
+        return (AB + BC + AC + BA + CB + CA) / 6f > threshold;
+    }
+
+    // Integer overload — avoids Vector3 allocation when called with Vector3Int positions.
+    public static bool Get3DPerlin(Vector3Int position, float offset, float scale, float threshold) {
+
+        return Get3DPerlin(new Vector3(position.x, position.y, position.z), offset, scale, threshold);
     }
 }
 

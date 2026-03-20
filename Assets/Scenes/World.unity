@@ -1422,17 +1422,18 @@ MonoBehaviour:
     version: 0.0.0.01
     loadDistance: 4
     viewDistance: 4
-    enableThreading: 1
+    verticalViewDistance: 3
+    enableThreading: 0
     clouds: 1
-    enableAnimatedChunks: 1
+    enableAnimatedChunks: 0
     mouseSensitivity: 2
   biomes:
   - {fileID: 11400000, guid: cd5740f276caa9f499bfa934d10444a4, type: 2}
   - {fileID: 11400000, guid: 8ab90978f71946e479046d04672f47f3, type: 2}
   - {fileID: 11400000, guid: 02b37dc7b761c194ea34d8519d607e38, type: 2}
   globalLightLevel: 0.8
-  day: {r: 0, g: 0.8844981, b: 1, a: 0}
-  night: {r: 0, g: 0.030120762, b: 0.20754719, a: 0}
+  day: {r: 0, g: 0.8844981, b: 1, a: 1}
+  night: {r: 0, g: 0.030120762, b: 0.20754719, a: 1}
   player: {fileID: 357234897}
   _player: {fileID: 357234898}
   spawnPosition: {x: 0, y: 0, z: 0}
@@ -1641,7 +1642,7 @@ MonoBehaviour:
     meshData: {fileID: 11400000, guid: 13c8c85187c89454a88e72114de05e7d, type: 2}
     renderNeighborFaces: 1
     isWater: 1
-    opacity: 15
+    opacity: 0
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     backFaceTexture: 18

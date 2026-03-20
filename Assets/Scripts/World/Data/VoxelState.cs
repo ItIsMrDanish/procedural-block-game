@@ -13,10 +13,11 @@ public class VoxelState {
     [System.NonSerialized] public VoxelNeighbours neighbours;
     [System.NonSerialized] public Vector3Int position;
 
-    // Pre-allocated reusable list for darkening neighbours.
-    // Previously allocated new List<int>() EVERY time light changed — a massive GC source
-    // since light changes happen for every voxel during world gen and chunk updates.
-    [System.NonSerialized] private static readonly List<int> _neighboursToDarken = new List<int>(6);
+    // NOT static — was previously static readonly which meant all VoxelState instances
+    // on all threads shared the same list. When two chunks updated simultaneously on the
+    // background thread both would write to the same list causing corruption and crashes.
+    // Now it's per-instance, which costs a tiny bit more memory but is thread-safe.
+    [System.NonSerialized] private readonly List<int> _neighboursToDarken = new List<int>(6);
 
     public byte light {
 
@@ -68,6 +69,7 @@ public class VoxelState {
     }
 
     public Vector3Int globalPosition {
+
         get {
             return new Vector3Int(
                 position.x + chunkData.position.x,
@@ -77,10 +79,12 @@ public class VoxelState {
     }
 
     public float lightAsFloat {
+
         get { return (float)light * VoxelData.unitOfLight; }
     }
 
     public byte castLight {
+
         get {
             int lightLevel = _light - properties.opacity - 1;
             if (lightLevel < 0) lightLevel = 0;
@@ -105,9 +109,9 @@ public class VoxelState {
     }
 
     public BlockType properties {
+
         get { return World.Instance.blocktypes[id]; }
     }
-
 }
 
 public class VoxelNeighbours {
@@ -124,6 +128,7 @@ public class VoxelNeighbours {
         get {
 
             if (_neighbours[index] == null) {
+
                 _neighbours[index] = World.Instance.worldData.GetVoxel(
                     parent.globalPosition + VoxelData.faceChecks[index]);
                 ReturnNeighbour(index);
@@ -131,7 +136,9 @@ public class VoxelNeighbours {
 
             return _neighbours[index];
         }
+
         set {
+
             _neighbours[index] = value;
             ReturnNeighbour(index);
         }
@@ -143,7 +150,5 @@ public class VoxelNeighbours {
 
         if (_neighbours[index].neighbours[VoxelData.revFaceCheckIndex[index]] != parent)
             _neighbours[index].neighbours[VoxelData.revFaceCheckIndex[index]] = parent;
-
     }
-
 }

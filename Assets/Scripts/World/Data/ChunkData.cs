@@ -5,47 +5,57 @@ using UnityEngine;
 [System.Serializable]
 public class ChunkData {
 
-    // The global position of the chunk. ie, (16, 16) NOT (1, 1). We want to be able to
-    // access it as a Vector2Int, but Vector2Int's are not serialized so we won't be able
-    // to save them. So we'll store them as ints.
-    int x;
-    int y;
-    public Vector2Int position {
+    // Global block position of the chunk's origin (bottom-back-left corner).
+    // Stored as ints because Vector3Int is not serializable.
+    int _x, _y, _z;
 
-        get { return new Vector2Int(x, y); }
-        set {
+    public Vector3Int position {
 
-            x = value.x;
-            y = value.y;
-        }
+        get { return new Vector3Int(_x, _y, _z); }
+        set { _x = value.x; _y = value.y; _z = value.z; }
     }
 
-    public ChunkData(Vector2Int pos) { position = pos; }
-    public ChunkData(int _x, int _y) { x = _x; y = _y; }
+    public ChunkData(Vector3Int pos) { position = pos; }
+    public ChunkData(int x, int y, int z) { _x = x; _y = y; _z = z; }
 
     [System.NonSerialized] public Chunk chunk;
 
-    [HideInInspector] // Displaying lots of data in the inspector slows it down even more so hide this one.
-    public VoxelState[,,] map = new VoxelState[VoxelData.ChunkWidth, VoxelData.ChunkHeight, VoxelData.ChunkWidth];
+    // 16 x 16 x 16 voxel map.
+    [HideInInspector]
+    public VoxelState[,,] map = new VoxelState[
+        VoxelData.ChunkSize,
+        VoxelData.ChunkSize,
+        VoxelData.ChunkSize];
 
     public void Populate() {
 
-        for (int y = 0; y < VoxelData.ChunkHeight; y++) {
-            for (int x = 0; x < VoxelData.ChunkWidth; x++) {
-                for (int z = 0; z < VoxelData.ChunkWidth; z++) {
+        for (int y = 0; y < VoxelData.ChunkSize; y++) {
 
-                    Vector3 voxelGlobalPos = new Vector3(x + position.x, y, z + position.y);
+            for (int x = 0; x < VoxelData.ChunkSize; x++) {
 
-                    map[x, y, z] = new VoxelState(World.Instance.GetVoxel(voxelGlobalPos), this, new Vector3Int(x, y, z));
+                for (int z = 0; z < VoxelData.ChunkSize; z++) {
 
-                    // Loop through each of the voxels neighbours and attempt to set them.
+                    // Global block position of this voxel.
+                    Vector3Int globalPos = new Vector3Int(
+                        x + _x,
+                        y + _y,
+                        z + _z);
+
+                    map[x, y, z] = new VoxelState(
+                        World.Instance.GetVoxel(globalPos),
+                        this,
+                        new Vector3Int(x, y, z));
+
+                    // Set neighbours that are already in this chunk.
                     for (int p = 0; p < 6; p++) {
 
-                        Vector3Int neighbourV3 = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
-                        if (IsVoxelInChunk(neighbourV3)) // If in chunk, get voxel straight from map.
-                            map[x, y, z].neighbours[p] = VoxelFromV3Int(neighbourV3);
-                        else // Else see if we can get the neighbour from WorldData.
-                            map[x, y, z].neighbours[p] = World.Instance.worldData.GetVoxel(voxelGlobalPos + VoxelData.faceChecks[p]);
+                        Vector3Int nv = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
+
+                        if (IsVoxelInChunk(nv))
+                            map[x, y, z].neighbours[p] = VoxelFromV3Int(nv);
+                        else
+                            map[x, y, z].neighbours[p] = World.Instance.worldData.GetVoxel(
+                                globalPos + VoxelData.faceChecks[p]);
                     }
                 }
             }
@@ -57,51 +67,50 @@ public class ChunkData {
 
     public void ModifyVoxel(Vector3Int pos, byte _id, int direction) {
 
-        // If we've somehow tried to change a block for the same block, just return.
-        if (map[pos.x, pos.y, pos.z].id == _id)
-            return;
+        if (map[pos.x, pos.y, pos.z].id == _id) return;
 
-        // Cache voxels for easier code.
         VoxelState voxel = map[pos.x, pos.y, pos.z];
-        BlockType newVoxel = World.Instance.blocktypes[_id];
-
-        // Cache the old opacity value.
         byte oldOpacity = voxel.properties.opacity;
 
-        // Set voxel to new ID.
         voxel.id = _id;
         voxel.orientation = direction;
 
-        // If the opacity values of the voxel have changed and the voxel above is in direct sunlight
-        // (or is above the world) recast light from that voxel downwards.
-        if (voxel.properties.opacity != oldOpacity &&
-            (pos.y == VoxelData.ChunkHeight - 1 || map[pos.x, pos.y + 1, pos.z].light == 15)) {
+        if (voxel.properties.opacity != oldOpacity) {
 
-            Lighting.CastNaturalLight(this, pos.x, pos.z, pos.y + 1);
+            // Recast sunlight downward from this voxel's column if needed.
+            // We cast from this chunk's top or from the voxel above, whichever applies.
+            int startY = pos.y + 1;
+            if (startY >= VoxelData.ChunkSize) {
+
+                // The voxel is at the top of this chunk — ask the chunk above.
+                Lighting.CastNaturalLightFromAbove(this, pos.x, pos.z);
+            } else if (map[pos.x, startY, pos.z].light == 15) {
+
+                Lighting.CastNaturalLight(this, pos.x, pos.z, startY);
+            }
         }
 
         if (voxel.properties.isActive && BlockBehaviour.Active(voxel))
             voxel.chunkData.chunk.AddActiveVoxel(voxel);
+
         for (int i = 0; i < 6; i++) {
+
             if (voxel.neighbours[i] != null)
                 if (voxel.neighbours[i].properties.isActive && BlockBehaviour.Active(voxel.neighbours[i]))
                     voxel.neighbours[i].chunkData.chunk.AddActiveVoxel(voxel.neighbours[i]);
         }
 
-        // Add this ChunkData to the modified chunks list.
         World.Instance.worldData.AddToModifiedChunkList(this);
 
-        // If we have a chunk attached, add that for updating.
         if (chunk != null)
             World.Instance.AddChunkToUpdate(chunk);
     }
 
     public bool IsVoxelInChunk(int x, int y, int z) {
 
-        if (x < 0 || x > VoxelData.ChunkWidth - 1 || y < 0 || y > VoxelData.ChunkHeight - 1 || z < 0 || z > VoxelData.ChunkWidth - 1)
-            return false;
-        else
-            return true;
+        return x >= 0 && x < VoxelData.ChunkSize &&
+               y >= 0 && y < VoxelData.ChunkSize &&
+               z >= 0 && z < VoxelData.ChunkSize;
     }
 
     public bool IsVoxelInChunk(Vector3Int pos) {

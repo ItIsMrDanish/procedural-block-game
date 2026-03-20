@@ -14,7 +14,10 @@ public class ChunkLoadAnimation : MonoBehaviour {
 
         waitTimer = Random.Range(0f, 3f);
         targetPos = transform.position;
-        transform.position = new Vector3(transform.position.x, -VoxelData.ChunkHeight, transform.position.z);
+
+        // Drop chunk below the world to animate it rising up.
+        // Previously used ChunkHeight (128), now uses ChunkSize (16) since chunks are cubic.
+        transform.position = new Vector3(transform.position.x, -VoxelData.ChunkSize, transform.position.z);
     }
 
     private void Update() {
@@ -25,6 +28,7 @@ public class ChunkLoadAnimation : MonoBehaviour {
         } else {
 
             transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * speed);
+
             if ((targetPos.y - transform.position.y) < 0.05f) {
                 transform.position = targetPos;
                 Destroy(this);
