@@ -1,12 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
-using System.Collections;
 using UnityEngine.UI;
 using TMPro;
 
-public class Scenemanage : MonoBehaviour
-{
+public class Scenemanage : MonoBehaviour {
 
     public GameObject mainMenuObject;
     public GameObject settingsObject;
@@ -23,19 +21,16 @@ public class Scenemanage : MonoBehaviour
     public Toggle chunkAnimToggle;
     public TMP_Dropdown clouds;
 
-    // Name of your loading scene (must be added to Build Settings)
-    private const string LoadingSceneName = "Loading";
-
-    // Static so the loading scene can read it
-    public static string TargetScene { get; private set; }
-
     Settings settings;
 
-    private void Awake()
-    {
+    private void Awake() {
 
-        if (!File.Exists(Application.dataPath + "/settings.cfg"))
-        {
+        // Ensure the SceneLoader singleton exists
+        if (SceneLoader.Instance == null) {
+            new GameObject("SceneLoader").AddComponent<SceneLoader>();
+        }
+
+        if (!File.Exists(Application.dataPath + "/settings.cfg")) {
 
             Debug.Log("No settings file found, creating new one.");
 
@@ -43,9 +38,7 @@ public class Scenemanage : MonoBehaviour
             string jsonExport = JsonUtility.ToJson(settings);
             File.WriteAllText(Application.dataPath + "/settings.cfg", jsonExport);
 
-        }
-        else
-        {
+        } else {
 
             Debug.Log("Settings file found, loading settings.");
 
@@ -54,23 +47,19 @@ public class Scenemanage : MonoBehaviour
         }
     }
 
-    public void LoadScene(int sceneID)
-    {
+    public void LoadScene(int sceneID) {
 
-        TargetScene = SceneUtility.GetScenePathByBuildIndex(sceneID);
-        SceneManager.LoadScene(LoadingSceneName, LoadSceneMode.Single);
+        string sceneName = SceneUtility.GetScenePathByBuildIndex(sceneID);
+        SceneLoader.Instance.LoadWithLoadingScreen(sceneName);
     }
 
-    public void StartGame()
-    {
+    public void StartGame() {
 
         VoxelData.seed = Mathf.Abs(seedField.text.GetHashCode()) / VoxelData.WorldSizeInChunks;
-        TargetScene = "main";
-        SceneManager.LoadScene(LoadingSceneName, LoadSceneMode.Single);
+        SceneLoader.Instance.LoadWithLoadingScreen("main");
     }
 
-    public void EnterSettings()
-    {
+    public void EnterSettings() {
 
         viewDstSlider.value = settings.viewDistance;
         UpdateViewDstSlider();
@@ -84,8 +73,7 @@ public class Scenemanage : MonoBehaviour
         settingsObject.SetActive(true);
     }
 
-    public void LeaveSettings()
-    {
+    public void LeaveSettings() {
 
         settings.viewDistance = (int)viewDstSlider.value;
         settings.mouseSensitivity = mouseSlider.value;
@@ -100,20 +88,17 @@ public class Scenemanage : MonoBehaviour
         settingsObject.SetActive(false);
     }
 
-    public void QuitGame()
-    {
+    public void QuitGame() {
 
         Application.Quit();
     }
 
-    public void UpdateViewDstSlider()
-    {
+    public void UpdateViewDstSlider() {
 
         viewDstText.text = "View Distance: " + viewDstSlider.value;
     }
 
-    public void UpdateMouseSlider()
-    {
+    public void UpdateMouseSlider() {
 
         mouseTxtSlider.text = "Mouse Sensitivity: " + mouseSlider.value.ToString("F1");
     }
