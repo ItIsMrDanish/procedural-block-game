@@ -16,8 +16,8 @@ public class Toolbar : MonoBehaviour {
 
         input = new InputSystem();
 
-        input.Player.NextItemToolbelt.performed += _ => ScrollSlot(1);
-        input.Player.PreviousItemToolbelt.performed += _ => ScrollSlot(-1);
+        input.Player.NextItemToolbelt.performed += _ => ScrollSlot(-1);
+        input.Player.PreviousItemToolbelt.performed += _ => ScrollSlot(1);
 
         input.Player.SelectSlot1.performed += _ => SetSlot(0);
         input.Player.SelectSlot2.performed += _ => SetSlot(1);
