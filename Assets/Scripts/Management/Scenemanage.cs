@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine.UI;
 using TMPro;
 
-public class Scenemanage : MonoBehaviour {
+public class SceneManage : MonoBehaviour {
 
     public GameObject mainMenuObject;
     public GameObject settingsObject;
@@ -25,11 +25,6 @@ public class Scenemanage : MonoBehaviour {
 
     private void Awake() {
 
-        // Ensure the SceneLoader singleton exists
-        if (SceneLoader.Instance == null) {
-            new GameObject("SceneLoader").AddComponent<SceneLoader>();
-        }
-
         if (!File.Exists(Application.dataPath + "/settings.cfg")) {
 
             Debug.Log("No settings file found, creating new one.");
@@ -49,14 +44,17 @@ public class Scenemanage : MonoBehaviour {
 
     public void LoadScene(int sceneID) {
 
-        string sceneName = SceneUtility.GetScenePathByBuildIndex(sceneID);
-        SceneLoader.Instance.LoadWithLoadingScreen(sceneName);
+        PlayerPrefs.SetString("TargetScene", SceneUtility.GetScenePathByBuildIndex(sceneID));
+        PlayerPrefs.Save();
+        SceneManager.LoadScene("Loading");
     }
 
     public void StartGame() {
 
         VoxelData.seed = Mathf.Abs(seedField.text.GetHashCode()) / VoxelData.WorldSizeInChunks;
-        SceneLoader.Instance.LoadWithLoadingScreen("main");
+        PlayerPrefs.SetString("TargetScene", "World");
+        PlayerPrefs.Save();
+        SceneManager.LoadScene("Loading");
     }
 
     public void EnterSettings() {
