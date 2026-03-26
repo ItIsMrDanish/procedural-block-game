@@ -25,54 +25,83 @@ public class ChunkData {
 
     public void Populate() {
 
+        int chunkTopY = _y + VoxelData.ChunkSize; // Exclusive top Y of this chunk
+        int chunkBottomY = _y;                        // Inclusive bottom Y
+
         // -------------------------------------------------------
-        // KEY PERFORMANCE FIX:
-        // Cache column data (surface height + biome) per X,Z pair.
-        // Previously GetSurfaceHeight + GetBiome were called for every
-        // single voxel = 4096 calls per chunk, each doing 7+ noise samples.
-        // Now we calculate once per column = 256 calls, then reuse for
-        // all 16 Y voxels in that column.
+        // EARLY EXIT 1: Chunk is entirely ABOVE the world surface for all columns.
+        // Find the max possible surface height in this chunk's footprint.
+        // If even the highest nearby surface is below this chunk's bottom,
+        // fill everything with air (or water) — zero noise calls needed.
+        //
+        // We check a sampled grid (every 4 blocks) rather than every column
+        // to avoid doing full noise on sky chunks.
         // -------------------------------------------------------
-        var columnCache = new TerrainGenerator.ColumnData[VoxelData.ChunkSize, VoxelData.ChunkSize];
+        int maxSurfaceInFootprint = GetMaxSurfaceEstimate();
+
+        if (chunkBottomY > maxSurfaceInFootprint + 4 &&
+            chunkBottomY > VoxelData.SeaLevel) {
+
+            // Entirely above terrain and above water — fill with air.
+            FillUniform(0);
+            return;
+        }
+
+        // -------------------------------------------------------
+        // EARLY EXIT 2: Chunk is entirely below world bottom.
+        // -------------------------------------------------------
+        if (chunkTopY <= VoxelData.WorldBottomInVoxels + 1) {
+            FillUniform(1); // Bedrock
+            return;
+        }
+
+        // -------------------------------------------------------
+        // NORMAL POPULATE PATH:
+        // Build column cache from HeightmapCache (O(1) if pre-warmed).
+        // -------------------------------------------------------
+        BiomeAttributes[] biomes = World.Instance.biomes;
+        var columnCache = new TerrainGenerator.ColumnData[
+            VoxelData.ChunkSize, VoxelData.ChunkSize];
 
         for (int x = 0; x < VoxelData.ChunkSize; x++) {
             for (int z = 0; z < VoxelData.ChunkSize; z++) {
-
-                int worldX = x + _x;
-                int worldZ = z + _z;
-
-                columnCache[x, z] = TerrainGenerator.GetColumnData(
-                    worldX, worldZ, World.Instance.biomes);
-
+                columnCache[x, z] = HeightmapCache.GetOrCompute(
+                    x + _x, z + _z, biomes);
             }
         }
 
-        // Now iterate all voxels, using cached column data for each Y.
+        // -------------------------------------------------------
+        // Fill voxels using cached column data.
+        // -------------------------------------------------------
         for (int x = 0; x < VoxelData.ChunkSize; x++) {
             for (int z = 0; z < VoxelData.ChunkSize; z++) {
 
                 TerrainGenerator.ColumnData col = columnCache[x, z];
+                int surface = col.surfaceHeight;
 
                 for (int y = 0; y < VoxelData.ChunkSize; y++) {
 
-                    Vector3Int globalPos = new Vector3Int(x + _x, y + _y, z + _z);
+                    int worldY = y + _y;
+                    var worldPos = new Vector3Int(x + _x, worldY, z + _z);
 
-                    byte blockId = TerrainGenerator.GetVoxel(globalPos, col);
+                    byte blockId = TerrainGenerator.GetVoxel(worldPos, col);
 
-                    // Handle flora — queue it from main thread later via EnqueueModification
-                    if (y + _y == col.surfaceHeight &&
-                        y + _y >= VoxelData.SeaLevel &&
+                    // Flora — only at the surface level voxel
+                    if (worldY == surface &&
+                        worldY >= VoxelData.SeaLevel &&
                         col.biome.placeMajorFlora) {
 
-                        Vector2 noisePos = new Vector2(globalPos.x, globalPos.z);
+                        var noisePos = new Vector2(worldPos.x, worldPos.z);
 
-                        if (Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraZoneScale) > col.biome.majorFloraZoneThreshold &&
-                            Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraPlacementScale) > col.biome.majorFloraPlacementThreshold) {
+                        if (Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraZoneScale)
+                                > col.biome.majorFloraZoneThreshold &&
+                            Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraPlacementScale)
+                                > col.biome.majorFloraPlacementThreshold) {
 
                             World.Instance.EnqueueModification(
                                 Structure.GenerateMajorFlora(
                                     col.biome.majorFloraIndex,
-                                    new Vector3(globalPos.x, globalPos.y, globalPos.z),
+                                    new Vector3(worldPos.x, worldY, worldPos.z),
                                     col.biome.minHeight,
                                     col.biome.maxHeight));
                         }
@@ -80,16 +109,17 @@ public class ChunkData {
 
                     map[x, y, z] = new VoxelState(blockId, this, new Vector3Int(x, y, z));
 
-                    // Set neighbours already in this chunk
+                    // Link neighbours that are inside this chunk.
+                    // Border neighbours are looked up from WorldData.
                     for (int p = 0; p < 6; p++) {
 
-                        Vector3Int nv = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
+                        var nv = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
 
                         if (IsVoxelInChunk(nv))
-                            map[x, y, z].neighbours[p] = VoxelFromV3Int(nv);
+                            map[x, y, z].neighbours[p] = map[nv.x, nv.y, nv.z];
                         else
-                            map[x, y, z].neighbours[p] = World.Instance.worldData.GetVoxel(
-                                globalPos + VoxelData.faceChecks[p]);
+                            map[x, y, z].neighbours[p] =
+                                World.Instance.worldData.GetVoxel(worldPos + VoxelData.faceChecks[p]);
                     }
                 }
             }
@@ -123,14 +153,74 @@ public class ChunkData {
 
         for (int i = 0; i < 6; i++) {
             if (voxel.neighbours[i] != null)
-                if (voxel.neighbours[i].properties.isActive && BlockBehaviour.Active(voxel.neighbours[i]))
+                if (voxel.neighbours[i].properties.isActive &&
+                    BlockBehaviour.Active(voxel.neighbours[i]))
                     voxel.neighbours[i].chunkData.chunk.AddActiveVoxel(voxel.neighbours[i]);
         }
 
         World.Instance.worldData.AddToModifiedChunkList(this);
+        if (chunk != null) World.Instance.AddChunkToUpdate(chunk);
 
-        if (chunk != null)
-            World.Instance.AddChunkToUpdate(chunk);
+    }
+
+    // -------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------
+
+    /// <summary>
+    /// Fills every voxel in the chunk with a single block ID.
+    /// Much faster than the normal populate loop.
+    /// </summary>
+    private void FillUniform(byte id) {
+
+        for (int x = 0; x < VoxelData.ChunkSize; x++) {
+            for (int y = 0; y < VoxelData.ChunkSize; y++) {
+                for (int z = 0; z < VoxelData.ChunkSize; z++) {
+
+                    var worldPos = new Vector3Int(x + _x, y + _y, z + _z);
+                    map[x, y, z] = new VoxelState(id, this, new Vector3Int(x, y, z));
+
+                    for (int p = 0; p < 6; p++) {
+                        var nv = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
+                        if (IsVoxelInChunk(nv))
+                            map[x, y, z].neighbours[p] = map[nv.x, nv.y, nv.z];
+                        else
+                            map[x, y, z].neighbours[p] =
+                                World.Instance.worldData.GetVoxel(worldPos + VoxelData.faceChecks[p]);
+                    }
+                }
+            }
+        }
+
+        Lighting.RecalculateNaturaLight(this);
+        World.Instance.worldData.AddToModifiedChunkList(this);
+
+    }
+
+    /// <summary>
+    /// Samples a coarse grid of columns to estimate the maximum surface height
+    /// in this chunk's XZ footprint. Used for early-exit sky chunk detection.
+    /// Only samples 4 corners + centre — 5 calls vs 256.
+    /// </summary>
+    private int GetMaxSurfaceEstimate() {
+
+        int max = int.MinValue;
+        int step = VoxelData.ChunkSize - 1; // Just check corners
+        BiomeAttributes[] biomes = World.Instance.biomes;
+
+        for (int x = 0; x <= step; x += step > 0 ? step : 1) {
+            for (int z = 0; z <= step; z += step > 0 ? step : 1) {
+                var col = HeightmapCache.GetOrCompute(x + _x, z + _z, biomes);
+                if (col.surfaceHeight > max) max = col.surfaceHeight;
+            }
+        }
+
+        // Also check centre
+        int mid = VoxelData.ChunkSize / 2;
+        var midCol = HeightmapCache.GetOrCompute(mid + _x, mid + _z, biomes);
+        if (midCol.surfaceHeight > max) max = midCol.surfaceHeight;
+
+        return max;
 
     }
 

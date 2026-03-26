@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using System.Threading;
 using System.IO;
 using UnityEngine.InputSystem;
+using Debug = UnityEngine.Debug;
 
 public class World : MonoBehaviour {
 
@@ -70,6 +72,15 @@ public class World : MonoBehaviour {
     private List<ChunkCoord> _previouslyActiveChunks = new List<ChunkCoord>();
     private ChunkCoord[] _tickSnapshot = new ChunkCoord[0];
 
+    // Time budget for mesh uploads per frame (milliseconds).
+    // At 60fps a full frame is 16ms. 8ms leaves budget for game logic.
+    private const double MeshBudgetMs = 8.0;
+    private readonly Stopwatch _frameTimer = new Stopwatch();
+
+    // How often to trim the heightmap cache (in player chunk moves)
+    private int _chunkMovesSinceLastTrim = 0;
+    private const int TrimEveryNMoves = 32;
+
     private static int ChunkYToIndex(int chunkY) {
         return chunkY - VoxelData.MinChunkY;
     }
@@ -89,8 +100,10 @@ public class World : MonoBehaviour {
         _player = player.GetComponent<Player>();
 
         debugControls = new InputSystem();
-        debugControls.Debug.ToggleDebugScreen.performed += _ => debugScreen.SetActive(!debugScreen.activeSelf);
-        debugControls.Debug.SaveWorld.performed += _ => SaveSystem.SaveWorld(worldData);
+        debugControls.Debug.ToggleDebugScreen.performed += _ =>
+            debugScreen.SetActive(!debugScreen.activeSelf);
+        debugControls.Debug.SaveWorld.performed += _ =>
+            SaveSystem.SaveWorld(worldData);
         debugControls.Debug.Enable();
 
     }
@@ -114,11 +127,18 @@ public class World : MonoBehaviour {
         Shader.SetGlobalFloat("minGlobalLightLevel", VoxelData.minLightLevel);
         Shader.SetGlobalFloat("maxGlobalLightLevel", VoxelData.maxLightLevel);
 
-        LoadWorld();
+        // Pre-warm heightmap cache BEFORE chunk loading begins.
+        // This runs on the main thread before the background thread starts.
+        // Every chunk populate call will then find its column already cached.
+        HeightmapCache.Clear();
+        int cx = VoxelData.WorldSizeInChunks / 2;
+        int cz = VoxelData.WorldSizeInChunks / 2;
+        HeightmapCache.PreWarm(cx, cz, settings.loadDistance + 1, biomes);
 
+        LoadWorld();
         SetGlobalLightValue();
 
-        // Spawn slightly above sea level — TerrainGenerator will put terrain at ~68-80.
+        // Spawn above sea level. Normal terrain is ~Y 66-75.
         spawnPosition = new Vector3(
             VoxelData.WorldCentre,
             VoxelData.SeaLevel + 30f,
@@ -148,11 +168,11 @@ public class World : MonoBehaviour {
 
     }
 
-    System.Collections.IEnumerator Tick() {
+    IEnumerator Tick() {
 
         while (true) {
 
-            yield return new UnityEngine.WaitForSeconds(VoxelData.tickLength);
+            yield return new WaitForSeconds(VoxelData.tickLength);
 
             int count = activeChunks.Count;
             if (_tickSnapshot.Length != count)
@@ -175,11 +195,29 @@ public class World : MonoBehaviour {
 
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
 
-        if (!playerChunkCoord.Equals(playerLastChunkCoord))
+        if (!playerChunkCoord.Equals(playerLastChunkCoord)) {
             CheckViewDistance();
+            _chunkMovesSinceLastTrim++;
 
-        if (chunksToDraw.Count > 0)
-            chunksToDraw.Dequeue().CreateMesh();
+            // Periodically trim stale heightmap entries to keep memory bounded.
+            if (_chunkMovesSinceLastTrim >= TrimEveryNMoves) {
+                _chunkMovesSinceLastTrim = 0;
+                HeightmapCache.Trim(
+                    playerChunkCoord.x,
+                    playerChunkCoord.z,
+                    settings.viewDistance + 4);
+            }
+        }
+
+        // Time-budgeted mesh upload: drain as many as fit within MeshBudgetMs.
+        // This prevents the main thread from stalling on a large initial load queue.
+        if (chunksToDraw.Count > 0) {
+            _frameTimer.Restart();
+            while (chunksToDraw.Count > 0 &&
+                   _frameTimer.Elapsed.TotalMilliseconds < MeshBudgetMs) {
+                chunksToDraw.Dequeue().CreateMesh();
+            }
+        }
 
         if (!settings.enableThreading) {
             if (!applyingModifications) ApplyModifications();
@@ -210,7 +248,6 @@ public class World : MonoBehaviour {
     }
 
     public void AddChunkToUpdate(Chunk chunk) { AddChunkToUpdate(chunk, false); }
-
     public void AddChunkToUpdate(Chunk chunk, bool insert) {
 
         lock (ChunkUpdateThreadLock) {
@@ -259,6 +296,7 @@ public class World : MonoBehaviour {
         }
 
         debugControls?.Debug.Disable();
+        HeightmapCache.Clear();
 
     }
 
@@ -269,9 +307,9 @@ public class World : MonoBehaviour {
             applyingModifications = true;
 
             while (modifications.Count > 0) {
-                Queue<VoxelMod> queue = modifications.Dequeue();
-                while (queue.Count > 0) {
-                    VoxelMod v = queue.Dequeue();
+                Queue<VoxelMod> q = modifications.Dequeue();
+                while (q.Count > 0) {
+                    VoxelMod v = q.Dequeue();
                     worldData.SetVoxel(v.position, v.id, 1);
                 }
             }
@@ -348,6 +386,9 @@ public class World : MonoBehaviour {
         foreach (ChunkCoord c in _previouslyActiveChunks)
             chunks[c.x, ChunkYToIndex(c.y), c.z].isActive = false;
 
+        // Pre-warm heightmap for newly visible region
+        HeightmapCache.PreWarm(coord.x, coord.z, hd + 1, biomes);
+
     }
 
     public bool CheckForVoxel(Vector3 pos) {
@@ -361,7 +402,6 @@ public class World : MonoBehaviour {
     public VoxelState GetVoxelState(Vector3 pos) { return worldData.GetVoxel(pos); }
 
     public bool inUI {
-
         get { return _inUI; }
         set {
             _inUI = value;
@@ -388,7 +428,7 @@ public class World : MonoBehaviour {
 }
 
 // -------------------------------------------------------
-// Data types
+// Data types (kept in World.cs for convenience)
 // -------------------------------------------------------
 
 [System.Serializable]
@@ -415,20 +455,16 @@ public class BlockType {
             case 3: return bottomFaceTexture;
             case 4: return leftFaceTexture;
             case 5: return rightFaceTexture;
-            default: Debug.Log("Error in GetTextureID; invalid face index"); return 0;
+            default: UnityEngine.Debug.Log("Error in GetTextureID; invalid face index"); return 0;
         }
     }
-
 }
 
 public class VoxelMod {
-
     public Vector3 position;
     public byte id;
-
     public VoxelMod() { position = Vector3.zero; id = 0; }
     public VoxelMod(Vector3 _pos, byte _id) { position = _pos; id = _id; }
-
 }
 
 [System.Serializable]
