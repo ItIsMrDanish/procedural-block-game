@@ -484,5 +484,5 @@ public class Settings {
     [Header("Controls")]
     [Range(0.1f, 10f)]
     public float mouseSensitivity = 2.0f;
-
+    public int frameRateIndex = 1;
 }

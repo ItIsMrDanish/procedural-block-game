@@ -4,7 +4,8 @@ using System.IO;
 using UnityEngine.UI;
 using TMPro;
 
-public class SceneManage : MonoBehaviour {
+public class SceneManagement : MonoBehaviour
+{
 
     public GameObject mainMenuObject;
     public GameObject settingsObject;
@@ -20,12 +21,15 @@ public class SceneManage : MonoBehaviour {
     public Toggle threadingToggle;
     public Toggle chunkAnimToggle;
     public TMP_Dropdown clouds;
+    public TMP_Dropdown frameRate;
 
     Settings settings;
 
-    private void Awake() {
+    private void Awake()
+    {
 
-        if (!File.Exists(Application.dataPath + "/settings.cfg")) {
+        if (!File.Exists(Application.dataPath + "/settings.cfg"))
+        {
 
             Debug.Log("No settings file found, creating new one.");
 
@@ -33,7 +37,9 @@ public class SceneManage : MonoBehaviour {
             string jsonExport = JsonUtility.ToJson(settings);
             File.WriteAllText(Application.dataPath + "/settings.cfg", jsonExport);
 
-        } else {
+        }
+        else
+        {
 
             Debug.Log("Settings file found, loading settings.");
 
@@ -41,23 +47,8 @@ public class SceneManage : MonoBehaviour {
             settings = JsonUtility.FromJson<Settings>(jsonImport);
         }
     }
-
-    public void LoadScene(int sceneID) {
-
-        PlayerPrefs.SetString("TargetScene", SceneUtility.GetScenePathByBuildIndex(sceneID));
-        PlayerPrefs.Save();
-        SceneManager.LoadScene("Loading");
-    }
-
-    public void StartGame() {
-
-        VoxelData.seed = Mathf.Abs(seedField.text.GetHashCode()) / VoxelData.WorldSizeInChunks;
-        PlayerPrefs.SetString("TargetScene", "World");
-        PlayerPrefs.Save();
-        SceneManager.LoadScene("Loading");
-    }
-
-    public void EnterSettings() {
+    public void EnterSettings()
+    {
 
         viewDstSlider.value = settings.viewDistance;
         UpdateViewDstSlider();
@@ -66,18 +57,21 @@ public class SceneManage : MonoBehaviour {
         threadingToggle.isOn = settings.enableThreading;
         chunkAnimToggle.isOn = settings.enableAnimatedChunks;
         clouds.value = (int)settings.clouds;
+        frameRate.value = settings.frameRateIndex;
 
         mainMenuObject.SetActive(false);
         settingsObject.SetActive(true);
     }
 
-    public void LeaveSettings() {
+    public void LeaveSettings()
+    {
 
         settings.viewDistance = (int)viewDstSlider.value;
         settings.mouseSensitivity = mouseSlider.value;
         settings.enableThreading = threadingToggle.isOn;
         settings.enableAnimatedChunks = chunkAnimToggle.isOn;
         settings.clouds = (CloudStyle)clouds.value;
+        settings.frameRateIndex = frameRate.value;
 
         string jsonExport = JsonUtility.ToJson(settings);
         File.WriteAllText(Application.dataPath + "/settings.cfg", jsonExport);
@@ -86,17 +80,20 @@ public class SceneManage : MonoBehaviour {
         settingsObject.SetActive(false);
     }
 
-    public void QuitGame() {
+    public void QuitGame()
+    {
 
         Application.Quit();
     }
 
-    public void UpdateViewDstSlider() {
+    public void UpdateViewDstSlider()
+    {
 
         viewDstText.text = "View Distance: " + viewDstSlider.value;
     }
 
-    public void UpdateMouseSlider() {
+    public void UpdateMouseSlider()
+    {
 
         mouseTxtSlider.text = "Mouse Sensitivity: " + mouseSlider.value.ToString("F1");
     }
