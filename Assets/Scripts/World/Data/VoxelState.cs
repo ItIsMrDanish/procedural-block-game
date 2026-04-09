@@ -13,10 +13,8 @@ public class VoxelState {
     [System.NonSerialized] public VoxelNeighbours neighbours;
     [System.NonSerialized] public Vector3Int position;
 
-    // NOT static — was previously static readonly which meant all VoxelState instances
-    // on all threads shared the same list. When two chunks updated simultaneously on the
-    // background thread both would write to the same list causing corruption and crashes.
-    // Now it's per-instance, which costs a tiny bit more memory but is thread-safe.
+    // Per-instance — NOT static. Previously static caused thread corruption
+    // when two chunks updated simultaneously on the background thread.
     [System.NonSerialized] private readonly List<int> _neighboursToDarken = new List<int>(6);
 
     public byte light {
@@ -28,7 +26,6 @@ public class VoxelState {
 
             byte oldLightValue = _light;
             byte oldCastValue = castLight;
-
             _light = value;
 
             if (_light < oldLightValue) {
@@ -36,7 +33,6 @@ public class VoxelState {
                 _neighboursToDarken.Clear();
 
                 for (int p = 0; p < 6; p++) {
-
                     if (neighbours[p] != null) {
                         if (neighbours[p].light <= oldCastValue)
                             _neighboursToDarken.Add(p);
@@ -69,22 +65,22 @@ public class VoxelState {
     }
 
     public Vector3Int globalPosition {
-
         get {
+            // BUG FIX: was using chunkData.position.y for Z coordinate.
+            // This caused wrong global positions for all border-chunk neighbour
+            // lookups, producing visual cracks and incorrect lighting.
             return new Vector3Int(
                 position.x + chunkData.position.x,
-                position.y,
-                position.z + chunkData.position.y);
+                position.y + chunkData.position.y,
+                position.z + chunkData.position.z);
         }
     }
 
     public float lightAsFloat {
-
         get { return (float)light * VoxelData.unitOfLight; }
     }
 
     public byte castLight {
-
         get {
             int lightLevel = _light - properties.opacity - 1;
             if (lightLevel < 0) lightLevel = 0;
@@ -97,21 +93,19 @@ public class VoxelState {
         if (light < 2) return;
 
         for (int p = 0; p < 6; p++) {
-
             if (neighbours[p] != null) {
                 if (neighbours[p].light < castLight)
                     neighbours[p].light = castLight;
             }
-
             if (chunkData.chunk != null)
                 World.Instance.AddChunkToUpdate(chunkData.chunk);
         }
     }
 
     public BlockType properties {
-
         get { return World.Instance.blocktypes[id]; }
     }
+
 }
 
 public class VoxelNeighbours {
@@ -126,19 +120,14 @@ public class VoxelNeighbours {
     public VoxelState this[int index] {
 
         get {
-
             if (_neighbours[index] == null) {
-
                 _neighbours[index] = World.Instance.worldData.GetVoxel(
                     parent.globalPosition + VoxelData.faceChecks[index]);
                 ReturnNeighbour(index);
             }
-
             return _neighbours[index];
         }
-
         set {
-
             _neighbours[index] = value;
             ReturnNeighbour(index);
         }
@@ -150,5 +139,7 @@ public class VoxelNeighbours {
 
         if (_neighbours[index].neighbours[VoxelData.revFaceCheckIndex[index]] != parent)
             _neighbours[index].neighbours[VoxelData.revFaceCheckIndex[index]] = parent;
+
     }
+
 }
