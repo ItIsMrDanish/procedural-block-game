@@ -24,11 +24,13 @@ public class DebugScreen : MonoBehaviour {
 
     private void Update() {
 
-        string debugText = "Miku #1";
+        string debugText = "Debug Screen — Press F3 to close/open";
         debugText += "\n";
         debugText += frameRate + " FPS";
         debugText += "\n\n";
-        debugText += "XYZ: " + ((int)world.player.transform.position.x - halfWorldSizeInVoxels) + "x" + " / " + (int)world.player.transform.position.y + "y" + " / " + ((int)world.player.transform.position.z - halfWorldSizeInVoxels) + "z";
+        debugText += "XYZ: " + (world.player.transform.position.x - halfWorldSizeInVoxels) + "x" + " / " + world.player.transform.position.y + "y" + " / " + (world.player.transform.position.z - halfWorldSizeInVoxels) + "z";
+        debugText += "\n";
+        debugText += "Block: " + ((int)world.player.transform.position.x - halfWorldSizeInVoxels) + "x" + " / " + (int)world.player.transform.position.y + "y" + " / " + ((int)world.player.transform.position.z - halfWorldSizeInVoxels) + "z";
         debugText += "\n";
         debugText += "Chunk: " + (world.playerChunkCoord.x - halfWorldSizeInChunks) + "x" + " / " + (world.playerChunkCoord.z - halfWorldSizeInChunks) + "z";
 

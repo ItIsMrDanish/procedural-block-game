@@ -2495,7 +2495,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 986371c3996d848478bf66a4f8fc5f08, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 91a09721ef835c4418084937c80427a7, type: 3}
   m_Type: 2
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3119,54 +3119,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8289537295964125753, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
   m_PrefabInstance: {fileID: 6830950844873570930}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1169879602
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1169879604}
-  - component: {fileID: 1169879603}
-  m_Layer: 0
-  m_Name: AsyncLoader
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1169879603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1169879602}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70ea15779562e574ca621857acafd460, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AsyncLoader
-  mainMenu: {fileID: 1687982476}
-  loadingScreen: {fileID: 1500912114}
-  progressBar: {fileID: 2010804473}
-  progressText: {fileID: 1913805182}
---- !u!4 &1169879604
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1169879602}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1173253993
 GameObject:
   m_ObjectHideFlags: 0
@@ -4559,6 +4511,7 @@ GameObject:
   - component: {fileID: 1500912118}
   - component: {fileID: 1500912117}
   - component: {fileID: 1500912116}
+  - component: {fileID: 1500912119}
   m_Layer: 5
   m_Name: Loading Canvas
   m_TagString: Untagged
@@ -4654,6 +4607,22 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1500912119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1500912114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47f3db1853c55d144b80a500add7e3a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LoadingScreenUI
+  mainMenu: {fileID: 1687982476}
+  loadingScreen: {fileID: 1500912114}
+  progressBar: {fileID: 2010804473}
+  progressText: {fileID: 1913805182}
 --- !u!1 &1507075383
 GameObject:
   m_ObjectHideFlags: 0
@@ -6593,7 +6562,7 @@ PrefabInstance:
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1169879603}
+      objectReference: {fileID: 1500912119}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -6604,7 +6573,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: AsyncLoader, Assembly-CSharp
+      value: LoadingScreenUI, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
@@ -6869,4 +6838,3 @@ SceneRoots:
   - {fileID: 875608968}
   - {fileID: 1500912115}
   - {fileID: 1687982480}
-  - {fileID: 1169879604}
