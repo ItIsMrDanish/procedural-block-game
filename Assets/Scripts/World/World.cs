@@ -73,7 +73,6 @@ public class World : MonoBehaviour {
     private ChunkCoord[] _tickSnapshot = new ChunkCoord[0];
 
     // Time budget for mesh uploads per frame (ms).
-    // 8ms leaves ~8ms headroom at 60fps for game logic.
     private const double MeshBudgetMs = 8.0;
     private readonly Stopwatch _frameTimer = new Stopwatch();
 
@@ -81,9 +80,18 @@ public class World : MonoBehaviour {
     private int _chunkMovesSinceLastTrim = 0;
     private const int TrimEveryNMoves = 32;
 
-    // Frustum culling � camera frustum planes, updated once per frame.
+    // Frustum culling — camera frustum planes, updated once per frame.
     private Plane[] _frustumPlanes = new Plane[6];
     private Camera _mainCamera;
+
+    // -------------------------------------------------------
+    // Loading progress — read by LoadingScreenUI
+    // -------------------------------------------------------
+
+    public static float LoadProgress { get; private set; } = 0f;
+    public static bool IsReady { get; private set; } = false;
+
+    // -------------------------------------------------------
 
     private static int ChunkYToIndex(int chunkY) {
         return chunkY - VoxelData.MinChunkY;
@@ -110,13 +118,30 @@ public class World : MonoBehaviour {
             SaveSystem.SaveWorld(worldData);
         debugControls.Debug.Enable();
 
+        LoadProgress = 0f;
+        IsReady = false;
+
     }
 
     private void Start() {
 
         _mainCamera = Camera.main;
+        StartCoroutine(InitWorld());
+
+    }
+
+    // -------------------------------------------------------
+    // Coroutine: initialise world across multiple frames
+    // so the loading screen can update its progress bar
+    // -------------------------------------------------------
+
+    private IEnumerator InitWorld() {
 
         Debug.Log("Generating new world using seed " + VoxelData.seed);
+
+        // Step 1: Basic setup (0–5%)
+        LoadProgress = 0f;
+        yield return null;
 
         worldData = SaveSystem.LoadWorld("Testing");
 
@@ -133,18 +158,31 @@ public class World : MonoBehaviour {
         Shader.SetGlobalFloat("minGlobalLightLevel", VoxelData.minLightLevel);
         Shader.SetGlobalFloat("maxGlobalLightLevel", VoxelData.maxLightLevel);
 
-        // Pre-warm the heightmap cache BEFORE chunk generation begins.
-        // All column data (surface height + biome) is computed here on the main thread.
-        // Background chunk threads then find their columns already cached � O(1) reads only.
+        LoadProgress = 0.05f;
+        yield return null;
+
+        // Step 2: Pre-warm heightmap cache (5–25%)
+        // This is a single blocking call so we yield before and after
+        LoadProgress = 0.1f;
+        yield return null;
+
         HeightmapCache.Clear();
         int startCX = VoxelData.WorldSizeInChunks / 2;
         int startCZ = VoxelData.WorldSizeInChunks / 2;
         HeightmapCache.PreWarm(startCX, startCZ, settings.loadDistance + 1, biomes);
 
-        LoadWorld();
+        LoadProgress = 0.25f;
+        yield return null;
+
+        // Step 3: Load chunks (25–75%) — spread across frames
+        yield return StartCoroutine(LoadWorldAsync());
+
+        // Step 4: Final setup (75–100%)
         SetGlobalLightValue();
 
-        // Spawn above sea level. Normal terrain sits at Y 66-78.
+        LoadProgress = 0.8f;
+        yield return null;
+
         spawnPosition = new Vector3(
             VoxelData.WorldCentre,
             VoxelData.SeaLevel + 30f,
@@ -154,6 +192,9 @@ public class World : MonoBehaviour {
         CheckViewDistance();
         playerLastChunkCoord = GetChunkCoordFromVector3(player.position);
 
+        LoadProgress = 0.95f;
+        yield return null;
+
         if (settings.enableThreading) {
             _threadCancelSource = new CancellationTokenSource();
             ChunkUpdateThread = new Thread(() => ThreadedUpdate(_threadCancelSource.Token));
@@ -161,9 +202,46 @@ public class World : MonoBehaviour {
             ChunkUpdateThread.Start();
         }
 
+        // Done — show player and signal the loading screen to hide
+        LoadProgress = 1f;
+        IsReady = true;
+
+        player.gameObject.SetActive(true);
         StartCoroutine(Tick());
 
     }
+
+    // Yields once per X-row so the loading bar moves smoothly
+    private IEnumerator LoadWorldAsync() {
+
+        int hd = settings.loadDistance;
+        int vd = settings.verticalViewDistance;
+        int cx = VoxelData.WorldSizeInChunks / 2;
+        int cy = Mathf.FloorToInt((float)VoxelData.SeaLevel / VoxelData.ChunkSize);
+
+        int totalColumns = (hd * 2) * (hd * 2);
+        int done = 0;
+
+        for (int x = cx - hd; x < cx + hd; x++) {
+            for (int z = cx - hd; z < cx + hd; z++) {
+                for (int y = cy - vd; y < cy + vd; y++) {
+                    if (!IsChunkInWorld(x, y, z)) continue;
+                    worldData.LoadChunk(new Vector3Int(
+                        x * VoxelData.ChunkSize,
+                        y * VoxelData.ChunkSize,
+                        z * VoxelData.ChunkSize));
+                }
+                done++;
+            }
+
+            // Yield once per X-row to keep the UI responsive
+            LoadProgress = Mathf.Lerp(0.25f, 0.75f, (float)done / totalColumns);
+            yield return null;
+        }
+
+    }
+
+    // -------------------------------------------------------
 
     public void SetGlobalLightValue() {
 
@@ -199,6 +277,9 @@ public class World : MonoBehaviour {
 
     private void Update() {
 
+        // Don't run game logic until the world is fully initialised
+        if (!IsReady) return;
+
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
 
         if (!playerChunkCoord.Equals(playerLastChunkCoord)) {
@@ -215,18 +296,7 @@ public class World : MonoBehaviour {
             }
         }
 
-        // -------------------------------------------------------
-        // FRUSTUM CULLING
-        // Extract the camera's frustum planes once per frame, then
-        // test each active chunk's bounding box against them.
-        // Chunks outside the frustum (behind player, to the side,
-        // above/below) get their MeshRenderer disabled so the GPU
-        // doesn't process or submit their draw calls at all.
-        //
-        // At viewDist=4 + vertDist=3, ~192 chunks are active.
-        // Typically ~100 of those are outside the frustum.
-        // This cuts GPU draw calls by 40-60% during normal gameplay.
-        // -------------------------------------------------------
+        // Frustum culling — disable renderers on chunks outside the camera view
         GeometryUtility.CalculateFrustumPlanes(_mainCamera, _frustumPlanes);
 
         float halfSize = VoxelData.ChunkSize * 0.5f;
@@ -239,7 +309,6 @@ public class World : MonoBehaviour {
 
             if (ch == null || ch.isEmpty) continue;
 
-            // Build the chunk's axis-aligned bounding box.
             Vector3 centre = ch.position + new Vector3(halfSize, halfSize, halfSize);
             Bounds bounds = new Bounds(centre,
                 new Vector3(VoxelData.ChunkSize, VoxelData.ChunkSize, VoxelData.ChunkSize));
@@ -247,12 +316,7 @@ public class World : MonoBehaviour {
             ch.SetRendererEnabled(GeometryUtility.TestPlanesAABB(_frustumPlanes, bounds));
         }
 
-        // -------------------------------------------------------
-        // MESH UPLOAD with time budget.
-        // Drain as many queued meshes as fit within MeshBudgetMs per frame.
-        // Previously this dequeued exactly 1 per frame � with 192 chunks
-        // that caused a 192-frame initial load stall at 10fps = 19 seconds.
-        // -------------------------------------------------------
+        // Time-budgeted mesh upload
         if (chunksToDraw.Count > 0) {
             _frameTimer.Restart();
             while (chunksToDraw.Count > 0 &&
@@ -306,15 +370,7 @@ public class World : MonoBehaviour {
 
             if (chunksToUpdate.Count == 0) return;
 
-            // -------------------------------------------------------
-            // DISTANCE + DIRECTION PRIORITY SORT
-            // Chunks closest to the player AND in front of the camera
-            // are processed first. The world loads toward you instead
-            // of in a random grid pattern � much better feel.
-            //
-            // Only sort when the queue is small (< 64) to avoid
-            // spending O(n log n) time during the massive initial load.
-            // -------------------------------------------------------
+            // Sort by distance + forward direction when queue is small
             if (chunksToUpdate.Count > 1 && chunksToUpdate.Count <= 64) {
 
                 Vector3 pPos = World.Instance.player.position;
@@ -323,7 +379,7 @@ public class World : MonoBehaviour {
                 chunksToUpdate.Sort((a, b) => {
                     float pa = ChunkPriority(a, pPos, pFwd);
                     float pb = ChunkPriority(b, pPos, pFwd);
-                    return pa.CompareTo(pb); // Lower value = higher priority
+                    return pa.CompareTo(pb);
                 });
             }
 
@@ -336,11 +392,6 @@ public class World : MonoBehaviour {
         }
     }
 
-    /// <summary>
-    /// Priority score for chunk update ordering.
-    /// Lower = process first.
-    /// Combines squared distance with a forward-direction bonus.
-    /// </summary>
     private static float ChunkPriority(Chunk c, Vector3 playerPos, Vector3 playerFwd) {
 
         float half = VoxelData.ChunkSize * 0.5f;
@@ -349,8 +400,6 @@ public class World : MonoBehaviour {
         float sqDist = toChunk.sqrMagnitude;
         float forward = Vector3.Dot(toChunk.normalized, playerFwd);
 
-        // Subtract forward bonus so chunks we're looking at get lower (better) score.
-        // 64f = one chunk width of advantage for directly in-front chunks.
         return sqDist - forward * 64f;
     }
 
@@ -469,7 +518,6 @@ public class World : MonoBehaviour {
         foreach (ChunkCoord c in _previouslyActiveChunks)
             chunks[c.x, ChunkYToIndex(c.y), c.z].isActive = false;
 
-        // Pre-warm heightmap for the newly visible area.
         HeightmapCache.PreWarm(coord.x, coord.z, hd + 1, biomes);
 
     }
@@ -567,6 +615,6 @@ public class Settings {
     [Header("Controls")]
     [Range(0.1f, 10f)]
     public float mouseSensitivity = 2.0f;
-    public int frameRateIndex = 1; // Kept from your original Settings
+    public int frameRateIndex = 1;
 
 }
