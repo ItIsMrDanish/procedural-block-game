@@ -1,21 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class Lighting {
 
     public static void RecalculateNaturaLight(ChunkData chunkData) {
 
-        for (int x = 0; x < VoxelData.ChunkSize; x++) {
-            for (int z = 0; z < VoxelData.ChunkSize; z++) {
+        int size = VoxelData.ChunkSize;
+
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
 
                 bool hasChunkAbove = GetChunkAbove(chunkData) != null;
 
                 if (!hasChunkAbove)
-                    CastNaturalLight(chunkData, x, z, VoxelData.ChunkSize - 1);
+                    CastNaturalLight(chunkData, x, z, size - 1);
                 else
                     PropagateFromAbove(chunkData, x, z);
-
             }
         }
 
@@ -27,13 +26,15 @@ public static class Lighting {
 
     public static void CastNaturalLight(ChunkData chunkData, int x, int z, int startY) {
 
-        if (startY >= VoxelData.ChunkSize) startY = VoxelData.ChunkSize - 1;
+        int size = VoxelData.ChunkSize;
+        if (startY >= size) startY = size - 1;
 
         bool obstructed = IsObstructedFromAbove(chunkData, x, z);
 
         for (int y = startY; y >= 0; y--) {
 
-            VoxelState voxel = chunkData.map[x, y, z];
+            // Flat index access — faster than map[x,y,z]
+            VoxelState voxel = chunkData.map[ChunkData.FlatIdx(x, y, z)];
 
             if (obstructed) {
                 voxel.light = 0;
@@ -50,7 +51,7 @@ public static class Lighting {
         if (!obstructed) {
             ChunkData below = GetChunkBelow(chunkData);
             if (below != null)
-                CastNaturalLight(below, x, z, VoxelData.ChunkSize - 1);
+                CastNaturalLight(below, x, z, size - 1);
         }
 
     }
@@ -61,13 +62,14 @@ public static class Lighting {
         byte topLight = 0;
 
         if (above != null)
-            topLight = above.map[x, 0, z].light;
+            topLight = above.map[ChunkData.FlatIdx(x, 0, z)].light;
 
         bool obstructed = topLight < 15;
+        int size = VoxelData.ChunkSize;
 
-        for (int y = VoxelData.ChunkSize - 1; y >= 0; y--) {
+        for (int y = size - 1; y >= 0; y--) {
 
-            VoxelState voxel = chunkData.map[x, y, z];
+            VoxelState voxel = chunkData.map[ChunkData.FlatIdx(x, y, z)];
 
             if (obstructed) {
                 voxel.light = 0;
@@ -87,7 +89,7 @@ public static class Lighting {
 
         ChunkData above = GetChunkAbove(chunkData);
         if (above == null) return false;
-        return above.map[x, 0, z].light < 15;
+        return above.map[ChunkData.FlatIdx(x, 0, z)].light < 15;
 
     }
 

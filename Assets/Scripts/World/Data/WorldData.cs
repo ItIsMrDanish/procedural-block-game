@@ -8,7 +8,6 @@ public class WorldData {
     public string worldName = "Prototype";
     public int seed;
 
-    // Key: block-space origin of chunk (always a multiple of ChunkSize).
     [System.NonSerialized]
     public Dictionary<Vector3Int, ChunkData> chunks = new Dictionary<Vector3Int, ChunkData>();
 
@@ -22,20 +21,16 @@ public class WorldData {
     }
 
     public WorldData(string _worldName, int _seed) {
-
         worldName = _worldName;
         seed = _seed;
     }
 
     public WorldData(WorldData wD) {
-
         worldName = wD.worldName;
         seed = wD.seed;
     }
 
-    // -------------------------------------------------------
-    // Converts any block position to the chunk origin key.
-    // -------------------------------------------------------
+    // Converts any block position to the chunk origin (always multiple of ChunkSize).
     private static Vector3Int BlockToChunkOrigin(Vector3Int pos) {
 
         return new Vector3Int(
@@ -77,7 +72,6 @@ public class WorldData {
 
         ChunkData chunk = SaveSystem.LoadChunk(worldName, blockOrigin);
         if (chunk != null) {
-
             chunks.Add(blockOrigin, chunk);
             return;
         }
@@ -87,14 +81,12 @@ public class WorldData {
     }
 
     bool IsVoxelInWorld(Vector3Int pos) {
-
         return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
                pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
                pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     bool IsVoxelInWorld(Vector3 pos) {
-
         return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
                pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
                pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
@@ -129,10 +121,10 @@ public class WorldData {
             Mathf.FloorToInt(pos.y) - origin.y,
             Mathf.FloorToInt(pos.z) - origin.z);
 
-        return chunk.map[local.x, local.y, local.z];
+        // Use flat index — faster than [x,y,z] multidimensional access.
+        return chunk.map[ChunkData.FlatIdx(local.x, local.y, local.z)];
     }
 
-    // Integer overload — avoids float conversion for internal calls.
     public VoxelState GetVoxel(Vector3Int pos) {
 
         if (!IsVoxelInWorld(pos)) return null;
@@ -142,6 +134,10 @@ public class WorldData {
 
         if (chunk == null) return null;
 
-        return chunk.map[pos.x - origin.x, pos.y - origin.y, pos.z - origin.z];
+        return chunk.map[ChunkData.FlatIdx(
+            pos.x - origin.x,
+            pos.y - origin.y,
+            pos.z - origin.z)];
     }
+
 }

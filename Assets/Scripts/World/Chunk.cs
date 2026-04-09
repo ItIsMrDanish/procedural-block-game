@@ -29,6 +29,10 @@ public class Chunk {
     HashSet<VoxelState> activeVoxelSet = new HashSet<VoxelState>();
     List<VoxelState> activeVoxels = new List<VoxelState>();
 
+    // Whether this chunk has any non-air voxels.
+    // Set during UpdateChunk, used by frustum culling to skip empty chunks.
+    public bool isEmpty = true;
+
     public Chunk(ChunkCoord _coord) {
 
         coord = _coord;
@@ -36,6 +40,9 @@ public class Chunk {
         chunkObject = new GameObject();
         meshFilter = chunkObject.AddComponent<MeshFilter>();
         meshRenderer = chunkObject.AddComponent<MeshRenderer>();
+
+        // Give the mesh a persistent object we can Clear() and reuse.
+        meshFilter.mesh = new Mesh();
 
         materials[0] = World.Instance.material;
         materials[1] = World.Instance.transparentMaterial;
@@ -60,14 +67,11 @@ public class Chunk {
         chunkData = World.Instance.worldData.RequestChunk(blockPos, true);
         chunkData.chunk = this;
 
-        for (int y = 0; y < VoxelData.ChunkSize; y++) {
-            for (int x = 0; x < VoxelData.ChunkSize; x++) {
-                for (int z = 0; z < VoxelData.ChunkSize; z++) {
-                    VoxelState voxel = chunkData.map[x, y, z];
-                    if (voxel.properties.isActive)
-                        AddActiveVoxel(voxel);
-                }
-            }
+        // Register active voxels using flat index.
+        int size = VoxelData.ChunkSize;
+        for (int i = 0; i < chunkData.map.Length; i++) {
+            if (chunkData.map[i].properties.isActive)
+                AddActiveVoxel(chunkData.map[i]);
         }
 
         World.Instance.AddChunkToUpdate(this);
@@ -92,30 +96,26 @@ public class Chunk {
 
         ClearMeshData();
 
-        // -------------------------------------------------------
-        // SKY CHUNK OPTIMISATION:
-        // If every voxel in this chunk is air, there is nothing to mesh.
-        // Check the first voxel — if it's air AND the chunk was fast-filled
-        // (all same id), we can skip the entire 4096-voxel loop.
-        //
-        // This eliminates UpdateMeshData work for all the sky chunks
-        // above the terrain, which is typically 50-75% of all chunks.
-        // -------------------------------------------------------
-        bool allAir = true;
-        for (int y = 0; y < VoxelData.ChunkSize && allAir; y++) {
-            for (int x = 0; x < VoxelData.ChunkSize && allAir; x++) {
-                for (int z = 0; z < VoxelData.ChunkSize && allAir; z++) {
-                    if (chunkData.map[x, y, z].id != 0) allAir = false;
-                }
-            }
+        int size = VoxelData.ChunkSize;
+
+        // Quick all-air check using the flat array — one loop, one comparison.
+        // If the chunk is entirely air (sky chunk) we skip all mesh work.
+        isEmpty = true;
+        for (int i = 0; i < chunkData.map.Length; i++) {
+            if (chunkData.map[i].id != 0) { isEmpty = false; break; }
         }
 
-        if (!allAir) {
-            for (int y = 0; y < VoxelData.ChunkSize; y++) {
-                for (int x = 0; x < VoxelData.ChunkSize; x++) {
-                    for (int z = 0; z < VoxelData.ChunkSize; z++) {
-                        if (World.Instance.blocktypes[chunkData.map[x, y, z].id].isSolid)
-                            UpdateMeshData(new Vector3(x, y, z));
+        if (!isEmpty) {
+
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    for (int z = 0; z < size; z++) {
+
+                        // Flat index — one bounds check, no per-dimension multiplications.
+                        int idx = ChunkData.FlatIdx(x, y, z);
+
+                        if (World.Instance.blocktypes[chunkData.map[idx].id].isSolid)
+                            UpdateMeshData(x, y, z, idx);
                     }
                 }
             }
@@ -152,6 +152,15 @@ public class Chunk {
         }
     }
 
+    /// <summary>
+    /// Enables or disables the MeshRenderer for frustum culling.
+    /// Only touches the renderer, not the whole GameObject — isActive controls that.
+    /// </summary>
+    public void SetRendererEnabled(bool enabled) {
+        if (meshRenderer != null)
+            meshRenderer.enabled = enabled && !isEmpty;
+    }
+
     public void EditVoxel(Vector3 pos, byte newID) {
 
         int xCheck = Mathf.FloorToInt(pos.x) - Mathf.FloorToInt(position.x);
@@ -159,8 +168,7 @@ public class Chunk {
         int zCheck = Mathf.FloorToInt(pos.z) - Mathf.FloorToInt(position.z);
 
         chunkData.ModifyVoxel(new Vector3Int(xCheck, yCheck, zCheck),
-                              newID,
-                              World.Instance._player.orientation);
+                              newID, World.Instance._player.orientation);
 
         UpdateSurroundingVoxels(xCheck, yCheck, zCheck);
 
@@ -172,7 +180,8 @@ public class Chunk {
 
             var currentVoxel = new Vector3Int(x, y, z) + VoxelData.faceChecks[p];
 
-            if (!chunkData.IsVoxelInChunk(currentVoxel)) {
+            if (!chunkData.IsVoxelInChunk(currentVoxel.x, currentVoxel.y, currentVoxel.z)) {
+
                 var worldPos = new Vector3(
                     currentVoxel.x + position.x,
                     currentVoxel.y + position.y,
@@ -190,17 +199,17 @@ public class Chunk {
         int xCheck = Mathf.FloorToInt(pos.x) - Mathf.FloorToInt(position.x);
         int yCheck = Mathf.FloorToInt(pos.y) - Mathf.FloorToInt(position.y);
         int zCheck = Mathf.FloorToInt(pos.z) - Mathf.FloorToInt(position.z);
-        return chunkData.map[xCheck, yCheck, zCheck];
+        return chunkData.map[ChunkData.FlatIdx(xCheck, yCheck, zCheck)];
 
     }
 
-    void UpdateMeshData(Vector3 pos) {
+    // -------------------------------------------------------
+    // Mesh generation — uses flat index throughout
+    // -------------------------------------------------------
 
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
+    void UpdateMeshData(int x, int y, int z, int idx) {
 
-        VoxelState voxel = chunkData.map[x, y, z];
+        VoxelState voxel = chunkData.map[idx];
 
         float rot = 0f;
         switch (voxel.orientation) {
@@ -233,23 +242,23 @@ public class Chunk {
                 }
             }
 
-            VoxelState neighbour = chunkData.map[x, y, z].neighbours[translatedP];
+            VoxelState neighbour = voxel.neighbours[translatedP];
 
+            // Water-on-water check uses flat index.
             bool waterOnWater = voxel.properties.isWater &&
                                 y + 1 < VoxelData.ChunkSize &&
-                                chunkData.map[x, y + 1, z].properties.isWater;
+                                chunkData.map[ChunkData.FlatIdx(x, y + 1, z)].properties.isWater;
 
-            if (neighbour != null &&
-                neighbour.properties.renderNeighborFaces &&
-                !waterOnWater) {
+            if (neighbour != null && neighbour.properties.renderNeighborFaces && !waterOnWater) {
 
                 float lightLevel = neighbour.lightAsFloat;
                 int faceVertCount = 0;
                 var rotAngles = new Vector3(0, rot, 0);
+                var pos3 = new Vector3(x, y, z);
 
                 for (int i = 0; i < voxel.properties.meshData.faces[p].vertData.Length; i++) {
                     VertData vertData = voxel.properties.meshData.faces[p].GetVertData(i);
-                    vertices.Add(pos + vertData.GetRotatedPosition(rotAngles));
+                    vertices.Add(pos3 + vertData.GetRotatedPosition(rotAngles));
                     normals.Add(VoxelData.faceChecks[p]);
                     colors.Add(new Color(0, 0, 0, lightLevel));
 
@@ -281,39 +290,48 @@ public class Chunk {
 
     public void CreateMesh() {
 
-        Mesh mesh = new Mesh();
-        mesh.vertices = vertices.ToArray();
+        // Reuse the existing Mesh object instead of creating a new one each time.
+        Mesh mesh = meshFilter.mesh;
+        mesh.Clear();
+
+        // SetVertices(List<T>) — available since Unity 2019.3.
+        // Avoids the .ToArray() copy that allocates a new managed array on every upload.
+        // With 192+ chunks loading at startup, that's hundreds of extra GC allocations.
+        mesh.SetVertices(vertices);
         mesh.subMeshCount = 3;
-        mesh.SetTriangles(triangles.ToArray(), 0);
-        mesh.SetTriangles(transparentTriangles.ToArray(), 1);
-        mesh.SetTriangles(waterTriangles.ToArray(), 2);
-        mesh.uv = uvs.ToArray();
-        mesh.colors = colors.ToArray();
-        mesh.normals = normals.ToArray();
-        meshFilter.mesh = mesh;
+        mesh.SetTriangles(triangles, 0);
+        mesh.SetTriangles(transparentTriangles, 1);
+        mesh.SetTriangles(waterTriangles, 2);
+        mesh.SetUVs(0, uvs);
+        mesh.SetColors(colors);
+        mesh.SetNormals(normals);
+
+        // Disable renderer if chunk is empty — no draw call submitted.
+        if (meshRenderer != null)
+            meshRenderer.enabled = !isEmpty;
 
     }
 
     void AddTexture(int textureID, Vector2 uv) {
 
-        float y = textureID / VoxelData.TextureAtlasSizeInBlocks;
-        float x = textureID - (y * VoxelData.TextureAtlasSizeInBlocks);
+        float ty = textureID / VoxelData.TextureAtlasSizeInBlocks;
+        float tx = textureID - (ty * VoxelData.TextureAtlasSizeInBlocks);
 
-        x *= VoxelData.NormalizedBlockTextureSize;
-        y *= VoxelData.NormalizedBlockTextureSize;
-        y = 1f - y - VoxelData.NormalizedBlockTextureSize;
+        tx *= VoxelData.NormalizedBlockTextureSize;
+        ty *= VoxelData.NormalizedBlockTextureSize;
+        ty = 1f - ty - VoxelData.NormalizedBlockTextureSize;
 
-        x += VoxelData.NormalizedBlockTextureSize * uv.x;
-        y += VoxelData.NormalizedBlockTextureSize * uv.y;
+        tx += VoxelData.NormalizedBlockTextureSize * uv.x;
+        ty += VoxelData.NormalizedBlockTextureSize * uv.y;
 
-        uvs.Add(new Vector2(x, y));
+        uvs.Add(new Vector2(tx, ty));
 
     }
 
 }
 
 // -------------------------------------------------------
-// ChunkCoord — 3D, includes Y for cubic chunk system
+// ChunkCoord — 3D (X, Y, Z)
 // -------------------------------------------------------
 public class ChunkCoord {
 
