@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using UnityEngine;
 using System.Threading;
@@ -38,12 +39,17 @@ public class World : MonoBehaviour {
     public ChunkCoord playerChunkCoord;
     ChunkCoord playerLastChunkCoord;
 
+    // ConcurrentQueue for chunk updates: background thread dequeues, both threads enqueue.
+    // Eliminates the ChunkUpdateThreadLock entirely — no more deadlock risk.
+    private ConcurrentQueue<Chunk> chunksToUpdate = new ConcurrentQueue<Chunk>();
+    // HashSet to prevent duplicate enqueues — only touched under _chunksToUpdateSetLock.
     private HashSet<Chunk> chunksToUpdateSet = new HashSet<Chunk>();
-    private List<Chunk> chunksToUpdate = new List<Chunk>();
+    private readonly object _chunksToUpdateSetLock = new object();
 
-    public Queue<Chunk> chunksToDraw = new Queue<Chunk>();
+    // ConcurrentQueue: background thread enqueues, main thread dequeues — no lock needed.
+    public ConcurrentQueue<Chunk> chunksToDraw = new ConcurrentQueue<Chunk>();
 
-    private bool applyingModifications = false;
+    private volatile bool applyingModifications = false;
 
     private readonly object _modificationsLock = new object();
     Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();
@@ -56,7 +62,6 @@ public class World : MonoBehaviour {
     public GameObject cursorSlot;
 
     Thread ChunkUpdateThread;
-    public object ChunkUpdateThreadLock = new object();
     public object ChunkListThreadLock = new object();
 
     private CancellationTokenSource _threadCancelSource;
@@ -316,18 +321,19 @@ public class World : MonoBehaviour {
             ch.SetRendererEnabled(GeometryUtility.TestPlanesAABB(_frustumPlanes, bounds));
         }
 
-        // Time-budgeted mesh upload
-        if (chunksToDraw.Count > 0) {
+        // Time-budgeted mesh upload — ConcurrentQueue: TryDequeue instead of Dequeue
+        if (!chunksToDraw.IsEmpty) {
             _frameTimer.Restart();
-            while (chunksToDraw.Count > 0 &&
+            while (!chunksToDraw.IsEmpty &&
                    _frameTimer.Elapsed.TotalMilliseconds < MeshBudgetMs) {
-                chunksToDraw.Dequeue().CreateMesh();
+                if (chunksToDraw.TryDequeue(out Chunk toDraw))
+                    toDraw.CreateMesh();
             }
         }
 
         if (!settings.enableThreading) {
             if (!applyingModifications) ApplyModifications();
-            if (chunksToUpdate.Count > 0) UpdateChunks();
+            if (!chunksToUpdate.IsEmpty) UpdateChunks();
         }
 
     }
@@ -356,51 +362,26 @@ public class World : MonoBehaviour {
     public void AddChunkToUpdate(Chunk chunk) { AddChunkToUpdate(chunk, false); }
     public void AddChunkToUpdate(Chunk chunk, bool insert) {
 
-        lock (ChunkUpdateThreadLock) {
-            if (chunksToUpdateSet.Add(chunk)) {
-                if (insert) chunksToUpdate.Insert(0, chunk);
-                else chunksToUpdate.Add(chunk);
-            }
+        // The set prevents duplicates. The actual queue is a ConcurrentQueue —
+        // safe to enqueue from any thread without blocking the background worker.
+        lock (_chunksToUpdateSetLock) {
+            if (chunksToUpdateSet.Add(chunk))
+                chunksToUpdate.Enqueue(chunk);
         }
     }
 
     void UpdateChunks() {
 
-        lock (ChunkUpdateThreadLock) {
+        if (!chunksToUpdate.TryDequeue(out Chunk c)) return;
 
-            if (chunksToUpdate.Count == 0) return;
+        // Remove from dedup set so it can be re-queued later if needed.
+        lock (_chunksToUpdateSetLock) { chunksToUpdateSet.Remove(c); }
 
-            // Sort by distance + forward direction when queue is small
-            if (chunksToUpdate.Count > 1 && chunksToUpdate.Count <= 64) {
+        c.UpdateChunk();
 
-                Vector3 pPos = World.Instance.player.position;
-                Vector3 pFwd = World.Instance._player.transform.forward;
-
-                chunksToUpdate.Sort((a, b) => {
-                    float pa = ChunkPriority(a, pPos, pFwd);
-                    float pb = ChunkPriority(b, pPos, pFwd);
-                    return pa.CompareTo(pb);
-                });
-            }
-
-            Chunk c = chunksToUpdate[0];
-            chunksToUpdate.RemoveAt(0);
-            chunksToUpdateSet.Remove(c);
-            c.UpdateChunk();
-
-            if (!activeChunks.Contains(c.coord)) activeChunks.Add(c.coord);
-        }
-    }
-
-    private static float ChunkPriority(Chunk c, Vector3 playerPos, Vector3 playerFwd) {
-
-        float half = VoxelData.ChunkSize * 0.5f;
-        Vector3 toChunk = c.position + new Vector3(half, 0, half) - playerPos;
-
-        float sqDist = toChunk.sqrMagnitude;
-        float forward = Vector3.Dot(toChunk.normalized, playerFwd);
-
-        return sqDist - forward * 64f;
+        // activeChunks is only touched on the main thread so this is safe here
+        // only when threading is disabled. In threaded mode UpdateChunks runs on
+        // the bg thread — activeChunks tracking happens in CheckViewDistance instead.
     }
 
     void ThreadedUpdate(CancellationToken token) {
@@ -413,7 +394,8 @@ public class World : MonoBehaviour {
             }
 
             if (shouldApply) ApplyModifications();
-            if (chunksToUpdate.Count > 0) UpdateChunks();
+
+            if (!chunksToUpdate.IsEmpty) UpdateChunks();
             else Thread.Sleep(1);
         }
 
@@ -518,7 +500,12 @@ public class World : MonoBehaviour {
         foreach (ChunkCoord c in _previouslyActiveChunks)
             chunks[c.x, ChunkYToIndex(c.y), c.z].isActive = false;
 
-        HeightmapCache.PreWarm(coord.x, coord.z, hd + 1, biomes);
+        // PreWarm on a fire-and-forget thread so it never blocks the main thread.
+        // The cache is thread-safe (ReaderWriterLockSlim), so this is safe.
+        int pwX = coord.x, pwZ = coord.z, pwR = hd + 1;
+        BiomeAttributes[] pwBiomes = biomes;
+        System.Threading.Tasks.Task.Run(() =>
+            HeightmapCache.PreWarm(pwX, pwZ, pwR, pwBiomes));
 
     }
 
