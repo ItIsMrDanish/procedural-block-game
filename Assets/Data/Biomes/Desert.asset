@@ -13,20 +13,23 @@ MonoBehaviour:
   m_Name: Desert
   m_EditorClassIdentifier: Assembly-CSharp::BiomeAttributes
   biomeName: Desert
-  offset: 6545
-  scale: 0.058
-  terrainHeight: 10
-  terrainScale: 0.05
+  temperature: 0.5
+  humidity: 0.5
+  ridgeWeight: 1
+  erosionWeight: 1
+  elevationAmplitude: 0.29
+  heightOffset: 0
   surfaceBlock: 4
   subSurfaceBlock: 4
+  subsurfaceDepth: 4
+  placeMajorFlora: 1
   majorFloraIndex: 1
   majorFloraZoneScale: 1.06
   majorFloraZoneThreshold: 0.75
   majorFloraPlacementScale: 7.5
   majorFloraPlacementThreshold: 0.8
-  placeMajorFlora: 1
-  maxHeight: 3
   minHeight: 2
+  maxHeight: 3
   lodes:
   - nodeName: Dirt
     blockID: 5
@@ -49,3 +52,7 @@ MonoBehaviour:
     scale: 0.1
     threshold: 0.55
     noiseOffset: 43534
+  offset: 6545
+  scale: 0.058
+  terrainHeight: 10
+  terrainScale: 0.05
