@@ -60,6 +60,7 @@ public class World : MonoBehaviour {
     public GameObject debugScreen;
     public GameObject creativeInventoryWindow;
     public GameObject cursorSlot;
+    public GameObject mainCanvas;
 
     Thread ChunkUpdateThread;
     public object ChunkListThreadLock = new object();
@@ -125,6 +126,10 @@ public class World : MonoBehaviour {
 
         LoadProgress = 0f;
         IsReady = false;
+
+        // Hide the player and UI until the world is fully ready
+        //player.gameObject.SetActive(false);
+        mainCanvas.gameObject.SetActive(false);
 
     }
 
@@ -207,11 +212,12 @@ public class World : MonoBehaviour {
             ChunkUpdateThread.Start();
         }
 
-        // Done — show player and signal the loading screen to hide
+        // Done — unhide player and UI then signal the loading screen to hide
         LoadProgress = 1f;
         IsReady = true;
 
         player.gameObject.SetActive(true);
+        mainCanvas.gameObject.SetActive(true);
         StartCoroutine(Tick());
 
     }

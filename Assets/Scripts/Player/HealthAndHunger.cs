@@ -35,7 +35,7 @@ public class HealthAndHunger : MonoBehaviour
 
     [Header("Fall Damage")]
     [Tooltip("Minimum fall distance (units) before any damage is dealt.")]
-    public float fallDamageThreshold = 3f;
+    public float fallDamageThreshold = 4f;
 
     // -------------------------------------------------------------------------
     // Private state

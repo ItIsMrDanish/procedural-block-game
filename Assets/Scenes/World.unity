@@ -881,8 +881,8 @@ RectTransform:
   m_GameObject: {fileID: 311216139}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1797205329}
   - {fileID: 2059102492}
@@ -891,7 +891,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 16, y: 16}
+  m_SizeDelta: {x: 24, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &311216141
 CanvasRenderer:
@@ -1308,7 +1308,7 @@ MonoBehaviour:
   hungerSlider: {fileID: 1896808516}
   deathScreenCanvas: {fileID: 1669667001}
   hungerDrainInterval: 30
-  fallDamageThreshold: 3
+  fallDamageThreshold: 4
 --- !u!1001 &361381038
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3006,6 +3006,7 @@ MonoBehaviour:
   debugScreen: {fileID: 10838875}
   creativeInventoryWindow: {fileID: 1550734938}
   cursorSlot: {fileID: 1694077349}
+  mainCanvas: {fileID: 2034093022}
   worldData:
     worldName: 
     seed: 953989
@@ -6155,8 +6156,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 832575519}
-  - {fileID: 922702475}
   - {fileID: 53469445}
+  - {fileID: 922702475}
   - {fileID: 357234897}
   - {fileID: 2034093026}
   - {fileID: 1669667002}
