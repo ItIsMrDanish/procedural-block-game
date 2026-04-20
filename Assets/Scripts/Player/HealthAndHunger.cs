@@ -35,7 +35,17 @@ public class HealthAndHunger : MonoBehaviour
 
     [Header("Fall Damage")]
     [Tooltip("Minimum fall distance (units) before any damage is dealt.")]
-    public float fallDamageThreshold = 4f;
+    public float fallDamageThreshold = 3f;
+
+    [Header("Camera Tilt on Damage")]
+    [Tooltip("Camera Z-roll degrees per 1 HP of damage. 3 = 3° per HP, so 10 damage = 30°.")]
+    public float tiltDegreesPerDamage = 3f;
+    [Tooltip("Maximum tilt angle regardless of damage amount.")]
+    public float maxTiltAngle = 60f;
+    [Tooltip("How long (seconds) the camera takes to spring back to 0° after the peak tilt.")]
+    public float tiltRecoveryTime = 0.4f;
+    [Tooltip("Smoothing factor for the spring-back. Higher = snappier recovery.")]
+    public float tiltRecoverySmoothing = 8f;
 
     // -------------------------------------------------------------------------
     // Private state
@@ -55,6 +65,11 @@ public class HealthAndHunger : MonoBehaviour
     private Coroutine _hungerCoroutine;
     private Coroutine _starvationCoroutine;
     private Coroutine _regenCoroutine;
+    private Coroutine _tiltCoroutine;
+
+    // Camera tilt state
+    private Transform _cam;
+    private float _currentTilt = 0f;   // Current Z-roll applied to the camera
 
     // -------------------------------------------------------------------------
     // Unity lifecycle
@@ -71,6 +86,11 @@ public class HealthAndHunger : MonoBehaviour
     private void Start()
     {
         InitStats();
+
+        // Cache the main camera (same one Player.cs uses)
+        _cam = GameObject.Find("Main Camera")?.transform;
+        if (_cam == null)
+            Debug.LogWarning("[PlayerHealth] Could not find 'Main Camera' for damage tilt.");
 
         // Hide death screen at game start
         if (deathScreenCanvas != null)
@@ -118,6 +138,11 @@ public class HealthAndHunger : MonoBehaviour
 
         SetMovementEnabled(true);
 
+        // Reset camera tilt in case death interrupted a tilt animation
+        if (_tiltCoroutine != null) { StopCoroutine(_tiltCoroutine); _tiltCoroutine = null; }
+        ApplyCameraTilt(0f);
+        _currentTilt = 0f;
+
         // Restart all passive loops
         StopAllPassiveCoroutines();
         _hungerCoroutine = StartCoroutine(HungerDrainLoop());
@@ -140,6 +165,9 @@ public class HealthAndHunger : MonoBehaviour
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
         RefreshHealthUI();
 
+        // Trigger damage tilt — randomly left or right for variety
+        TriggerDamageTilt(amount);
+
         if (_currentHealth <= 0)
             Die();
     }
@@ -154,6 +182,68 @@ public class HealthAndHunger : MonoBehaviour
     }
 
     // -------------------------------------------------------------------------
+    // Camera tilt on damage
+    // -------------------------------------------------------------------------
+
+    private void TriggerDamageTilt(int damageAmount)
+    {
+        if (_cam == null) return;
+
+        // Calculate target tilt: 3° per HP, capped at maxTiltAngle
+        float targetTilt = Mathf.Min(damageAmount * tiltDegreesPerDamage, maxTiltAngle);
+
+        // Randomly tilt left or right
+        targetTilt *= (Random.value > 0.5f) ? 1f : -1f;
+
+        // If a tilt is already playing, interrupt it so the new hit "resets" the shake
+        if (_tiltCoroutine != null)
+            StopCoroutine(_tiltCoroutine);
+
+        _tiltCoroutine = StartCoroutine(TiltCoroutine(targetTilt));
+    }
+
+    private IEnumerator TiltCoroutine(float targetTilt)
+    {
+        // --- Phase 1: Snap to peak tilt instantly ---
+        _currentTilt = targetTilt;
+        ApplyCameraTilt(_currentTilt);
+
+        // --- Phase 2: Smoothly spring back to 0 over tiltRecoveryTime ---
+        float elapsed = 0f;
+        float startTilt = _currentTilt;
+
+        while (elapsed < tiltRecoveryTime)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / tiltRecoveryTime;
+
+            // Smooth step gives a natural ease-out feel
+            _currentTilt = Mathf.Lerp(startTilt, 0f, Mathf.SmoothStep(0f, 1f, t));
+            ApplyCameraTilt(_currentTilt);
+
+            yield return null;
+        }
+
+        _currentTilt = 0f;
+        ApplyCameraTilt(0f);
+        _tiltCoroutine = null;
+    }
+
+    /// <summary>
+    /// Writes the tilt as a Z-rotation on the camera's localEulerAngles.
+    /// Player.cs owns X (pitch) and the player body owns Y (yaw) —
+    /// we only touch Z, so there is no conflict.
+    /// </summary>
+    private void ApplyCameraTilt(float zDegrees)
+    {
+        if (_cam == null) return;
+
+        Vector3 angles = _cam.localEulerAngles;
+        angles.z = zDegrees;
+        _cam.localEulerAngles = angles;
+    }
+
+    // -------------------------------------------------------------------------
     // Death
     // -------------------------------------------------------------------------
 
@@ -161,6 +251,11 @@ public class HealthAndHunger : MonoBehaviour
     {
         if (_isDead) return;
         _isDead = true;
+
+        // Cancel any ongoing tilt and reset camera Z
+        if (_tiltCoroutine != null) { StopCoroutine(_tiltCoroutine); _tiltCoroutine = null; }
+        ApplyCameraTilt(0f);
+        _currentTilt = 0f;
 
         SetMovementEnabled(false);
         StopAllPassiveCoroutines();
@@ -354,9 +449,10 @@ public class HealthAndHunger : MonoBehaviour
 
     private void StopAllPassiveCoroutines()
     {
-        if (_hungerCoroutine != null)   { StopCoroutine(_hungerCoroutine);    _hungerCoroutine    = null; }
+        if (_hungerCoroutine != null)    { StopCoroutine(_hungerCoroutine);     _hungerCoroutine     = null; }
         if (_starvationCoroutine != null){ StopCoroutine(_starvationCoroutine); _starvationCoroutine = null; }
-        if (_regenCoroutine != null)    { StopCoroutine(_regenCoroutine);     _regenCoroutine     = null; }
+        if (_regenCoroutine != null)     { StopCoroutine(_regenCoroutine);      _regenCoroutine      = null; }
+        if (_tiltCoroutine != null)      { StopCoroutine(_tiltCoroutine);       _tiltCoroutine       = null; }
     }
 
     // -------------------------------------------------------------------------
