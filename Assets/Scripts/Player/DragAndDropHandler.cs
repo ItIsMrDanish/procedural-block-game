@@ -17,6 +17,7 @@ public class DragAndDropHandler : MonoBehaviour {
     World world;
 
     private InputSystem uiControls;
+    private Vector2 mousePosition;
 
     private void Start() {
 
@@ -25,7 +26,14 @@ public class DragAndDropHandler : MonoBehaviour {
         cursorItemSlot = new ItemSlot(cursorSlot);
 
         uiControls = new InputSystem();
+
+        uiControls.UI.MousePointer.performed += ctx => {
+
+            mousePosition = ctx.ReadValue<Vector2>();
+        };
+
         uiControls.UI.Click.performed += _ => {
+
             if (world.inUI)
                 HandleSlotClick(CheckForSlot());
         };
@@ -43,7 +51,8 @@ public class DragAndDropHandler : MonoBehaviour {
         if (!world.inUI)
             return;
 
-        cursorSlot.transform.position = Input.mousePosition;
+        // Use cached mouse position instead of Input.mousePosition
+        cursorSlot.transform.position = mousePosition;
     }
 
     private void HandleSlotClick(UIItemSlot clickedSlot) {
@@ -88,7 +97,7 @@ public class DragAndDropHandler : MonoBehaviour {
     private UIItemSlot CheckForSlot() {
 
         m_PointerEventData = new PointerEventData(m_EventSystem);
-        m_PointerEventData.position = Input.mousePosition;
+        m_PointerEventData.position = mousePosition;
 
         List<RaycastResult> results = new List<RaycastResult>();
         m_Raycaster.Raycast(m_PointerEventData, results);

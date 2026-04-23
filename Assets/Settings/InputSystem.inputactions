@@ -867,10 +867,10 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "MousePosition",
+                    "name": "MousePointer",
                     "type": "Value",
-                    "id": "1aa13a26-3251-49ce-bbd2-cce0f243b3b2",
-                    "expectedControlType": "",
+                    "id": "a8988fe9-4b00-4ca8-b43b-1715cee32ef5",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -1242,12 +1242,12 @@
                 },
                 {
                     "name": "",
-                    "id": "a78c5a56-bd71-41c9-bc8c-416619d39a99",
-                    "path": "<Mouse>/delta",
+                    "id": "4db98790-880d-45e4-a464-12993abfd5f2",
+                    "path": "<Mouse>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "MousePosition",
+                    "action": "MousePointer",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

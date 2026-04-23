@@ -953,10 +953,10 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MousePosition"",
+                    ""name"": ""MousePointer"",
                     ""type"": ""Value"",
-                    ""id"": ""1aa13a26-3251-49ce-bbd2-cce0f243b3b2"",
-                    ""expectedControlType"": """",
+                    ""id"": ""a8988fe9-4b00-4ca8-b43b-1715cee32ef5"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -1328,12 +1328,12 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""a78c5a56-bd71-41c9-bc8c-416619d39a99"",
-                    ""path"": ""<Mouse>/delta"",
+                    ""id"": ""4db98790-880d-45e4-a464-12993abfd5f2"",
+                    ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MousePosition"",
+                    ""action"": ""MousePointer"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1377,7 +1377,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         m_UI_RightClick = m_UI.FindAction("RightClick", throwIfNotFound: true);
         m_UI_MiddleClick = m_UI.FindAction("MiddleClick", throwIfNotFound: true);
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
-        m_UI_MousePosition = m_UI.FindAction("MousePosition", throwIfNotFound: true);
+        m_UI_MousePointer = m_UI.FindAction("MousePointer", throwIfNotFound: true);
     }
 
     ~@InputSystem()
@@ -1889,7 +1889,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_RightClick;
     private readonly InputAction m_UI_MiddleClick;
     private readonly InputAction m_UI_ScrollWheel;
-    private readonly InputAction m_UI_MousePosition;
+    private readonly InputAction m_UI_MousePointer;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -1926,9 +1926,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ScrollWheel => m_Wrapper.m_UI_ScrollWheel;
         /// <summary>
-        /// Provides access to the underlying input action "UI/MousePosition".
+        /// Provides access to the underlying input action "UI/MousePointer".
         /// </summary>
-        public InputAction @MousePosition => m_Wrapper.m_UI_MousePosition;
+        public InputAction @MousePointer => m_Wrapper.m_UI_MousePointer;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1973,9 +1973,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @ScrollWheel.started += instance.OnScrollWheel;
             @ScrollWheel.performed += instance.OnScrollWheel;
             @ScrollWheel.canceled += instance.OnScrollWheel;
-            @MousePosition.started += instance.OnMousePosition;
-            @MousePosition.performed += instance.OnMousePosition;
-            @MousePosition.canceled += instance.OnMousePosition;
+            @MousePointer.started += instance.OnMousePointer;
+            @MousePointer.performed += instance.OnMousePointer;
+            @MousePointer.canceled += instance.OnMousePointer;
         }
 
         /// <summary>
@@ -2005,9 +2005,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @ScrollWheel.started -= instance.OnScrollWheel;
             @ScrollWheel.performed -= instance.OnScrollWheel;
             @ScrollWheel.canceled -= instance.OnScrollWheel;
-            @MousePosition.started -= instance.OnMousePosition;
-            @MousePosition.performed -= instance.OnMousePosition;
-            @MousePosition.canceled -= instance.OnMousePosition;
+            @MousePointer.started -= instance.OnMousePointer;
+            @MousePointer.performed -= instance.OnMousePointer;
+            @MousePointer.canceled -= instance.OnMousePointer;
         }
 
         /// <summary>
@@ -2268,11 +2268,11 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnScrollWheel(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "MousePosition" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "MousePointer" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMousePosition(InputAction.CallbackContext context);
+        void OnMousePointer(InputAction.CallbackContext context);
     }
 }
