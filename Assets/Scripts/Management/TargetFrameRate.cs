@@ -12,7 +12,7 @@ public class TargetFrameRate : MonoBehaviour
 
     void Update()
     {
-        // Tjekker om indstillingen er ændret i World.settings midt i spillet
+        // Tjekker om indstillingen er ï¿½ndret i World.settings midt i spillet
         if (World.Instance != null && World.Instance.settings.frameRateIndex != _lastIndex)
         {
             ApplyFrameRate();
@@ -27,7 +27,7 @@ public class TargetFrameRate : MonoBehaviour
         _lastIndex = index;
 
         // Her mapper vi dropdown-indekset til faktiske tal. 
-        // Sørg for at disse matcher rækkefølgen i din TMP_Dropdown i Unity!
+        // Sï¿½rg for at disse matcher rï¿½kkefï¿½lgen i din TMP_Dropdown i Unity!
         switch (index)
         {
             case 0: Application.targetFrameRate = 30; break;
