@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class CreativeInventory : MonoBehaviour {
+public class Inventory : MonoBehaviour {
 
     public GameObject slotPrefab;
+    public GameObject armorUI;
     World world;
 
     List<ItemSlot> slots = new List<ItemSlot>();
@@ -20,6 +22,13 @@ public class CreativeInventory : MonoBehaviour {
             ItemStack stack = new ItemStack((byte)i, 64);
             ItemSlot slot = new ItemSlot(newSlot.GetComponent<UIItemSlot>(), stack);
             slot.isCreative = true;
+        }
+    }
+
+    private void Update() {
+
+        if (Keyboard.current.eKey.wasPressedThisFrame) {
+            armorUI.SetActive(!armorUI.activeSelf);
         }
     }
 }
