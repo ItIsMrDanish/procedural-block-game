@@ -4,11 +4,6 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// Attach to your LoadingCanvas in the MainMenu scene.
-// When LoadScene() is called, the canvas marks itself DontDestroyOnLoad so it
-// survives into the World scene, where it reads World.LoadProgress each frame
-// and hides itself once World.IsReady is true.
-
 public class LoadingScreenUI : MonoBehaviour {
 
     [Header("Canvas Screens")]
@@ -19,13 +14,12 @@ public class LoadingScreenUI : MonoBehaviour {
     [SerializeField] private Slider progressBar;
     [SerializeField] private TextMeshProUGUI progressText;
 
-    // Called by your Play button — pass the World scene build index (1)
     public void LoadScene(int sceneID) {
 
-        mainMenu.SetActive(false);
+        // mainMenu is optional — only set when called from the Play button directly
+        if (mainMenu != null) mainMenu.SetActive(false);
         loadingScreen.SetActive(true);
 
-        // Persist this canvas into the next scene so it can read World.LoadProgress
         DontDestroyOnLoad(gameObject);
 
         SceneManager.LoadScene(sceneID);
@@ -35,7 +29,6 @@ public class LoadingScreenUI : MonoBehaviour {
 
     private IEnumerator WaitForWorld() {
 
-        // Wait until World exists and has finished initialising
         while (!World.IsReady) {
 
             if (progressBar != null)
@@ -47,7 +40,6 @@ public class LoadingScreenUI : MonoBehaviour {
             yield return null;
         }
 
-        // Snap to 100% then hide
         if (progressBar != null) progressBar.value = 1f;
         if (progressText != null) progressText.text = "100%";
 

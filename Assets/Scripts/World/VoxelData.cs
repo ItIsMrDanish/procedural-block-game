@@ -32,6 +32,7 @@ public static class VoxelData {
     public static float tickLength = 1f;
 
     public static int seed;
+    public static string worldName = "World";
 
     // World centre in blocks (horizontal).
     public static int WorldCentre {

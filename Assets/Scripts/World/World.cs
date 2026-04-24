@@ -147,13 +147,13 @@ public class World : MonoBehaviour {
 
     private IEnumerator InitWorld() {
 
-        Debug.Log("Generating new world using seed " + VoxelData.seed);
+        Debug.Log($"Loading world '{VoxelData.worldName}' with seed {VoxelData.seed}");
 
         // Step 1: Basic setup (0–5%)
         LoadProgress = 0f;
         yield return null;
 
-        worldData = SaveSystem.LoadWorld("Testing");
+        worldData = SaveSystem.LoadWorld(VoxelData.worldName, VoxelData.seed);
 
         string settingsPath = Application.dataPath + "/settings.cfg";
         if (File.Exists(settingsPath))
