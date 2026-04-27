@@ -1,27 +1,24 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// Terrain generation logic.
-/// ComputeColumnData() is the expensive function — it runs 8 Perlin calls per
-/// unique world XZ position and is called through HeightmapCache, so each
-/// position is computed exactly once regardless of vertical chunk count.
-///
-/// GetVoxel() is the cheap per-voxel function — it only does up to 3 Perlin
-/// calls (cave check, underground only) and is otherwise pure arithmetic.
-///
-/// HEIGHT TARGETS:
-///   Normal terrain:   Y 66–75  (just above sea level 64)
-///   Ocean floor:      Y 40–58  (fills with water up to 64)
-///   Mountain peaks:   Y 90–130 (rare, where ridge + continent both high)
-///   Absolute limits:  Y 37–145 (clamped in code)
-/// </summary>
+// Terrain generation logic.
+// ComputeColumnData() is the expensive function — it runs 8 Perlin calls per
+// unique world XZ position and is called through HeightmapCache, so each
+// position is computed exactly once regardless of vertical chunk count.
+
+// GetVoxel() is the cheap per-voxel function — it only does up to 3 Perlin
+// calls (cave check, underground only) and is otherwise pure arithmetic.
+
+// HEIGHT TARGETS:
+//   Normal terrain:   Y 66–75  (just above sea level 64)
+//   Ocean floor:      Y 40–58  (fills with water up to 64)
+//   Mountain peaks:   Y 90–130 (rare, where ridge + continent both high)
+//   Absolute limits:  Y 37–145 (clamped in code)
+
 public static class TerrainGenerator {
 
-    // -------------------------------------------------------
     // Global noise parameters.
     // These define the SCALE of each layer — biome weights scale
     // the AMPLITUDE at the point of combination.
-    // -------------------------------------------------------
 
     // Domain warp — distorts coordinates to break grid look
     private const float WarpScale = 0.0015f;
@@ -67,33 +64,27 @@ public static class TerrainGenerator {
     private const int CaveMinY = -40;
     private const int CaveMaxDepthFromSurface = 5; // Don't carve within 5 of surface
 
-    // -------------------------------------------------------
     // Column data struct — returned by ComputeColumnData
-    // -------------------------------------------------------
+
     public struct ColumnData {
+
         public int surfaceHeight;
         public BiomeAttributes biome;
     }
 
-    // -------------------------------------------------------
     // ComputeColumnData — expensive, call via HeightmapCache
-    // -------------------------------------------------------
 
-    /// <summary>
-    /// Computes surface height and biome for a world XZ position.
-    /// This is the expensive function (~9 Perlin calls).
-    /// ALWAYS call via HeightmapCache.GetOrCompute() — never directly.
-    /// </summary>
-    public static ColumnData ComputeColumnData(int worldX, int worldZ,
-                                               BiomeAttributes[] biomes) {
+    // Computes surface height and biome for a world XZ position.
+    // This is the expensive function (~9 Perlin calls).
+    // ALWAYS call via HeightmapCache.GetOrCompute() — never directly.
+
+    public static ColumnData ComputeColumnData(int worldX, int worldZ, BiomeAttributes[] biomes) {
 
         float seed = VoxelData.seed;
 
         // Step 1: Domain warp — offset coords to break grid artifacts
-        float warpX = SampleRaw(worldX * WarpScale + seed * 0.001f,
-                                worldZ * WarpScale + seed * 0.002f) * WarpAmplitude;
-        float warpZ = SampleRaw(worldX * WarpScale + seed * 0.003f + 0.5f,
-                                worldZ * WarpScale + seed * 0.004f + 0.5f) * WarpAmplitude;
+        float warpX = SampleRaw(worldX * WarpScale + seed * 0.001f, worldZ * WarpScale + seed * 0.002f) * WarpAmplitude;
+        float warpZ = SampleRaw(worldX * WarpScale + seed * 0.003f + 0.5f, worldZ * WarpScale + seed * 0.004f + 0.5f) * WarpAmplitude;
 
         float wx = worldX + warpX;
         float wz = worldZ + warpZ;
@@ -106,6 +97,7 @@ public static class TerrainGenerator {
         BiomeAttributes biome = biomes[0];
         float bestD = float.MaxValue;
         for (int i = 0; i < biomes.Length; i++) {
+
             BiomeAttributes b = biomes[i];
             float dt = temp - b.temperature;
             float dh = humid - b.humidity;
@@ -132,12 +124,12 @@ public static class TerrainGenerator {
 
         // Step 5: Combine into height offset from sea level
         float heightOffset =
-              continent * ContinentAmp                  // Ocean vs land base
-            + scaledElevation * ElevationAmp                  // Rolling hills
-            + scaledDetail * DetailAmp                     // Fine detail bumps
-            + (ridgeMasked * ridgeMasked) * RidgeAmp            // Mountain peaks (squared = sharp)
-            - scaledErosion * ErosionAmp                    // Valley/plain erosion
-            + biome.heightOffset;                               // Biome flat offset (plateaus etc.)
+              continent * ContinentAmp // Ocean vs land base
+            + scaledElevation * ElevationAmp // Rolling hills
+            + scaledDetail * DetailAmp // Fine detail bumps
+            + (ridgeMasked * ridgeMasked) * RidgeAmp // Mountain peaks (squared = sharp)
+            - scaledErosion * ErosionAmp // Valley/plain erosion
+            + biome.heightOffset; // Biome flat offset (plateaus etc.)
 
         // Step 6: Final surface height
         int surface = Mathf.RoundToInt(VoxelData.SeaLevel + heightOffset);
@@ -149,15 +141,12 @@ public static class TerrainGenerator {
 
     }
 
-    // -------------------------------------------------------
     // GetVoxel — cheap per-voxel call
-    // -------------------------------------------------------
 
-    /// <summary>
-    /// Returns the block ID at a world position using pre-computed column data.
-    /// Only does cave noise (3 Perlin calls) for underground voxels.
-    /// Everything else is arithmetic.
-    /// </summary>
+    // Returns the block ID at a world position using pre-computed column data.
+    // Only does cave noise (3 Perlin calls) for underground voxels.
+    // Everything else is arithmetic.
+
     public static byte GetVoxel(Vector3Int pos, ColumnData col) {
 
         int yPos = pos.y;
@@ -180,17 +169,22 @@ public static class TerrainGenerator {
         byte voxelValue;
 
         if (yPos == surface) {
+
             // Underwater surface = sand regardless of biome
             voxelValue = (yPos < VoxelData.SeaLevel) ? (byte)4 : biome.surfaceBlock;
         } else if (yPos >= surface - biome.subsurfaceDepth) {
+
             voxelValue = biome.subSurfaceBlock;
         } else {
+
             voxelValue = 2; // Stone
         }
 
         // Ore lodes — only in stone
         if (voxelValue == 2 && biome.lodes != null) {
+
             for (int i = 0; i < biome.lodes.Length; i++) {
+
                 Lode lode = biome.lodes[i];
                 if (yPos > lode.minHeight && yPos < lode.maxHeight)
                     if (IsCaveNoise(pos, lode.noiseOffset, lode.scale, lode.threshold))
@@ -199,17 +193,13 @@ public static class TerrainGenerator {
         }
 
         return voxelValue;
-
     }
 
-    // -------------------------------------------------------
     // Private helpers
-    // -------------------------------------------------------
 
-    /// <summary>
-    /// 3-axis cave check. Uses AB, BC, CA instead of all 6 permutations.
-    /// 3 Perlin calls vs 6 — same visual quality, half the cost.
-    /// </summary>
+    // 3-axis cave check. Uses AB, BC, CA instead of all 6 permutations.
+    // 3 Perlin calls vs 6 — same visual quality, half the cost.
+
     private static bool IsCave(Vector3Int pos) {
 
         float x = pos.x * CaveScale + VoxelData.seed * 0.1f;
@@ -221,7 +211,6 @@ public static class TerrainGenerator {
         float CA = Mathf.PerlinNoise(z, x);
 
         return (AB + BC + CA) / 3f > CaveThreshold;
-
     }
 
     /// <summary>Reuses cave noise logic for ore lode generation.</summary>
@@ -236,52 +225,42 @@ public static class TerrainGenerator {
         float CA = Mathf.PerlinNoise(z, x);
 
         return (AB + BC + CA) / 3f > threshold;
-
     }
 
-    /// <summary>
-    /// Continentalness: remapped so ~40% of the world is ocean (negative value).
-    /// </summary>
+    // Continentalness: remapped so ~40% of the world is ocean (negative value).
+    
     private static float GetContinentalness(float x, float z) {
 
         float v = SampleScaled(x, z, ContinentOffset, ContinentScale);
         // Remap 0..1 → -1..1.2, clamped.
         // Breakpoint at v≈0.46: below = ocean, above = land
         return Mathf.Clamp(v * 2.2f - 1.0f, -1f, 1f);
-
     }
 
-    /// <summary>
-    /// Ridge noise: folded Perlin that produces sharp mountain ridges.
-    /// 1 - |2v - 1| gives value 0 at 0 and 1, peaks at v=0.5.
-    /// </summary>
+    // Ridge noise: folded Perlin that produces sharp mountain ridges.
+    // 1 - |2v - 1| gives value 0 at 0 and 1, peaks at v=0.5.
+   
     private static float GetRidgeNoise(float x, float z) {
 
         float v = SampleScaled(x, z, RidgeOffset, RidgeScale);
         return 1f - Mathf.Abs(2f * v - 1f);
-
     }
 
-    /// <summary>
-    /// Samples Perlin noise with a seed-offset and a world-space scale.
-    /// The scale is in "cycles per ChunkSize blocks" so it's independent
-    /// of chunk size and matches old Noise.Get2DPerlin behavior.
-    /// </summary>
+    // Samples Perlin noise with a seed-offset and a world-space scale.
+    // The scale is in "cycles per ChunkSize blocks" so it's independent
+    // of chunk size and matches old Noise.Get2DPerlin behavior.
+
     private static float SampleScaled(float x, float z, float offset, float scale) {
 
         float px = (x + offset + VoxelData.seed + 0.1f) * scale;
         float pz = (z + offset + VoxelData.seed + 0.1f) * scale;
         return Mathf.PerlinNoise(px, pz);
-
     }
 
-    /// <summary>
-    /// Samples raw Perlin noise (for domain warp where we want raw coordinates).
-    /// </summary>
+    // Samples raw Perlin noise (for domain warp where we want raw coordinates).
+
     private static float SampleRaw(float x, float z) {
 
         return Mathf.PerlinNoise(x, z) * 2f - 1f; // Returns -1..1
-
     }
-
 }

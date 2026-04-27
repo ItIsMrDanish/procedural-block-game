@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Voxel Mesh Data", menuName = "MinecraftTutorial/Voxel Mesh Data")]
+[CreateAssetMenu(fileName = "New Voxel Mesh Data", menuName = "Bloxels/Voxel Mesh Data")]
 public class VoxelMeshData : ScriptableObject {
 
     public string blockName;

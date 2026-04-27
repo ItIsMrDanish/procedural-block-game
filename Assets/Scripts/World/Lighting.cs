@@ -33,22 +33,27 @@ public static class Lighting {
 
         for (int y = startY; y >= 0; y--) {
 
-            // Flat index access — faster than map[x,y,z]
+            // Flat index access faster than map[x,y,z]
             VoxelState voxel = chunkData.map[ChunkData.FlatIdx(x, y, z)];
 
             if (obstructed) {
+
                 voxel.light = 0;
             } else if (voxel.properties.isWater) {
+
                 voxel.light = 15;
             } else if (voxel.properties.opacity > 0) {
+
                 voxel.light = 0;
                 obstructed = true;
             } else {
+
                 voxel.light = 15;
             }
         }
 
         if (!obstructed) {
+
             ChunkData below = GetChunkBelow(chunkData);
             if (below != null)
                 CastNaturalLight(below, x, z, size - 1);
@@ -72,17 +77,20 @@ public static class Lighting {
             VoxelState voxel = chunkData.map[ChunkData.FlatIdx(x, y, z)];
 
             if (obstructed) {
+
                 voxel.light = 0;
             } else if (voxel.properties.isWater) {
+
                 voxel.light = 15;
             } else if (voxel.properties.opacity > 0) {
+
                 voxel.light = 0;
                 obstructed = true;
             } else {
+
                 voxel.light = 15;
             }
         }
-
     }
 
     static bool IsObstructedFromAbove(ChunkData chunkData, int x, int z) {
@@ -90,14 +98,12 @@ public static class Lighting {
         ChunkData above = GetChunkAbove(chunkData);
         if (above == null) return false;
         return above.map[ChunkData.FlatIdx(x, 0, z)].light < 15;
-
     }
 
     static ChunkData GetChunkAbove(ChunkData chunkData) {
 
         Vector3Int aboveOrigin = chunkData.position + new Vector3Int(0, VoxelData.ChunkSize, 0);
         return World.Instance.worldData.RequestChunk(aboveOrigin, false);
-
     }
 
     static ChunkData GetChunkBelow(ChunkData chunkData) {
@@ -106,5 +112,4 @@ public static class Lighting {
         return World.Instance.worldData.RequestChunk(belowOrigin, false);
 
     }
-
 }

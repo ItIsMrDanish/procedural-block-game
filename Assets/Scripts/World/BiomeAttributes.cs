@@ -1,42 +1,20 @@
 using UnityEngine;
 
-/// <summary>
-/// Defines how a biome looks and how the terrain is shaped inside it.
-///
-/// TERRAIN SHAPE — these multiply against the global noise layers so
-/// the world still fits together. Set all weights to 1 for default terrain.
-///
-///   ridgeWeight       — 0 = no mountains at all, 2 = double-height peaks
-///   erosionWeight     — 0 = jagged/rugged, 1 = normal, 2 = very smooth/flat
-///   elevationAmplitude— 0 = perfectly flat, 1 = normal hills, 2 = exaggerated hills
-///   heightOffset      — raw block offset added to final surface (plateaus, valleys)
-///
-/// SURFACE — what blocks appear at and below the surface.
-///   surfaceBlock      — top layer (grass, sand, etc.)
-///   subSurfaceBlock   — the few layers beneath (dirt, sandstone, etc.)
-///   subsurfaceDepth   — how many layers of subSurfaceBlock before stone
-///
-/// CLIMATE — used by TerrainGenerator to pick the best matching biome.
-///   temperature       — 0 = arctic, 1 = tropical
-///   humidity          — 0 = arid/desert, 1 = rainforest
-/// </summary>
-[CreateAssetMenu(fileName = "BiomeAttributes", menuName = "MinecraftTutorial/Biome Attribute")]
+[CreateAssetMenu(fileName = "BiomeAttributes", menuName = "Bloxels/Biome Attribute")]
 public class BiomeAttributes : ScriptableObject {
 
     [Header("Identity")]
     public string biomeName = "New Biome";
 
-    // -------------------------------------------------------
-    // Climate — determines which biome is chosen at any XZ position.
-    // -------------------------------------------------------
+    // Climate determines which biome is chosen at any XZ position.
+
     [Header("Climate (0=cold/dry, 1=hot/wet)")]
     [Range(0f, 1f)] public float temperature = 0.5f;
     [Range(0f, 1f)] public float humidity = 0.5f;
 
-    // -------------------------------------------------------
-    // Terrain shape — multipliers applied to global noise layers.
+    // Terrain shape ï¿½ multipliers applied to global noise layers.
     // Default of 1 means "use global noise as-is".
-    // -------------------------------------------------------
+
     [Header("Terrain Shape")]
 
     [Tooltip("Scales mountain ridge peaks. 0 = plains/flat, 1 = default, 2 = big mountains.")]
@@ -51,9 +29,8 @@ public class BiomeAttributes : ScriptableObject {
     [Tooltip("Flat block offset applied to final surface height. Negative = lowlands, positive = plateaus.")]
     [Range(-48f, 48f)] public float heightOffset = 0f;
 
-    // -------------------------------------------------------
     // Surface blocks
-    // -------------------------------------------------------
+
     [Header("Surface Blocks")]
     public byte surfaceBlock = 3; // Grass
     public byte subSurfaceBlock = 5; // Dirt
@@ -61,9 +38,8 @@ public class BiomeAttributes : ScriptableObject {
     [Tooltip("How many layers of subSurfaceBlock appear below the surface before stone.")]
     [Range(1, 12)] public int subsurfaceDepth = 4;
 
-    // -------------------------------------------------------
     // Flora
-    // -------------------------------------------------------
+
     [Header("Flora")]
     public bool placeMajorFlora = true;
     public int majorFloraIndex = 0;
@@ -76,25 +52,23 @@ public class BiomeAttributes : ScriptableObject {
     public int minHeight = 5;
     public int maxHeight = 12;
 
-    // -------------------------------------------------------
     // Ore lodes
-    // -------------------------------------------------------
+
     [Header("Lodes")]
     public Lode[] lodes;
 
-    // -------------------------------------------------------
-    // Legacy — kept so existing ScriptableObjects don't break.
+    // Legacy kept so existing ScriptableObjects don't break.
     // These are no longer used in height calculation.
-    // -------------------------------------------------------
+
     [HideInInspector] public int offset = 0;
     [HideInInspector] public float scale = 1f;
     [HideInInspector] public int terrainHeight = 20;
     [HideInInspector] public float terrainScale = 1f;
-
 }
 
 [System.Serializable]
 public class Lode {
+    
     public string nodeName;
     public byte blockID;
     public int minHeight;

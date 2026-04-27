@@ -3,22 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Handles player health and hunger.
-/// Attach this component to the same GameObject as Player.cs.
-///
-/// Inspector wiring required:
-///   - healthSlider        : UI Slider (max = 20) for health bar
-///   - hungerSlider        : UI Slider (max = 20) for hunger bar
-///   - deathScreenCanvas   : Canvas to show on death / hide on respawn
-///   - hungerDrainInterval : Seconds between each hunger tick (default 30)
-///   - fallDamageThreshold : Minimum fall distance (units) before damage (default 3)
-/// </summary>
-public class HealthAndHunger : MonoBehaviour
-{
-    // -------------------------------------------------------------------------
+public class HealthAndHunger : MonoBehaviour {
+
     // Inspector fields
-    // -------------------------------------------------------------------------
 
     [Header("Stats")]
     public int maxHealth = 20;
@@ -47,14 +34,12 @@ public class HealthAndHunger : MonoBehaviour
     [Tooltip("Smoothing factor for the spring-back. Higher = snappier recovery.")]
     public float tiltRecoverySmoothing = 8f;
 
-    // -------------------------------------------------------------------------
     // Private state
-    // -------------------------------------------------------------------------
 
     private int _currentHealth;
     private int _currentHunger;
 
-    private Player _player;          // Reference to sibling Player component
+    private Player _player; // Reference to sibling Player component
     private bool _isDead = false;
 
     // Fall damage tracking
@@ -71,20 +56,18 @@ public class HealthAndHunger : MonoBehaviour
     private Transform _cam;
     private float _currentTilt = 0f;   // Current Z-roll applied to the camera
 
-    // -------------------------------------------------------------------------
     // Unity lifecycle
-    // -------------------------------------------------------------------------
 
-    private void Awake()
-    {
+    private void Awake() {
+
         _player = GetComponent<Player>();
 
         if (_player == null)
             Debug.LogError("[PlayerHealth] No Player component found on this GameObject!");
     }
 
-    private void Start()
-    {
+    private void Start() {
+
         InitStats();
 
         // Cache the main camera (same one Player.cs uses)
@@ -100,19 +83,17 @@ public class HealthAndHunger : MonoBehaviour
         _hungerCoroutine = StartCoroutine(HungerDrainLoop());
     }
 
-    private void Update()
-    {
+    private void Update() {
+
         if (_isDead) return;
 
         TrackFall();
     }
 
-    // -------------------------------------------------------------------------
-    // Initialisation / Respawn
-    // -------------------------------------------------------------------------
+    // Initialisation / Respawn-
 
-    private void InitStats()
-    {
+    private void InitStats() {
+
         _currentHealth = maxHealth;
         _currentHunger = maxHunger;
 
@@ -120,13 +101,11 @@ public class HealthAndHunger : MonoBehaviour
         RefreshHungerUI();
     }
 
-    // -------------------------------------------------------------------------
     // Public API
-    // -------------------------------------------------------------------------
 
-    /// <summary>Called by a UI Button to respawn the player.</summary>
-    public void Respawn()
-    {
+    // Called by a UI Button to respawn the player.
+    public void Respawn() {
+
         _isDead = false;
 
         // Reset stats
@@ -152,14 +131,14 @@ public class HealthAndHunger : MonoBehaviour
         Cursor.visible = false;
     }
 
-    public void MainMenu()
-    {
+    public void MainMenu() {
+
         SceneManager.LoadScene("MainMenu");
     }
 
-    /// <summary>Deal damage from any external source (e.g. lava, mobs).</summary>
-    public void TakeDamage(int amount)
-    {
+    // Deal damage from any external source (e.g. lava, mobs).
+    public void TakeDamage(int amount) {
+
         if (_isDead) return;
 
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
@@ -172,21 +151,19 @@ public class HealthAndHunger : MonoBehaviour
             Die();
     }
 
-    /// <summary>Restore health directly (e.g. potions).</summary>
-    public void Heal(int amount)
-    {
+    // Restore health directly (e.g. potions).
+    public void Heal(int amount) {
+
         if (_isDead) return;
 
         _currentHealth = Mathf.Min(maxHealth, _currentHealth + amount);
         RefreshHealthUI();
     }
 
-    // -------------------------------------------------------------------------
     // Camera tilt on damage
-    // -------------------------------------------------------------------------
 
-    private void TriggerDamageTilt(int damageAmount)
-    {
+    private void TriggerDamageTilt(int damageAmount) {
+
         if (_cam == null) return;
 
         // Calculate target tilt: 3° per HP, capped at maxTiltAngle
@@ -202,18 +179,18 @@ public class HealthAndHunger : MonoBehaviour
         _tiltCoroutine = StartCoroutine(TiltCoroutine(targetTilt));
     }
 
-    private IEnumerator TiltCoroutine(float targetTilt)
-    {
-        // --- Phase 1: Snap to peak tilt instantly ---
+    private IEnumerator TiltCoroutine(float targetTilt) {
+    
+        // Phase 1: Snap to peak tilt instantly
         _currentTilt = targetTilt;
         ApplyCameraTilt(_currentTilt);
 
-        // --- Phase 2: Smoothly spring back to 0 over tiltRecoveryTime ---
+        // Phase 2: Smoothly spring back to 0 over tiltRecoveryTime
         float elapsed = 0f;
         float startTilt = _currentTilt;
 
-        while (elapsed < tiltRecoveryTime)
-        {
+        while (elapsed < tiltRecoveryTime) {
+
             elapsed += Time.deltaTime;
             float t = elapsed / tiltRecoveryTime;
 
@@ -229,13 +206,12 @@ public class HealthAndHunger : MonoBehaviour
         _tiltCoroutine = null;
     }
 
-    /// <summary>
-    /// Writes the tilt as a Z-rotation on the camera's localEulerAngles.
-    /// Player.cs owns X (pitch) and the player body owns Y (yaw) —
-    /// we only touch Z, so there is no conflict.
-    /// </summary>
-    private void ApplyCameraTilt(float zDegrees)
-    {
+    // Writes the tilt as a Z-rotation on the camera's localEulerAngles.
+    // Player.cs owns X (pitch) and the player body owns Y (yaw) —
+    // we only touch Z, so there is no conflict.
+    
+    private void ApplyCameraTilt(float zDegrees) {
+
         if (_cam == null) return;
 
         Vector3 angles = _cam.localEulerAngles;
@@ -243,12 +219,10 @@ public class HealthAndHunger : MonoBehaviour
         _cam.localEulerAngles = angles;
     }
 
-    // -------------------------------------------------------------------------
     // Death
-    // -------------------------------------------------------------------------
 
-    private void Die()
-    {
+    private void Die() {
+
         if (_isDead) return;
         _isDead = true;
 
@@ -268,33 +242,30 @@ public class HealthAndHunger : MonoBehaviour
         Cursor.visible = true;
     }
 
-    // -------------------------------------------------------------------------
     // Fall damage
-    // -------------------------------------------------------------------------
 
-    private void TrackFall()
-    {
+    private void TrackFall() {
+
         // Player.isGrounded is a public field on Player.cs
         bool isGrounded = _player.isGrounded;
 
-        if (!isGrounded)
-        {
-            if (!_wasFalling)
-            {
+        if (!isGrounded) {
+
+            if (!_wasFalling) {
+
                 // Just left the ground — record take-off / drop height
                 _fallStartY = transform.position.y;
                 _wasFalling = true;
             }
-        }
-        else
-        {
-            if (_wasFalling)
-            {
+        } else {
+
+            if (_wasFalling) {
+
                 // Just landed
                 float fallDistance = _fallStartY - transform.position.y;
 
-                if (fallDistance > fallDamageThreshold)
-                {
+                if (fallDistance > fallDamageThreshold) {
+
                     // Each unit beyond the threshold = 1 damage point
                     int damage = Mathf.FloorToInt(fallDistance - fallDamageThreshold);
                     if (damage > 0)
@@ -306,14 +277,12 @@ public class HealthAndHunger : MonoBehaviour
         }
     }
 
-    // -------------------------------------------------------------------------
     // Hunger drain loop
-    // -------------------------------------------------------------------------
 
-    private IEnumerator HungerDrainLoop()
-    {
-        while (!_isDead)
-        {
+    private IEnumerator HungerDrainLoop() {
+
+        while (!_isDead) {
+
             yield return new WaitForSeconds(hungerDrainInterval);
 
             if (_isDead) yield break;
@@ -333,14 +302,12 @@ public class HealthAndHunger : MonoBehaviour
         }
     }
 
-    // -------------------------------------------------------------------------
     // Starvation (0 hunger → -1 hp every 3 s)
-    // -------------------------------------------------------------------------
 
-    private IEnumerator StarvationLoop()
-    {
-        while (_currentHunger == 0 && !_isDead)
-        {
+    private IEnumerator StarvationLoop() {
+
+        while (_currentHunger == 0 && !_isDead) {
+
             yield return new WaitForSeconds(3f);
 
             if (_isDead || _currentHunger > 0) break;
@@ -351,37 +318,34 @@ public class HealthAndHunger : MonoBehaviour
         _starvationCoroutine = null;
     }
 
-    // -------------------------------------------------------------------------
     // Health regeneration (+1 hp every 3 s when hunger > 10 and not full)
-    // -------------------------------------------------------------------------
 
-    private void UpdateRegenState()
-    {
+    private void UpdateRegenState() {
+
         bool shouldRegen = _currentHunger > 10 && _currentHealth < maxHealth && !_isDead;
 
         if (shouldRegen && _regenCoroutine == null)
             _regenCoroutine = StartCoroutine(RegenLoop());
-        else if (!shouldRegen && _regenCoroutine != null)
-        {
+        else if (!shouldRegen && _regenCoroutine != null) {
+
             StopCoroutine(_regenCoroutine);
             _regenCoroutine = null;
         }
     }
 
-    private IEnumerator RegenLoop()
-    {
-        while (_currentHunger > 10 && _currentHealth < maxHealth && !_isDead)
-        {
+    private IEnumerator RegenLoop() {
+
+        while (_currentHunger > 10 && _currentHealth < maxHealth && !_isDead) {
+
             yield return new WaitForSeconds(2f);
 
             if (_isDead) break;
 
-            if (_currentHunger > 10 && _currentHealth < maxHealth)
-            {
+            if (_currentHunger > 10 && _currentHealth < maxHealth) {
+
                 Heal(1);
-            }
-            else
-            {
+            } else {
+
                 break; // Conditions no longer met — exit and null the handle
             }
         }
@@ -389,24 +353,21 @@ public class HealthAndHunger : MonoBehaviour
         _regenCoroutine = null;
     }
 
-    // -------------------------------------------------------------------------
     // Eating (example helper — wire to food items as needed)
-    // -------------------------------------------------------------------------
 
-    /// <summary>
-    /// Feed the player. Restores hunger and re-evaluates regen / starvation.
-    /// Call this from your food/inventory system.
-    /// </summary>
-    public void Eat(int hungerRestored)
-    {
+    // Feed the player. Restores hunger and re-evaluates regen / starvation.
+    // Call this from your food/inventory system.
+
+    public void Eat(int hungerRestored) {
+
         if (_isDead) return;
 
         _currentHunger = Mathf.Min(maxHunger, _currentHunger + hungerRestored);
         RefreshHungerUI();
 
         // Stop starvation if hunger is above 0 now
-        if (_currentHunger > 0 && _starvationCoroutine != null)
-        {
+        if (_currentHunger > 0 && _starvationCoroutine != null) {
+
             StopCoroutine(_starvationCoroutine);
             _starvationCoroutine = null;
         }
@@ -415,53 +376,49 @@ public class HealthAndHunger : MonoBehaviour
         UpdateRegenState();
     }
 
-    // -------------------------------------------------------------------------
     // Helpers
-    // -------------------------------------------------------------------------
 
-    private void SetMovementEnabled(bool enabled)
-    {
-        if (_player != null)
-        {
+    private void SetMovementEnabled(bool enabled) {
+        
+        if (_player != null) {
+
             // The Player component drives movement in FixedUpdate / Update.
             // Disabling the component stops all input handling and physics.
             _player.enabled = enabled;
         }
     }
 
-    private void RefreshHealthUI()
-    {
-        if (healthSlider != null)
-        {
+    private void RefreshHealthUI() {
+
+        if (healthSlider != null) {
+
             healthSlider.maxValue = maxHealth;
             healthSlider.value = _currentHealth;
         }
     }
 
-    private void RefreshHungerUI()
-    {
-        if (hungerSlider != null)
-        {
+    private void RefreshHungerUI() {
+
+        if (hungerSlider != null) {
+
             hungerSlider.maxValue = maxHunger;
             hungerSlider.value = _currentHunger;
         }
     }
 
-    private void StopAllPassiveCoroutines()
-    {
+    private void StopAllPassiveCoroutines() {
+
         if (_hungerCoroutine != null)    { StopCoroutine(_hungerCoroutine);     _hungerCoroutine     = null; }
         if (_starvationCoroutine != null){ StopCoroutine(_starvationCoroutine); _starvationCoroutine = null; }
         if (_regenCoroutine != null)     { StopCoroutine(_regenCoroutine);      _regenCoroutine      = null; }
         if (_tiltCoroutine != null)      { StopCoroutine(_tiltCoroutine);       _tiltCoroutine       = null; }
     }
 
-    // -------------------------------------------------------------------------
     // Gizmos / debug (editor only)
-    // -------------------------------------------------------------------------
 
 #if UNITY_EDITOR
-    private void OnGUI()
-    {
+    private void OnGUI() {
+        
         GUILayout.BeginArea(new Rect(10, 10, 200, 60));
         GUILayout.Label($"HP: {_currentHealth} / {maxHealth}");
         GUILayout.Label($"Hunger: {_currentHunger} / {maxHunger}");

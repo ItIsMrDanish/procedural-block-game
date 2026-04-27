@@ -9,7 +9,7 @@ public static class Noise {
         position.x += (offset + VoxelData.seed + 0.1f);
         position.y += (offset + VoxelData.seed + 0.1f);
 
-        // Was ChunkWidth — now ChunkSize since chunks are cubic.
+        // Was ChunkWidth - now ChunkSize since chunks are cubic.
         return Mathf.PerlinNoise(
             position.x / VoxelData.ChunkSize * scale,
             position.y / VoxelData.ChunkSize * scale);

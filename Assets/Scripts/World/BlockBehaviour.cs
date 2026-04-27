@@ -7,6 +7,7 @@ public static class BlockBehaviour {
     // Cached reusable list for grass spread neighbours.
     // Previously allocated new List<VoxelState>() every Behave() call,
     // which happens every tick for every active grass block.
+    
     private static readonly List<VoxelState> _grassNeighbours = new List<VoxelState>(4);
 
     public static bool Active(VoxelState voxel) {

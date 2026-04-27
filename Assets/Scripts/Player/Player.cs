@@ -65,7 +65,7 @@ public class Player : MonoBehaviour {
         controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += _ => moveInput = Vector2.zero;
 
-        // Store raw look delta — smoothing applied in ApplyLook().
+        // Store raw look delta smoothing applied in ApplyLook().
         controls.Player.Look.performed += ctx => _rawLookInput = ctx.ReadValue<Vector2>();
         controls.Player.Look.canceled += _ => _rawLookInput = Vector2.zero;
 
@@ -75,7 +75,6 @@ public class Player : MonoBehaviour {
         controls.Player.Attack.performed += _ => BreakBlock();
         controls.Player.Use.performed += _ => PlaceBlock();
         controls.Player.Inventory.performed += _ => { world.inUI = !world.inUI; };
-
     }
 
     private void OnEnable() => controls.Enable();
@@ -94,7 +93,6 @@ public class Player : MonoBehaviour {
         // Sync pitch tracker with camera's actual starting angle.
         _cameraPitch = cam.localEulerAngles.x;
         if (_cameraPitch > 180f) _cameraPitch -= 360f;
-
     }
 
     private void FixedUpdate() {
@@ -109,9 +107,7 @@ public class Player : MonoBehaviour {
             ApplyLook();
 
             transform.Translate(velocity, Space.World);
-
         }
-
     }
 
     private void Update() {
@@ -131,7 +127,6 @@ public class Player : MonoBehaviour {
             orientation = 1;
         else
             orientation = 4;
-
     }
 
     #endregion
@@ -144,29 +139,24 @@ public class Player : MonoBehaviour {
 
         // SmoothDamp brings look toward the raw input value each frame.
         // When the mouse stops (_rawLookInput = 0), _smoothedLook decays to 0
-        // instead of stopping instantly — gives a tiny bit of inertia feel.
+        // instead of stopping instantly gives a tiny bit of inertia feel.
         // Set lookSmoothTime = 0 in Inspector for instant snap-stop response.
-        _smoothedLook.x = Mathf.SmoothDamp(
-            _smoothedLook.x, _rawLookInput.x * sensitivity,
-            ref _lookVelocity.x, lookSmoothTime);
+        _smoothedLook.x = Mathf.SmoothDamp(_smoothedLook.x, _rawLookInput.x * sensitivity, ref _lookVelocity.x, lookSmoothTime);
 
-        _smoothedLook.y = Mathf.SmoothDamp(
-            _smoothedLook.y, _rawLookInput.y * sensitivity,
-            ref _lookVelocity.y, lookSmoothTime);
+        _smoothedLook.y = Mathf.SmoothDamp(_smoothedLook.y, _rawLookInput.y * sensitivity, ref _lookVelocity.y, lookSmoothTime);
 
-        // Horizontal — rotate the whole player body left/right.
+        // Horizontal rotate the whole player body left/right.
         transform.Rotate(Vector3.up * _smoothedLook.x);
 
-        // Vertical — accumulate pitch and clamp it hard.
+        // Vertical accumulate pitch and clamp it hard.
         // This is the fix for looking upside down: we track the angle ourselves
-        // and never let it go past ±maxLookAngle.
+        // and never let it go past maxLookAngle.
         _cameraPitch -= _smoothedLook.y;
         _cameraPitch = Mathf.Clamp(_cameraPitch, -maxLookAngle, maxLookAngle);
 
         // Set the camera rotation directly from the clamped value.
         // Using localEulerAngles directly avoids any drift from repeated Rotate() calls.
         cam.localEulerAngles = new Vector3(_cameraPitch, 0f, 0f);
-
     }
 
     #endregion
@@ -178,7 +168,6 @@ public class Player : MonoBehaviour {
         verticalMomentum = jumpForce;
         isGrounded = false;
         jumpRequest = false;
-
     }
 
     private void CalculateVelocity() {
@@ -202,7 +191,6 @@ public class Player : MonoBehaviour {
             velocity.y = checkDownSpeed(velocity.y);
         else if (velocity.y > 0)
             velocity.y = checkUpSpeed(velocity.y);
-
     }
 
     #endregion
@@ -213,20 +201,18 @@ public class Player : MonoBehaviour {
 
         if (!world.inUI && highlightBlock.gameObject.activeSelf)
             world.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
-
     }
 
     void PlaceBlock() {
 
         if (!world.inUI && highlightBlock.gameObject.activeSelf) {
+
             if (toolbar.slots[toolbar.slotIndex].HasItem) {
-                world.GetChunkFromVector3(placeBlock.position).EditVoxel(
-                    placeBlock.position,
-                    toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
+                
+                world.GetChunkFromVector3(placeBlock.position).EditVoxel(placeBlock.position, toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
                 toolbar.slots[toolbar.slotIndex].itemSlot.Take(1);
             }
         }
-
     }
 
     private void placeCursorBlocks() {
@@ -246,16 +232,12 @@ public class Player : MonoBehaviour {
 
             if (world.CheckForVoxel(_cursorPos)) {
 
-                highlightBlock.position = new Vector3(
-                    Mathf.FloorToInt(_cursorPos.x),
-                    Mathf.FloorToInt(_cursorPos.y),
-                    Mathf.FloorToInt(_cursorPos.z));
+                highlightBlock.position = new Vector3(Mathf.FloorToInt(_cursorPos.x), Mathf.FloorToInt(_cursorPos.y), Mathf.FloorToInt(_cursorPos.z));
                 placeBlock.position = _lastCursorPos;
 
                 highlightBlock.gameObject.SetActive(true);
                 placeBlock.gameObject.SetActive(true);
                 return;
-
             }
 
             _lastCursorPos.x = Mathf.FloorToInt(_cursorPos.x);
@@ -263,12 +245,10 @@ public class Player : MonoBehaviour {
             _lastCursorPos.z = Mathf.FloorToInt(_cursorPos.z);
 
             step += checkIncrement;
-
         }
 
         highlightBlock.gameObject.SetActive(false);
         placeBlock.gameObject.SetActive(false);
-
     }
 
     #endregion
@@ -296,7 +276,6 @@ public class Player : MonoBehaviour {
 
         isGrounded = false;
         return downSpeed;
-
     }
 
     private float checkUpSpeed(float upSpeed) {
@@ -319,11 +298,12 @@ public class Player : MonoBehaviour {
         if (world.CheckForVoxel(_checkPos)) return 0;
 
         return upSpeed;
-
     }
 
     public bool front {
+
         get {
+
             float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
             _checkPos.x = px; _checkPos.z = pz + playerWidth;
             _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
@@ -333,7 +313,9 @@ public class Player : MonoBehaviour {
     }
 
     public bool back {
+
         get {
+
             float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
             _checkPos.x = px; _checkPos.z = pz - playerWidth;
             _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
@@ -343,7 +325,9 @@ public class Player : MonoBehaviour {
     }
 
     public bool left {
+
         get {
+
             float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
             _checkPos.x = px - playerWidth; _checkPos.z = pz;
             _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
@@ -353,7 +337,9 @@ public class Player : MonoBehaviour {
     }
 
     public bool right {
+
         get {
+
             float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
             _checkPos.x = px + playerWidth; _checkPos.z = pz;
             _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
@@ -363,5 +349,4 @@ public class Player : MonoBehaviour {
     }
 
     #endregion
-
 }

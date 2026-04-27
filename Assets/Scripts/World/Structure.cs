@@ -7,6 +7,7 @@ public static class Structure {
     public static Queue<VoxelMod> GenerateMajorFlora(int index, Vector3 position, int minTrunkHeight, int maxTrunkHeight) {
 
         switch (index) {
+
             case 0: return MakeTree(position, minTrunkHeight, maxTrunkHeight);
             case 1: return MakeCacti(position, minTrunkHeight, maxTrunkHeight);
         }
@@ -35,15 +36,15 @@ public static class Structure {
         // Leaf canopy.
         for (int x = -3; x < 4; x++) {
             for (int y = 0; y < 7; y++) {
+
                 for (int z = -3; z < 4; z++) {
-                    queue.Enqueue(new VoxelMod(
-                        new Vector3(baseX + x, baseY + height + y, baseZ + z), 11));
+
+                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + height + y, baseZ + z), 11));
                 }
             }
         }
 
         return queue;
-
     }
 
     public static Queue<VoxelMod> MakeCacti(Vector3 position, int minTrunkHeight, int maxTrunkHeight) {
@@ -63,7 +64,5 @@ public static class Structure {
             queue.Enqueue(new VoxelMod(new Vector3(baseX, baseY + i, baseZ), 12));
 
         return queue;
-
     }
-
 }

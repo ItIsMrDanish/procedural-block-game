@@ -26,6 +26,10 @@ public class DebugScreen : MonoBehaviour {
 
         string debugText = "Debug Screen � Press F3 to close/open";
         debugText += "\n";
+        string debugText = "Victor er fed";
+        debugText += "\n";
+        string debugText = "Miku #1";
+        debugText += "\n";
         debugText += frameRate + " FPS";
         debugText += "\n\n";
         debugText += "XYZ: " + (world.player.transform.position.x - halfWorldSizeInVoxels) + "x" + " / " + world.player.transform.position.y + "y" + " / " + (world.player.transform.position.z - halfWorldSizeInVoxels) + "z";

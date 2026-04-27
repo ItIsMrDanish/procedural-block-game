@@ -16,7 +16,7 @@ public class LoadingScreenUI : MonoBehaviour {
 
     public void LoadScene(int sceneID) {
 
-        // mainMenu is optional — only set when called from the Play button directly
+        // mainMenu is optional - only set when called from the Play button directly
         if (mainMenu != null) mainMenu.SetActive(false);
         loadingScreen.SetActive(true);
 

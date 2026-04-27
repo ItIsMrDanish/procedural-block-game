@@ -51,18 +51,12 @@ public class Chunk {
 
         chunkObject.transform.SetParent(World.Instance.transform);
 
-        position = new Vector3(
-            coord.x * VoxelData.ChunkSize,
-            coord.y * VoxelData.ChunkSize,
-            coord.z * VoxelData.ChunkSize);
+        position = new Vector3(coord.x * VoxelData.ChunkSize, coord.y * VoxelData.ChunkSize, coord.z * VoxelData.ChunkSize);
 
         chunkObject.transform.position = position;
         chunkObject.name = $"Chunk {coord.x},{coord.y},{coord.z}";
 
-        var blockPos = new Vector3Int(
-            coord.x * VoxelData.ChunkSize,
-            coord.y * VoxelData.ChunkSize,
-            coord.z * VoxelData.ChunkSize);
+        var blockPos = new Vector3Int(coord.x * VoxelData.ChunkSize, coord.y * VoxelData.ChunkSize, coord.z * VoxelData.ChunkSize);
 
         chunkData = World.Instance.worldData.RequestChunk(blockPos, true);
         chunkData.chunk = this;
@@ -70,6 +64,7 @@ public class Chunk {
         // Register active voxels using flat index.
         int size = VoxelData.ChunkSize;
         for (int i = 0; i < chunkData.map.Length; i++) {
+
             if (chunkData.map[i].properties.isActive)
                 AddActiveVoxel(chunkData.map[i]);
         }
@@ -84,12 +79,12 @@ public class Chunk {
     public void TickUpdate() {
 
         for (int i = activeVoxels.Count - 1; i >= 0; i--) {
+
             if (!BlockBehaviour.Active(activeVoxels[i]))
                 RemoveActiveVoxel(activeVoxels[i]);
             else
                 BlockBehaviour.Behave(activeVoxels[i]);
         }
-
     }
 
     public void UpdateChunk() {
@@ -98,20 +93,23 @@ public class Chunk {
 
         int size = VoxelData.ChunkSize;
 
-        // Quick all-air check using the flat array — one loop, one comparison.
+        // Quick all-air check using the flat array ï¿½ one loop, one comparison.
         // If the chunk is entirely air (sky chunk) we skip all mesh work.
         isEmpty = true;
         for (int i = 0; i < chunkData.map.Length; i++) {
+
             if (chunkData.map[i].id != 0) { isEmpty = false; break; }
         }
 
         if (!isEmpty) {
 
             for (int y = 0; y < size; y++) {
+
                 for (int x = 0; x < size; x++) {
+
                     for (int z = 0; z < size; z++) {
 
-                        // Flat index — one bounds check, no per-dimension multiplications.
+                        // Flat index one bounds check, no per-dimension multiplications.
                         int idx = ChunkData.FlatIdx(x, y, z);
 
                         if (World.Instance.blocktypes[chunkData.map[idx].id].isSolid)
@@ -122,18 +120,20 @@ public class Chunk {
         }
 
         World.Instance.chunksToDraw.Enqueue(this);
-
     }
 
     public void AddActiveVoxel(VoxelState voxel) {
+
         if (activeVoxelSet.Add(voxel)) activeVoxels.Add(voxel);
     }
 
     public void RemoveActiveVoxel(VoxelState voxel) {
+
         if (activeVoxelSet.Remove(voxel)) activeVoxels.Remove(voxel);
     }
 
     void ClearMeshData() {
+
         vertexIndex = 0;
         vertices.Clear();
         triangles.Clear();
@@ -145,18 +145,20 @@ public class Chunk {
     }
 
     public bool isActive {
+
         get { return _isActive; }
         set {
+
             _isActive = value;
             if (chunkObject != null) chunkObject.SetActive(value);
         }
     }
 
-    /// <summary>
-    /// Enables or disables the MeshRenderer for frustum culling.
-    /// Only touches the renderer, not the whole GameObject — isActive controls that.
-    /// </summary>
+    // Enables or disables the MeshRenderer for frustum culling.
+    // Only touches the renderer, not the whole GameObject isActive controls that.
+
     public void SetRendererEnabled(bool enabled) {
+
         if (meshRenderer != null)
             meshRenderer.enabled = enabled && !isEmpty;
     }
@@ -167,8 +169,7 @@ public class Chunk {
         int yCheck = Mathf.FloorToInt(pos.y) - Mathf.FloorToInt(position.y);
         int zCheck = Mathf.FloorToInt(pos.z) - Mathf.FloorToInt(position.z);
 
-        chunkData.ModifyVoxel(new Vector3Int(xCheck, yCheck, zCheck),
-                              newID, World.Instance._player.orientation);
+        chunkData.ModifyVoxel(new Vector3Int(xCheck, yCheck, zCheck), newID, World.Instance._player.orientation);
 
         UpdateSurroundingVoxels(xCheck, yCheck, zCheck);
 
@@ -182,10 +183,7 @@ public class Chunk {
 
             if (!chunkData.IsVoxelInChunk(currentVoxel.x, currentVoxel.y, currentVoxel.z)) {
 
-                var worldPos = new Vector3(
-                    currentVoxel.x + position.x,
-                    currentVoxel.y + position.y,
-                    currentVoxel.z + position.z);
+                var worldPos = new Vector3(currentVoxel.x + position.x, currentVoxel.y + position.y, currentVoxel.z + position.z);
 
                 Chunk neighbour = World.Instance.GetChunkFromVector3(worldPos);
                 if (neighbour != null)
@@ -203,9 +201,7 @@ public class Chunk {
 
     }
 
-    // -------------------------------------------------------
-    // Mesh generation — uses flat index throughout
-    // -------------------------------------------------------
+    // Mesh generation uses flat index throughout
 
     void UpdateMeshData(int x, int y, int z, int idx) {
 
@@ -213,6 +209,7 @@ public class Chunk {
 
         float rot = 0f;
         switch (voxel.orientation) {
+
             case 0: rot = 180f; break;
             case 5: rot = 270f; break;
             case 1: rot = 0f; break;
@@ -224,17 +221,21 @@ public class Chunk {
             int translatedP = p;
 
             if (voxel.orientation != 1) {
+
                 if (voxel.orientation == 0) {
+
                     if (p == 0) translatedP = 1;
                     else if (p == 1) translatedP = 0;
                     else if (p == 4) translatedP = 5;
                     else if (p == 5) translatedP = 4;
                 } else if (voxel.orientation == 5) {
+
                     if (p == 0) translatedP = 5;
                     else if (p == 1) translatedP = 4;
                     else if (p == 4) translatedP = 0;
                     else if (p == 5) translatedP = 1;
                 } else if (voxel.orientation == 4) {
+
                     if (p == 0) translatedP = 4;
                     else if (p == 1) translatedP = 5;
                     else if (p == 4) translatedP = 1;
@@ -245,9 +246,7 @@ public class Chunk {
             VoxelState neighbour = voxel.neighbours[translatedP];
 
             // Water-on-water check uses flat index.
-            bool waterOnWater = voxel.properties.isWater &&
-                                y + 1 < VoxelData.ChunkSize &&
-                                chunkData.map[ChunkData.FlatIdx(x, y + 1, z)].properties.isWater;
+            bool waterOnWater = voxel.properties.isWater && y + 1 < VoxelData.ChunkSize && chunkData.map[ChunkData.FlatIdx(x, y + 1, z)].properties.isWater;
 
             if (neighbour != null && neighbour.properties.renderNeighborFaces && !waterOnWater) {
 
@@ -257,6 +256,7 @@ public class Chunk {
                 var pos3 = new Vector3(x, y, z);
 
                 for (int i = 0; i < voxel.properties.meshData.faces[p].vertData.Length; i++) {
+
                     VertData vertData = voxel.properties.meshData.faces[p].GetVertData(i);
                     vertices.Add(pos3 + vertData.GetRotatedPosition(rotAngles));
                     normals.Add(VoxelData.faceChecks[p]);
@@ -271,13 +271,17 @@ public class Chunk {
                 }
 
                 if (!voxel.properties.renderNeighborFaces) {
+
                     for (int i = 0; i < voxel.properties.meshData.faces[p].triangles.Length; i++)
                         triangles.Add(vertexIndex + voxel.properties.meshData.faces[p].triangles[i]);
                 } else {
+
                     if (voxel.properties.isWater) {
+
                         for (int i = 0; i < voxel.properties.meshData.faces[p].triangles.Length; i++)
                             waterTriangles.Add(vertexIndex + voxel.properties.meshData.faces[p].triangles[i]);
                     } else {
+
                         for (int i = 0; i < voxel.properties.meshData.faces[p].triangles.Length; i++)
                             transparentTriangles.Add(vertexIndex + voxel.properties.meshData.faces[p].triangles[i]);
                     }
@@ -294,7 +298,7 @@ public class Chunk {
         Mesh mesh = meshFilter.mesh;
         mesh.Clear();
 
-        // SetVertices(List<T>) — available since Unity 2019.3.
+        // SetVertices(List<T>) available since Unity 2019.3.
         // Avoids the .ToArray() copy that allocates a new managed array on every upload.
         // With 192+ chunks loading at startup, that's hundreds of extra GC allocations.
         mesh.SetVertices(vertices);
@@ -306,7 +310,7 @@ public class Chunk {
         mesh.SetColors(colors);
         mesh.SetNormals(normals);
 
-        // Disable renderer if chunk is empty — no draw call submitted.
+        // Disable renderer if chunk is empty no draw call submitted.
         if (meshRenderer != null)
             meshRenderer.enabled = !isEmpty;
 
@@ -330,9 +334,8 @@ public class Chunk {
 
 }
 
-// -------------------------------------------------------
-// ChunkCoord — 3D (X, Y, Z)
-// -------------------------------------------------------
+// ChunkCoord ï¿½ 3D (X, Y, Z)
+
 public class ChunkCoord {
 
     public int x, y, z;
@@ -341,12 +344,14 @@ public class ChunkCoord {
     public ChunkCoord(int _x, int _y, int _z) { x = _x; y = _y; z = _z; }
 
     public ChunkCoord(Vector3 pos) {
+
         x = Mathf.FloorToInt(pos.x / VoxelData.ChunkSize);
         y = Mathf.FloorToInt(pos.y / VoxelData.ChunkSize);
         z = Mathf.FloorToInt(pos.z / VoxelData.ChunkSize);
     }
 
     public bool Equals(ChunkCoord other) {
+        
         if (other == null) return false;
         return other.x == x && other.y == y && other.z == z;
     }

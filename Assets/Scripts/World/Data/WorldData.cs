@@ -33,18 +33,12 @@ public class WorldData {
     // Converts any block position to the chunk origin (always multiple of ChunkSize).
     private static Vector3Int BlockToChunkOrigin(Vector3Int pos) {
 
-        return new Vector3Int(
-            Mathf.FloorToInt((float)pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
-            Mathf.FloorToInt((float)pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
-            Mathf.FloorToInt((float)pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+        return new Vector3Int(Mathf.FloorToInt((float)pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt((float)pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt((float)pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
     }
 
     private static Vector3Int BlockToChunkOrigin(Vector3 pos) {
 
-        return new Vector3Int(
-            Mathf.FloorToInt(pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
-            Mathf.FloorToInt(pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
-            Mathf.FloorToInt(pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+        return new Vector3Int(Mathf.FloorToInt(pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt(pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt(pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
     }
 
     public ChunkData RequestChunk(Vector3Int blockOrigin, bool create) {
@@ -81,15 +75,11 @@ public class WorldData {
     }
 
     bool IsVoxelInWorld(Vector3Int pos) {
-        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
-               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
-               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels && pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels && pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     bool IsVoxelInWorld(Vector3 pos) {
-        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
-               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
-               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels && pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels && pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     public void SetVoxel(Vector3 pos, byte value, int direction) {
@@ -99,10 +89,7 @@ public class WorldData {
         Vector3Int origin = BlockToChunkOrigin(pos);
         ChunkData chunk = RequestChunk(origin, true);
 
-        Vector3Int local = new Vector3Int(
-            Mathf.FloorToInt(pos.x) - origin.x,
-            Mathf.FloorToInt(pos.y) - origin.y,
-            Mathf.FloorToInt(pos.z) - origin.z);
+        Vector3Int local = new Vector3Int(Mathf.FloorToInt(pos.x) - origin.x, Mathf.FloorToInt(pos.y) - origin.y, Mathf.FloorToInt(pos.z) - origin.z);
 
         chunk.ModifyVoxel(local, value, direction);
     }
@@ -116,10 +103,7 @@ public class WorldData {
 
         if (chunk == null) return null;
 
-        Vector3Int local = new Vector3Int(
-            Mathf.FloorToInt(pos.x) - origin.x,
-            Mathf.FloorToInt(pos.y) - origin.y,
-            Mathf.FloorToInt(pos.z) - origin.z);
+        Vector3Int local = new Vector3Int(Mathf.FloorToInt(pos.x) - origin.x, Mathf.FloorToInt(pos.y) - origin.y, Mathf.FloorToInt(pos.z) - origin.z);
 
         // Use flat index — faster than [x,y,z] multidimensional access.
         return chunk.map[ChunkData.FlatIdx(local.x, local.y, local.z)];
@@ -134,10 +118,7 @@ public class WorldData {
 
         if (chunk == null) return null;
 
-        return chunk.map[ChunkData.FlatIdx(
-            pos.x - origin.x,
-            pos.y - origin.y,
-            pos.z - origin.z)];
+        return chunk.map[ChunkData.FlatIdx(pos.x - origin.x, pos.y - origin.y, pos.z - origin.z)];
     }
 
 }

@@ -14,7 +14,7 @@ public class AtlasPacker : EditorWindow {
     List<Texture2D> sortedTextures = new List<Texture2D>();
     Texture2D atlas;
 
-    [MenuItem("Minecraft Clone/Atlas Packer")] // Create a menu item to show the window.
+    [MenuItem("Bloxels/Atlas Packer")] // Create a menu item to show the window.
 
     public static void ShowWindow() {
 
@@ -25,7 +25,7 @@ public class AtlasPacker : EditorWindow {
 
         atlasSize = blockSize * atlasSizeInBlocks;
 
-        GUILayout.Label("Minecraft Cone Texture Atlas Packer", EditorStyles.boldLabel);
+        GUILayout.Label("Bloxels Texture Atlas Packer", EditorStyles.boldLabel);
 
         blockSize = EditorGUILayout.IntField("Block Size", blockSize);
         atlasSizeInBlocks = EditorGUILayout.IntField("Atlas Size (in blocks)", atlasSizeInBlocks);

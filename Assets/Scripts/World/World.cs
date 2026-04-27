@@ -30,10 +30,7 @@ public class World : MonoBehaviour {
 
     public BlockType[] blocktypes;
 
-    Chunk[,,] chunks = new Chunk[
-        VoxelData.WorldSizeInChunks,
-        VoxelData.WorldHeightInChunks,
-        VoxelData.WorldSizeInChunks];
+    Chunk[,,] chunks = new Chunk[VoxelData.WorldSizeInChunks, VoxelData.WorldHeightInChunks, VoxelData.WorldSizeInChunks];
 
     List<ChunkCoord> activeChunks = new List<ChunkCoord>();
     public ChunkCoord playerChunkCoord;
@@ -90,9 +87,7 @@ public class World : MonoBehaviour {
     private Plane[] _frustumPlanes = new Plane[6];
     private Camera _mainCamera;
 
-    // -------------------------------------------------------
     // Loading progress — read by LoadingScreenUI
-    // -------------------------------------------------------
 
     public static float LoadProgress { get; private set; } = 0f;
     public static bool IsReady { get; private set; } = false;
@@ -103,9 +98,7 @@ public class World : MonoBehaviour {
         return chunkY - VoxelData.MinChunkY;
     }
 
-    // -------------------------------------------------------
     // Unity lifecycle
-    // -------------------------------------------------------
 
     private void Awake() {
 
@@ -118,10 +111,8 @@ public class World : MonoBehaviour {
         _player = player.GetComponent<Player>();
 
         debugControls = new InputSystem();
-        debugControls.Debug.ToggleDebugScreen.performed += _ =>
-            debugScreen.SetActive(!debugScreen.activeSelf);
-        debugControls.Debug.SaveWorld.performed += _ =>
-            SaveSystem.SaveWorld(worldData);
+        debugControls.Debug.ToggleDebugScreen.performed += _ => debugScreen.SetActive(!debugScreen.activeSelf);
+        debugControls.Debug.SaveWorld.performed += _ => SaveSystem.SaveWorld(worldData);
         debugControls.Debug.Enable();
 
         LoadProgress = 0f;
@@ -130,20 +121,16 @@ public class World : MonoBehaviour {
         // Hide the player and UI until the world is fully ready
         //player.gameObject.SetActive(false);
         mainCanvas.gameObject.SetActive(false);
-
     }
 
     private void Start() {
 
         _mainCamera = Camera.main;
         StartCoroutine(InitWorld());
-
     }
 
-    // -------------------------------------------------------
     // Coroutine: initialise world across multiple frames
     // so the loading screen can update its progress bar
-    // -------------------------------------------------------
 
     private IEnumerator InitWorld() {
 
@@ -159,6 +146,7 @@ public class World : MonoBehaviour {
         if (File.Exists(settingsPath))
             settings = JsonUtility.FromJson<Settings>(File.ReadAllText(settingsPath));
         else {
+
             settings = new Settings();
             File.WriteAllText(settingsPath, JsonUtility.ToJson(settings));
         }
@@ -193,10 +181,7 @@ public class World : MonoBehaviour {
         LoadProgress = 0.8f;
         yield return null;
 
-        spawnPosition = new Vector3(
-            VoxelData.WorldCentre,
-            VoxelData.SeaLevel + 30f,
-            VoxelData.WorldCentre);
+        spawnPosition = new Vector3(VoxelData.WorldCentre, VoxelData.SeaLevel + 30f, VoxelData.WorldCentre);
 
         player.position = spawnPosition;
         CheckViewDistance();
@@ -206,6 +191,7 @@ public class World : MonoBehaviour {
         yield return null;
 
         if (settings.enableThreading) {
+
             _threadCancelSource = new CancellationTokenSource();
             ChunkUpdateThread = new Thread(() => ThreadedUpdate(_threadCancelSource.Token));
             ChunkUpdateThread.IsBackground = true;
@@ -219,7 +205,6 @@ public class World : MonoBehaviour {
         player.gameObject.SetActive(true);
         mainCanvas.gameObject.SetActive(true);
         StartCoroutine(Tick());
-
     }
 
     // Yields once per X-row so the loading bar moves smoothly
@@ -234,14 +219,18 @@ public class World : MonoBehaviour {
         int done = 0;
 
         for (int x = cx - hd; x < cx + hd; x++) {
+
             for (int z = cx - hd; z < cx + hd; z++) {
+
                 for (int y = cy - vd; y < cy + vd; y++) {
+
                     if (!IsChunkInWorld(x, y, z)) continue;
                     worldData.LoadChunk(new Vector3Int(
                         x * VoxelData.ChunkSize,
                         y * VoxelData.ChunkSize,
                         z * VoxelData.ChunkSize));
                 }
+
                 done++;
             }
 
@@ -249,7 +238,6 @@ public class World : MonoBehaviour {
             LoadProgress = Mathf.Lerp(0.25f, 0.75f, (float)done / totalColumns);
             yield return null;
         }
-
     }
 
     // -------------------------------------------------------
@@ -260,7 +248,6 @@ public class World : MonoBehaviour {
         Color sky = Color.Lerp(night, day, globalLightLevel);
         sky.a = 1f;
         _mainCamera.backgroundColor = sky;
-
     }
 
     IEnumerator Tick() {
@@ -276,14 +263,13 @@ public class World : MonoBehaviour {
             activeChunks.CopyTo(_tickSnapshot);
 
             for (int i = 0; i < count; i++) {
+
                 ChunkCoord c = _tickSnapshot[i];
                 int yi = ChunkYToIndex(c.y);
                 if (chunks[c.x, yi, c.z] != null)
                     chunks[c.x, yi, c.z].TickUpdate();
             }
-
         }
-
     }
 
     private void Update() {
@@ -299,6 +285,7 @@ public class World : MonoBehaviour {
 
             _chunkMovesSinceLastTrim++;
             if (_chunkMovesSinceLastTrim >= TrimEveryNMoves) {
+
                 _chunkMovesSinceLastTrim = 0;
                 HeightmapCache.Trim(
                     playerChunkCoord.x,
@@ -329,15 +316,18 @@ public class World : MonoBehaviour {
 
         // Time-budgeted mesh upload — ConcurrentQueue: TryDequeue instead of Dequeue
         if (!chunksToDraw.IsEmpty) {
+
             _frameTimer.Restart();
             while (!chunksToDraw.IsEmpty &&
                    _frameTimer.Elapsed.TotalMilliseconds < MeshBudgetMs) {
+
                 if (chunksToDraw.TryDequeue(out Chunk toDraw))
                     toDraw.CreateMesh();
             }
         }
 
         if (!settings.enableThreading) {
+
             if (!applyingModifications) ApplyModifications();
             if (!chunksToUpdate.IsEmpty) UpdateChunks();
         }
@@ -352,17 +342,16 @@ public class World : MonoBehaviour {
         int cy = Mathf.FloorToInt((float)VoxelData.SeaLevel / VoxelData.ChunkSize);
 
         for (int x = cx - hd; x < cx + hd; x++) {
+
             for (int z = cx - hd; z < cx + hd; z++) {
+
                 for (int y = cy - vd; y < cy + vd; y++) {
+
                     if (!IsChunkInWorld(x, y, z)) continue;
-                    worldData.LoadChunk(new Vector3Int(
-                        x * VoxelData.ChunkSize,
-                        y * VoxelData.ChunkSize,
-                        z * VoxelData.ChunkSize));
+                    worldData.LoadChunk(new Vector3Int(x * VoxelData.ChunkSize, y * VoxelData.ChunkSize, z * VoxelData.ChunkSize));
                 }
             }
         }
-
     }
 
     public void AddChunkToUpdate(Chunk chunk) { AddChunkToUpdate(chunk, false); }
@@ -371,6 +360,7 @@ public class World : MonoBehaviour {
         // The set prevents duplicates. The actual queue is a ConcurrentQueue —
         // safe to enqueue from any thread without blocking the background worker.
         lock (_chunksToUpdateSetLock) {
+
             if (chunksToUpdateSet.Add(chunk))
                 chunksToUpdate.Enqueue(chunk);
         }
@@ -396,6 +386,7 @@ public class World : MonoBehaviour {
 
             bool shouldApply;
             lock (_modificationsLock) {
+
                 shouldApply = !applyingModifications && modifications.Count > 0;
             }
 
@@ -404,12 +395,12 @@ public class World : MonoBehaviour {
             if (!chunksToUpdate.IsEmpty) UpdateChunks();
             else Thread.Sleep(1);
         }
-
     }
 
     private void OnDisable() {
 
         if (settings.enableThreading && _threadCancelSource != null) {
+
             _threadCancelSource.Cancel();
             ChunkUpdateThread?.Join(500);
             _threadCancelSource.Dispose();
@@ -423,10 +414,12 @@ public class World : MonoBehaviour {
     void ApplyModifications() {
 
         lock (_modificationsLock) {
+
             if (applyingModifications) return;
             applyingModifications = true;
 
             while (modifications.Count > 0) {
+
                 Queue<VoxelMod> q = modifications.Dequeue();
                 while (q.Count > 0) {
                     VoxelMod v = q.Dequeue();
@@ -436,7 +429,6 @@ public class World : MonoBehaviour {
 
             applyingModifications = false;
         }
-
     }
 
     public void EnqueueModification(Queue<VoxelMod> queue) {
@@ -444,16 +436,11 @@ public class World : MonoBehaviour {
         lock (_modificationsLock) {
             modifications.Enqueue(queue);
         }
-
     }
 
     ChunkCoord GetChunkCoordFromVector3(Vector3 pos) {
 
-        return new ChunkCoord(
-            Mathf.FloorToInt(pos.x / VoxelData.ChunkSize),
-            Mathf.FloorToInt(pos.y / VoxelData.ChunkSize),
-            Mathf.FloorToInt(pos.z / VoxelData.ChunkSize));
-
+        return new ChunkCoord(Mathf.FloorToInt(pos.x / VoxelData.ChunkSize), Mathf.FloorToInt(pos.y / VoxelData.ChunkSize), Mathf.FloorToInt(pos.z / VoxelData.ChunkSize));
     }
 
     public Chunk GetChunkFromVector3(Vector3 pos) {
@@ -463,7 +450,6 @@ public class World : MonoBehaviour {
         int cz = Mathf.FloorToInt(pos.z / VoxelData.ChunkSize);
         if (!IsChunkInWorld(cx, cy, cz)) return null;
         return chunks[cx, ChunkYToIndex(cy), cz];
-
     }
 
     void CheckViewDistance() {
@@ -512,7 +498,6 @@ public class World : MonoBehaviour {
         BiomeAttributes[] pwBiomes = biomes;
         System.Threading.Tasks.Task.Run(() =>
             HeightmapCache.PreWarm(pwX, pwZ, pwR, pwBiomes));
-
     }
 
     public bool CheckForVoxel(Vector3 pos) {
@@ -520,7 +505,6 @@ public class World : MonoBehaviour {
         VoxelState voxel = worldData.GetVoxel(pos);
         if (voxel == null) return false;
         return blocktypes[voxel.id].isSolid;
-
     }
 
     public VoxelState GetVoxelState(Vector3 pos) { return worldData.GetVoxel(pos); }
@@ -530,11 +514,13 @@ public class World : MonoBehaviour {
         set {
             _inUI = value;
             if (_inUI) {
+
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 creativeInventoryWindow.SetActive(true);
                 cursorSlot.SetActive(true);
             } else {
+
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
                 creativeInventoryWindow.SetActive(false);
@@ -544,16 +530,14 @@ public class World : MonoBehaviour {
     }
 
     bool IsChunkInWorld(int cx, int cy, int cz) {
+
         return cx > 0 && cx < VoxelData.WorldSizeInChunks - 1 &&
                cy >= VoxelData.MinChunkY && cy < VoxelData.MaxChunkY &&
                cz > 0 && cz < VoxelData.WorldSizeInChunks - 1;
     }
-
 }
 
-// -------------------------------------------------------
 // Supporting data types
-// -------------------------------------------------------
 
 [System.Serializable]
 public class BlockType {
@@ -572,7 +556,9 @@ public class BlockType {
     public int bottomFaceTexture, leftFaceTexture, rightFaceTexture;
 
     public int GetTextureID(int faceIndex) {
+
         switch (faceIndex) {
+
             case 0: return backFaceTexture;
             case 1: return frontFaceTexture;
             case 2: return topFaceTexture;
@@ -585,6 +571,7 @@ public class BlockType {
 }
 
 public class VoxelMod {
+
     public Vector3 position;
     public byte id;
     public VoxelMod() { position = Vector3.zero; id = 0; }
@@ -609,5 +596,4 @@ public class Settings {
     [Range(0.1f, 10f)]
     public float mouseSensitivity = 2.0f;
     public int frameRateIndex = 1;
-
 }
