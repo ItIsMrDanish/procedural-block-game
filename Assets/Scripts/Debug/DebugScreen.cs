@@ -24,11 +24,7 @@ public class DebugScreen : MonoBehaviour {
 
     private void Update() {
 
-        string debugText = "Debug Screen � Press F3 to close/open";
-        debugText += "\n";
-        string debugText = "Victor er fed";
-        debugText += "\n";
-        string debugText = "Miku #1";
+        string debugText = "Debug Screen: Press F3 to close/open";
         debugText += "\n";
         debugText += frameRate + " FPS";
         debugText += "\n\n";
