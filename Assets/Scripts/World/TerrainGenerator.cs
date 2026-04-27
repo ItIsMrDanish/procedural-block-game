@@ -138,7 +138,6 @@ public static class TerrainGenerator {
             VoxelData.WorldTopInVoxels - 4);
 
         return new ColumnData { surfaceHeight = surface, biome = biome };
-
     }
 
     // GetVoxel — cheap per-voxel call
@@ -250,10 +249,17 @@ public static class TerrainGenerator {
     // The scale is in "cycles per ChunkSize blocks" so it's independent
     // of chunk size and matches old Noise.Get2DPerlin behavior.
 
+    // IMPORTANT: px and pz must differ — PerlinNoise(t, t) samples along
+    // the noise diagonal where output is nearly constant (~0.5 everywhere),
+    // which killed all biome variation. The Z input uses a large prime offset
+    // (9371f) to break the symmetry and produce genuine 2D variation.
+    // This also fixes elevation, detail, ridge, erosion and continentalness —
+    // they all went through the same broken formula.
+    
     private static float SampleScaled(float x, float z, float offset, float scale) {
 
         float px = (x + offset + VoxelData.seed + 0.1f) * scale;
-        float pz = (z + offset + VoxelData.seed + 0.1f) * scale;
+        float pz = (z + offset + VoxelData.seed + 9371.1f) * scale;
         return Mathf.PerlinNoise(px, pz);
     }
 
