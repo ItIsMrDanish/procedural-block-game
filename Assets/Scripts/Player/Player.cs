@@ -9,240 +9,433 @@ public class Player : MonoBehaviour {
 
     public bool isGrounded;
     public bool isSprinting;
+    public int  orientation;
 
-    private Transform cam;
-    private World world;
+    [Header("Movement")]
+    public float walkSpeed   = 4.5f;
+    public float sprintSpeed = 7.5f;
+    public float jumpForce   = 6.5f;
 
-    public float walkSpeed = 3f;
-    public float sprintSpeed = 6f;
-    public float jumpForce = 5f;
-    public float gravity = -9.8f;
+    // Stronger gravity = snappier jumps, less floaty feel.
+    public float gravity     = -22f;
 
-    public float playerWidth = 0.15f;
-    public float boundsTolerance = 0.1f;
+    // How fast horizontal velocity ramps up / decelerates (units/s²).
+    public float groundAccel = 60f;   // Responsive on the ground
+    public float groundDecel = 50f;   // Stops quickly when key released
+    public float airAccel    = 18f;   // Less control mid-air — feels natural
 
-    public int orientation;
+    // Brief window after walking off a ledge where you can still jump.
+    public float coyoteTime  = 0.12f;
 
-    private Vector2 moveInput;
-    private Vector2 _rawLookInput;
-    private Vector2 _smoothedLook;
-    private Vector2 _lookVelocity;
+    [Header("Body")]
+    // Player is 2 blocks tall. Feet at transform.position, head top at +playerHeight.
+    // 1.8 fits through a 2-block gap; raise to 1.95 for a tighter fit.
+    public float playerHeight = 1.8f;
+    public float playerWidth  = 0.25f;  // Half-width of the AABB
 
-    // How quickly look input catches up. 0 = instant, 0.05 = slight smoothing.
-    // Tweak in Inspector. Keeps mouse from feeling floaty after stopping.
-    public float lookSmoothTime = 0.03f;
-
-    // Tracks cumulative vertical angle so we can clamp it properly.
-    // This is what prevents looking upside down.
-    private float _cameraPitch = 0f;
+    [Header("Look")]
     public float maxLookAngle = 89f;
 
-    private Vector3 velocity;
-    private float verticalMomentum = 0;
-    private bool jumpRequest;
-
+    [Header("Block Interaction")]
     public Transform highlightBlock;
     public Transform placeBlock;
     public float checkIncrement = 0.1f;
-    public float reach = 8f;
+    public float reach          = 8f;
 
+    [Header("References")]
     public Toolbar toolbar;
-    public byte selectedBlockIndex = 1;
 
-    private InputSystem controls;
+    private Transform   _cam;
+    private World       _world;
+    private InputSystem _controls;
 
-    // Pre-allocated to avoid per-frame heap allocations.
-    private Vector3 _checkPos = Vector3.zero;
-    private Vector3 _cursorPos = Vector3.zero;
-    private Vector3 _lastCursorPos = Vector3.zero;
+    private float _cameraPitch = 0f;   // Accumulated pitch angle, clamped
 
-    #region Unity
+    private Vector2 _moveInput;
+    private Vector2 _lookInput;
+
+    // Separate horizontal and vertical so we can handle them independently.
+    private Vector3 _horizontalVelocity;   // XZ movement
+    private float   _verticalVelocity;     // Y (gravity + jump)
+
+    private float   _coyoteTimer;
+    private bool    _jumpRequest;
+
+    // Unity lifecycle
 
     private void Awake() {
 
-        controls = new InputSystem();
+        _controls = new InputSystem();
 
-        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        controls.Player.Move.canceled += _ => moveInput = Vector2.zero;
+        _controls.Player.Move.performed += ctx => _moveInput = ctx.ReadValue<Vector2>();
+        _controls.Player.Move.canceled += _   => _moveInput = Vector2.zero;
 
-        // Store raw look delta smoothing applied in ApplyLook().
-        controls.Player.Look.performed += ctx => _rawLookInput = ctx.ReadValue<Vector2>();
-        controls.Player.Look.canceled += _ => _rawLookInput = Vector2.zero;
+        // Raw mouse delta — smoothing is NOT applied here, it belongs in rendering not input.
+        _controls.Player.Look.performed += ctx => _lookInput = ctx.ReadValue<Vector2>();
+        _controls.Player.Look.canceled += _   => _lookInput = Vector2.zero;
 
-        controls.Player.Jump.performed += _ => { if (isGrounded) jumpRequest = true; };
-        controls.Player.Sprint.performed += _ => isSprinting = true;
-        controls.Player.Sprint.canceled += _ => isSprinting = false;
-        controls.Player.Attack.performed += _ => BreakBlock();
-        controls.Player.Use.performed += _ => PlaceBlock();
-        controls.Player.Inventory.performed += _ => { world.inUI = !world.inUI; };
+        _controls.Player.Jump.performed += _ => { if (CanJump()) _jumpRequest = true; };
+        _controls.Player.Sprint.performed += _ => isSprinting = true;
+        _controls.Player.Sprint.canceled += _ => isSprinting = false;
+        _controls.Player.Attack.performed += _ => BreakBlock();
+        _controls.Player.Use.performed += _ => PlaceBlock();
+        _controls.Player.Inventory.performed += _ => { _world.inUI = !_world.inUI; };
     }
 
-    private void OnEnable() => controls.Enable();
-    private void OnDisable() => controls.Disable();
+    private void OnEnable()  => _controls.Enable();
+    private void OnDisable() => _controls.Disable();
 
     private void Start() {
 
-        cam = GameObject.Find("Main Camera").transform;
-        world = GameObject.Find("World").GetComponent<World>();
+        _cam   = GameObject.Find("Main Camera").transform;
+        _world = GameObject.Find("World").GetComponent<World>();
 
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        Cursor.visible   = false;
 
-        world.inUI = false;
+        _world.inUI = false;
 
-        // Sync pitch tracker with camera's actual starting angle.
-        _cameraPitch = cam.localEulerAngles.x;
+        // Sync pitch tracker to camera's actual starting angle.
+        _cameraPitch = _cam.localEulerAngles.x;
         if (_cameraPitch > 180f) _cameraPitch -= 360f;
-    }
-
-    private void FixedUpdate() {
-
-        if (!world.inUI) {
-
-            CalculateVelocity();
-
-            if (jumpRequest)
-                Jump();
-
-            ApplyLook();
-
-            transform.Translate(velocity, Space.World);
-        }
     }
 
     private void Update() {
 
-        if (!world.inUI)
-            placeCursorBlocks();
+        if (!_world.inUI) {
 
-        // Orientation tracking for block placement direction.
-        Vector3 XZDirection = transform.forward;
-        XZDirection.y = 0;
+            ApplyLook();
+            UpdateMovement();
+            PlaceCursorBlocks();
+            PushCameraOutOfBlocks();
+        }
 
-        if (Vector3.Angle(XZDirection, Vector3.forward) <= 45)
-            orientation = 0;
-        else if (Vector3.Angle(XZDirection, Vector3.right) <= 45)
-            orientation = 5;
-        else if (Vector3.Angle(XZDirection, Vector3.back) <= 45)
-            orientation = 1;
-        else
-            orientation = 4;
+        // Block-placement orientation (which cardinal direction the player faces).
+        Vector3 xzFwd = transform.forward;
+        xzFwd.y = 0f;
+        if (Vector3.Angle(xzFwd, Vector3.forward) <= 45f) orientation = 0;
+        else if (Vector3.Angle(xzFwd, Vector3.right) <= 45f) orientation = 5;
+        else if (Vector3.Angle(xzFwd, Vector3.back) <= 45f) orientation = 1;
+        else orientation = 4;
     }
 
-    #endregion
-
-    #region Look
+    // Look
 
     private void ApplyLook() {
 
-        float sensitivity = world.settings.mouseSensitivity;
+        float sens = _world.settings.mouseSensitivity;
 
-        // SmoothDamp brings look toward the raw input value each frame.
-        // When the mouse stops (_rawLookInput = 0), _smoothedLook decays to 0
-        // instead of stopping instantly gives a tiny bit of inertia feel.
-        // Set lookSmoothTime = 0 in Inspector for instant snap-stop response.
-        _smoothedLook.x = Mathf.SmoothDamp(_smoothedLook.x, _rawLookInput.x * sensitivity, ref _lookVelocity.x, lookSmoothTime);
+        // Horizontal: rotate the whole player body. No smoothing — crisp response.
+        transform.Rotate(Vector3.up * _lookInput.x * sens);
 
-        _smoothedLook.y = Mathf.SmoothDamp(_smoothedLook.y, _rawLookInput.y * sensitivity, ref _lookVelocity.y, lookSmoothTime);
+        // Vertical: accumulate and hard-clamp so you can never look upside-down.
+        _cameraPitch -= _lookInput.y * sens;
+        _cameraPitch  = Mathf.Clamp(_cameraPitch, -maxLookAngle, maxLookAngle);
 
-        // Horizontal rotate the whole player body left/right.
-        transform.Rotate(Vector3.up * _smoothedLook.x);
-
-        // Vertical accumulate pitch and clamp it hard.
-        // This is the fix for looking upside down: we track the angle ourselves
-        // and never let it go past maxLookAngle.
-        _cameraPitch -= _smoothedLook.y;
-        _cameraPitch = Mathf.Clamp(_cameraPitch, -maxLookAngle, maxLookAngle);
-
-        // Set the camera rotation directly from the clamped value.
-        // Using localEulerAngles directly avoids any drift from repeated Rotate() calls.
-        cam.localEulerAngles = new Vector3(_cameraPitch, 0f, 0f);
+        // Write X directly to avoid drift from repeated Rotate() calls.
+        // We preserve Y and Z so HealthAndHunger camera tilt (Z) is not clobbered.
+        Vector3 angles = _cam.localEulerAngles;
+        angles.x = _cameraPitch;
+        _cam.localEulerAngles = angles;
     }
 
-    #endregion
+    // Camera — prevent seeing through blocks
 
-    #region Movement
+    // The camera sits at eye-level inside the player.
+    // If that voxel is solid (e.g. squeezed into a 2-block gap, or a block placed
+    // right next to the player), we nudge the camera down until it is in free air.
+    // This completely eliminates the "see through block" glitch.
 
-    void Jump() {
+    private void PushCameraOutOfBlocks() {
 
-        verticalMomentum = jumpForce;
-        isGrounded = false;
-        jumpRequest = false;
-    }
+        Vector3 eyePos = _cam.position;
 
-    private void CalculateVelocity() {
+        if (_world.CheckForVoxel(eyePos)) {
 
-        if (verticalMomentum > gravity)
-            verticalMomentum += Time.fixedDeltaTime * gravity;
+            // Step downward in 1/8-block increments until we find free space.
+            float offset = 0f;
+            for (int i = 0; i < 16; i++) {
 
-        float speed = isSprinting ? sprintSpeed : walkSpeed;
+                offset -= 0.125f;
+                Vector3 candidate = eyePos + Vector3.up * offset;
 
-        velocity = ((transform.forward * moveInput.y) + (transform.right * moveInput.x))
-                   * Time.fixedDeltaTime * speed;
+                if (!_world.CheckForVoxel(candidate)) {
 
-        velocity += Vector3.up * verticalMomentum * Time.fixedDeltaTime;
-
-        if ((velocity.z > 0 && front) || (velocity.z < 0 && back))
-            velocity.z = 0;
-        if ((velocity.x > 0 && right) || (velocity.x < 0 && left))
-            velocity.x = 0;
-
-        if (velocity.y < 0)
-            velocity.y = checkDownSpeed(velocity.y);
-        else if (velocity.y > 0)
-            velocity.y = checkUpSpeed(velocity.y);
-    }
-
-    #endregion
-
-    #region Block Interaction
-
-    void BreakBlock() {
-
-        if (!world.inUI && highlightBlock.gameObject.activeSelf)
-            world.GetChunkFromVector3(highlightBlock.position).EditVoxel(highlightBlock.position, 0);
-    }
-
-    void PlaceBlock() {
-
-        if (!world.inUI && highlightBlock.gameObject.activeSelf) {
-
-            if (toolbar.slots[toolbar.slotIndex].HasItem) {
-                
-                world.GetChunkFromVector3(placeBlock.position).EditVoxel(placeBlock.position, toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
-                toolbar.slots[toolbar.slotIndex].itemSlot.Take(1);
+                    Vector3 localPos = _cam.localPosition;
+                    localPos.y = Mathf.Max(0.1f, localPos.y + offset);
+                    _cam.localPosition = localPos;
+                    return;
+                }
             }
+
+        } else {
+
+            // Camera is free — restore natural eye height smoothly so it doesn't pop.
+            float naturalEye = playerHeight - 0.15f;
+            Vector3 localPos = _cam.localPosition;
+
+            if (Mathf.Abs(localPos.y - naturalEye) > 0.001f)
+                localPos.y = Mathf.MoveTowards(localPos.y, naturalEye, Time.deltaTime * 10f);
+
+            _cam.localPosition = localPos;
         }
     }
 
-    private void placeCursorBlocks() {
+    // Movement — all in Update, axis-separated AABB collision
 
-        float step = checkIncrement;
+    private void UpdateMovement() {
 
-        _lastCursorPos.x = 0; _lastCursorPos.y = 0; _lastCursorPos.z = 0;
+        float dt = Time.deltaTime;
 
-        Vector3 camPos = cam.position;
-        Vector3 camFwd = cam.forward;
+        // Coyote timer: decays when airborne, resets when grounded.
+        if (isGrounded)
+            _coyoteTimer = coyoteTime;
+        else
+            _coyoteTimer -= dt;
+
+        // Gravity: small constant negative when grounded keeps ground detection reliable.
+        if (isGrounded && _verticalVelocity < 0f) {
+
+            _verticalVelocity = -2f;
+        } else {
+
+            _verticalVelocity += gravity * dt;
+            _verticalVelocity  = Mathf.Max(_verticalVelocity, gravity * 3f); // Terminal vel
+        }
+
+        // Jump
+        if (_jumpRequest) {_verticalVelocity = jumpForce; isGrounded = false; _coyoteTimer = 0f; _jumpRequest = false;
+        }
+
+        // Horizontal acceleration toward wish-direction
+        float   targetSpeed = isSprinting ? sprintSpeed : walkSpeed;
+        Vector3 wishDir     = (transform.forward * _moveInput.y + transform.right   * _moveInput.x).normalized;
+        Vector3 targetVel   = wishDir * targetSpeed;
+
+        float accel = isGrounded ? groundAccel : airAccel;
+        float decel = isGrounded ? groundDecel : airAccel;
+
+        if (wishDir.sqrMagnitude > 0.01f)
+            _horizontalVelocity = Vector3.MoveTowards(_horizontalVelocity, targetVel, accel * dt);
+        else
+            _horizontalVelocity = Vector3.MoveTowards(_horizontalVelocity, Vector3.zero, decel * dt);
+
+        // Build displacement vector
+        Vector3 delta = new Vector3(_horizontalVelocity.x * dt, _verticalVelocity     * dt, _horizontalVelocity.z * dt);
+
+        // Resolve collisions axis by axis and move
+        delta = ResolveCollisions(delta);
+        transform.Translate(delta, Space.World);
+    }
+
+    // Axis-separated collision: resolves Y first, then X and Z independently.
+    // X and Z use a sweep: we only block the axis if the player's AABB would
+    // actually overlap a solid voxel AFTER moving that axis. This lets the
+    // player slide smoothly along a wall when moving diagonally into it.
+
+    private Vector3 ResolveCollisions(Vector3 delta) {
+
+        if (delta.y < 0f) {
+
+            float resolved = CheckDownSpeed(delta.y);
+            if (resolved == 0f) {
+
+                _verticalVelocity = 0f;
+                isGrounded        = true;
+            } else {
+
+                isGrounded = false;
+            }
+            delta.y = resolved;
+        } else if (delta.y > 0f) {
+
+            float resolved = CheckUpSpeed(delta.y);
+            if (resolved == 0f) _verticalVelocity = 0f;
+            delta.y = resolved;
+        }
+
+        // Only block X if moving into a solid voxel along X at the player's new X position.
+
+        if (delta.x != 0f && CheckSideX(delta.x)) {
+
+            delta.x = 0f;
+            _horizontalVelocity.x = 0f;
+        }
+
+        // Only block Z if moving into a solid voxel along Z at the player's new Z position.
+
+        if (delta.z != 0f && CheckSideZ(delta.z)) {
+
+            delta.z = 0f;
+            _horizontalVelocity.z = 0f;
+        }
+
+        return delta;
+    }
+
+    // Collision geometry helpers
+
+    // Checks the 4 bottom corners of the player AABB at the target Y.
+    private float CheckDownSpeed(float downSpeed) {
+
+        float targetY = transform.position.y + downSpeed;
+        float px = transform.position.x;
+        float pz = transform.position.z;
+        float w  = playerWidth;
+
+        Vector3 p = new Vector3(px - w, targetY, pz - w);
+        if (_world.CheckForVoxel(p)) { isGrounded = true; return 0f; }
+        p.x = px + w;
+        if (_world.CheckForVoxel(p)) { isGrounded = true; return 0f; }
+        p.z = pz + w;
+        if (_world.CheckForVoxel(p)) { isGrounded = true; return 0f; }
+        p.x = px - w;
+        if (_world.CheckForVoxel(p)) { isGrounded = true; return 0f; }
+
+        isGrounded = false;
+        return downSpeed;
+    }
+
+    // Checks the 4 top corners at the target Y (feet + height).
+    private float CheckUpSpeed(float upSpeed) {
+
+        float targetY = transform.position.y + playerHeight + upSpeed;
+        float px = transform.position.x;
+        float pz = transform.position.z;
+        float w  = playerWidth;
+
+        Vector3 p = new Vector3(px - w, targetY, pz - w);
+        if (_world.CheckForVoxel(p)) return 0f;
+        p.x = px + w;
+        if (_world.CheckForVoxel(p)) return 0f;
+        p.z = pz + w;
+        if (_world.CheckForVoxel(p)) return 0f;
+        p.x = px - w;
+        if (_world.CheckForVoxel(p)) return 0f;
+
+        return upSpeed;
+    }
+
+    // Sweep the player's AABB edge along X by deltaX and check all corner/height probes.
+    // Probing the *destination* position (current + delta) means we only block if the
+    // player would actually enter a block — grazing a corner along the other axis never
+    // triggers this, so the player slides smoothly rather than stopping dead.
+
+    private bool CheckSideX(float deltaX) {
+
+        float px  = transform.position.x + deltaX;  // candidate X edge
+        float py  = transform.position.y;
+        float pz  = transform.position.z;
+        float w   = playerWidth;
+        float edgeX = px + Mathf.Sign(deltaX) * w;  // leading face in X
+
+        // Sample the two Z corners at three heights: feet, mid, just-below-head.
+        for (int i = 0; i < 3; i++) {
+
+            float h = py + (i == 0 ? 0f : i == 1 ? 1f : playerHeight - 0.1f);
+            if (_world.CheckForVoxel(new Vector3(edgeX, h, pz - w))) return true;
+            if (_world.CheckForVoxel(new Vector3(edgeX, h, pz + w))) return true;
+        }
+
+        return false;
+    }
+
+    // Same idea for Z.
+    private bool CheckSideZ(float deltaZ) {
+
+        float px = transform.position.x;
+        float py = transform.position.y;
+        float pz = transform.position.z + deltaZ; // candidate Z edge
+        float w = playerWidth;
+        float edgeZ = pz + Mathf.Sign(deltaZ) * w; // leading face in Z
+
+        for (int i = 0; i < 3; i++) {
+
+            float h = py + (i == 0 ? 0f : i == 1 ? 1f : playerHeight - 0.1f);
+            if (_world.CheckForVoxel(new Vector3(px - w, h, edgeZ))) return true;
+            if (_world.CheckForVoxel(new Vector3(px + w, h, edgeZ))) return true;
+        }
+
+        return false;
+    }
+
+    // Jump helper
+
+    private bool CanJump() {
+
+        return isGrounded || _coyoteTimer > 0f;
+    }
+
+    // Block interaction
+
+    private void BreakBlock() {
+
+        if (_world.inUI) return;
+        if (!highlightBlock.gameObject.activeSelf) return;
+
+        Chunk chunk = _world.GetChunkFromVector3(highlightBlock.position);
+        if (chunk != null)
+            chunk.EditVoxel(highlightBlock.position, 0);
+    }
+
+    private void PlaceBlock() {
+
+        if (_world.inUI) return;
+        if (!highlightBlock.gameObject.activeSelf) return;
+        if (!toolbar.slots[toolbar.slotIndex].HasItem) return;
+
+        // Reject placement if the target block overlaps the player's AABB.
+        Vector3 bMin = placeBlock.position; // Block min corner (floor-snapped)
+        Vector3 bMax = bMin + Vector3.one; // Block max corner (1×1×1 voxel)
+
+        float px = transform.position.x;
+        float py = transform.position.y;
+        float pz = transform.position.z;
+        float w  = playerWidth + 0.05f;  // Tiny margin so you can place flush against yourself
+
+        bool ox = (px + w) > bMin.x && (px - w) < bMax.x;
+        bool oy = (py + playerHeight) > bMin.y && py < bMax.y;
+        bool oz = (pz + w) > bMin.z && (pz - w) < bMax.z;
+
+        if (ox && oy && oz) return;  // Block would be inside the player — refuse
+
+        // Place it
+        Chunk chunk = _world.GetChunkFromVector3(placeBlock.position);
+        if (chunk != null) {
+
+            chunk.EditVoxel(placeBlock.position, toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
+            toolbar.slots[toolbar.slotIndex].itemSlot.Take(1);
+        }
+    }
+
+    // Cursor blocks (highlight + place preview)
+
+    private void PlaceCursorBlocks() {
+
+        float   step   = checkIncrement;
+        Vector3 camPos = _cam.position;
+        Vector3 camFwd = _cam.forward;
+
+        Vector3 lastFloor = Vector3.zero;
+        bool    hasLast   = false;
 
         while (step < reach) {
 
-            _cursorPos.x = camPos.x + camFwd.x * step;
-            _cursorPos.y = camPos.y + camFwd.y * step;
-            _cursorPos.z = camPos.z + camFwd.z * step;
+            Vector3 pos = camPos + camFwd * step;
 
-            if (world.CheckForVoxel(_cursorPos)) {
+            if (_world.CheckForVoxel(pos)) {
 
-                highlightBlock.position = new Vector3(Mathf.FloorToInt(_cursorPos.x), Mathf.FloorToInt(_cursorPos.y), Mathf.FloorToInt(_cursorPos.z));
-                placeBlock.position = _lastCursorPos;
+                highlightBlock.position = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+
+                placeBlock.position = hasLast ? lastFloor : highlightBlock.position;
 
                 highlightBlock.gameObject.SetActive(true);
                 placeBlock.gameObject.SetActive(true);
                 return;
             }
 
-            _lastCursorPos.x = Mathf.FloorToInt(_cursorPos.x);
-            _lastCursorPos.y = Mathf.FloorToInt(_cursorPos.y);
-            _lastCursorPos.z = Mathf.FloorToInt(_cursorPos.z);
+            lastFloor = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+            hasLast = true;
 
             step += checkIncrement;
         }
@@ -251,102 +444,9 @@ public class Player : MonoBehaviour {
         placeBlock.gameObject.SetActive(false);
     }
 
-    #endregion
+    // Compatibility shim - World.cs accesses _player.orientation directly.
+    // The public field above satisfies that. This property lets any code
+    // that held a reference to the old "world" field still compile.
 
-    #region Collision Checks
-
-    private float checkDownSpeed(float downSpeed) {
-
-        float targetY = transform.position.y + downSpeed;
-        float px = transform.position.x;
-        float pz = transform.position.z;
-        _checkPos.y = targetY;
-
-        _checkPos.x = px - playerWidth; _checkPos.z = pz - playerWidth;
-        if (world.CheckForVoxel(_checkPos)) { isGrounded = true; return 0; }
-
-        _checkPos.x = px + playerWidth; _checkPos.z = pz - playerWidth;
-        if (world.CheckForVoxel(_checkPos)) { isGrounded = true; return 0; }
-
-        _checkPos.x = px + playerWidth; _checkPos.z = pz + playerWidth;
-        if (world.CheckForVoxel(_checkPos)) { isGrounded = true; return 0; }
-
-        _checkPos.x = px - playerWidth; _checkPos.z = pz + playerWidth;
-        if (world.CheckForVoxel(_checkPos)) { isGrounded = true; return 0; }
-
-        isGrounded = false;
-        return downSpeed;
-    }
-
-    private float checkUpSpeed(float upSpeed) {
-
-        float targetY = transform.position.y + 2f + upSpeed;
-        float px = transform.position.x;
-        float pz = transform.position.z;
-        _checkPos.y = targetY;
-
-        _checkPos.x = px - playerWidth; _checkPos.z = pz - playerWidth;
-        if (world.CheckForVoxel(_checkPos)) return 0;
-
-        _checkPos.x = px + playerWidth; _checkPos.z = pz - playerWidth;
-        if (world.CheckForVoxel(_checkPos)) return 0;
-
-        _checkPos.x = px + playerWidth; _checkPos.z = pz + playerWidth;
-        if (world.CheckForVoxel(_checkPos)) return 0;
-
-        _checkPos.x = px - playerWidth; _checkPos.z = pz + playerWidth;
-        if (world.CheckForVoxel(_checkPos)) return 0;
-
-        return upSpeed;
-    }
-
-    public bool front {
-
-        get {
-
-            float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
-            _checkPos.x = px; _checkPos.z = pz + playerWidth;
-            _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
-            _checkPos.y = py + 1f; if (world.CheckForVoxel(_checkPos)) return true;
-            return false;
-        }
-    }
-
-    public bool back {
-
-        get {
-
-            float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
-            _checkPos.x = px; _checkPos.z = pz - playerWidth;
-            _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
-            _checkPos.y = py + 1f; if (world.CheckForVoxel(_checkPos)) return true;
-            return false;
-        }
-    }
-
-    public bool left {
-
-        get {
-
-            float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
-            _checkPos.x = px - playerWidth; _checkPos.z = pz;
-            _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
-            _checkPos.y = py + 1f; if (world.CheckForVoxel(_checkPos)) return true;
-            return false;
-        }
-    }
-
-    public bool right {
-
-        get {
-
-            float px = transform.position.x, py = transform.position.y, pz = transform.position.z;
-            _checkPos.x = px + playerWidth; _checkPos.z = pz;
-            _checkPos.y = py; if (world.CheckForVoxel(_checkPos)) return true;
-            _checkPos.y = py + 1f; if (world.CheckForVoxel(_checkPos)) return true;
-            return false;
-        }
-    }
-
-    #endregion
+    public World world => _world;
 }
