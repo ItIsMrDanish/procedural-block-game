@@ -5,7 +5,7 @@ using UnityEngine;
 /// ScriptableObject representing a single crafting recipe.
 /// Create via: Assets > Create > Crafting > Recipe
 /// </summary>
-[CreateAssetMenu(fileName = "NewRecipe", menuName = "Crafting/Recipe", order = 1)]
+[CreateAssetMenu(fileName = "NewRecipe", menuName = "Bloxels/Recipe", order = 1)]
 public class RecipeManager : ScriptableObject
 {
     [Header("Output")]
