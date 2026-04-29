@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Forest
   m_EditorClassIdentifier: Assembly-CSharp::BiomeAttributes
   biomeName: Forest
-  temperature: 0.5
-  humidity: 0.5
+  temperature: 0.3
+  humidity: 0.8
+  rarity: 3
   ridgeWeight: 1
   erosionWeight: 1
   elevationAmplitude: 0.29
@@ -36,14 +37,14 @@ MonoBehaviour:
     minHeight: 1
     maxHeight: 255
     scale: 0.1
-    threshold: 0.5
+    threshold: 0.1
     noiseOffset: 0
   - nodeName: Sand
     blockID: 4
     minHeight: 30
     maxHeight: 60
     scale: 0.2
-    threshold: 0.6
+    threshold: 0.06
     noiseOffset: 500
   - nodeName: Caves
     blockID: 0
