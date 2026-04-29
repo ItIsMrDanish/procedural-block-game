@@ -29,20 +29,39 @@ public static class Structure {
         int baseY = Mathf.FloorToInt(position.y);
         int baseZ = Mathf.FloorToInt(position.z);
 
-        // Trunk.
-        for (int i = 1; i < height; i++)
+        // Trunk — extends 2 blocks up into the canopy.
+        for (int i = 1; i <= height + 2; i++)
             queue.Enqueue(new VoxelMod(new Vector3(baseX, baseY + i, baseZ), 6));
 
-        // Leaf canopy.
-        for (int x = -3; x < 4; x++) {
-            for (int y = 0; y < 7; y++) {
-
-                for (int z = -3; z < 4; z++) {
-
-                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + height + y, baseZ + z), 11));
+        // Bottom two canopy layers (large, 5x5 with corners trimmed).
+        for (int layer = 0; layer < 2; layer++) {
+            int y = height - 1 + layer;
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    // Trim the 4 outermost corners.
+                    if (Mathf.Abs(x) == 2 && Mathf.Abs(z) == 2) continue;
+                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + y, baseZ + z), 11));
                 }
             }
         }
+
+        // Middle two canopy layers (medium, 3x3 full).
+        for (int layer = 0; layer < 2; layer++) {
+            int y = height + 1 + layer;
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + y, baseZ + z), 11));
+                }
+            }
+        }
+
+        // Top layer (plus/cross shape).
+        int topY = height + 3;
+        queue.Enqueue(new VoxelMod(new Vector3(baseX,     baseY + topY, baseZ),     11));
+        queue.Enqueue(new VoxelMod(new Vector3(baseX + 1, baseY + topY, baseZ),     11));
+        queue.Enqueue(new VoxelMod(new Vector3(baseX - 1, baseY + topY, baseZ),     11));
+        queue.Enqueue(new VoxelMod(new Vector3(baseX,     baseY + topY, baseZ + 1), 11));
+        queue.Enqueue(new VoxelMod(new Vector3(baseX,     baseY + topY, baseZ - 1), 11));
 
         return queue;
     }
@@ -59,8 +78,12 @@ public static class Structure {
         int baseY = Mathf.FloorToInt(position.y);
         int baseZ = Mathf.FloorToInt(position.z);
 
-        for (int i = 1; i <= height; i++)
+        // Body blocks (block 12).
+        for (int i = 1; i < height; i++)
             queue.Enqueue(new VoxelMod(new Vector3(baseX, baseY + i, baseZ), 12));
+
+        // Top cap block (block 13).
+        queue.Enqueue(new VoxelMod(new Vector3(baseX, baseY + height, baseZ), 13));
 
         return queue;
     }
