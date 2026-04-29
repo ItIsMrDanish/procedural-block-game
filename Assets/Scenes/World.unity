@@ -3200,6 +3200,132 @@ MonoBehaviour:
     bottomFaceTexture: 19
     leftFaceTexture: 18
     rightFaceTexture: 18
+  - blockName: Obsidian
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 23
+    frontFaceTexture: 23
+    topFaceTexture: 23
+    bottomFaceTexture: 23
+    leftFaceTexture: 23
+    rightFaceTexture: 23
+  - blockName: Wool
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 22
+    frontFaceTexture: 22
+    topFaceTexture: 22
+    bottomFaceTexture: 22
+    leftFaceTexture: 22
+    rightFaceTexture: 22
+  - blockName: Coal
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 28
+    frontFaceTexture: 28
+    topFaceTexture: 28
+    bottomFaceTexture: 28
+    leftFaceTexture: 28
+    rightFaceTexture: 28
+  - blockName: Iron
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 29
+    frontFaceTexture: 29
+    topFaceTexture: 29
+    bottomFaceTexture: 29
+    leftFaceTexture: 29
+    rightFaceTexture: 29
+  - blockName: Gold
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 30
+    frontFaceTexture: 30
+    topFaceTexture: 30
+    bottomFaceTexture: 30
+    leftFaceTexture: 30
+    rightFaceTexture: 30
+  - blockName: Redstone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 31
+    frontFaceTexture: 31
+    topFaceTexture: 31
+    bottomFaceTexture: 31
+    leftFaceTexture: 31
+    rightFaceTexture: 31
+  - blockName: Lapis
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 32
+    frontFaceTexture: 32
+    topFaceTexture: 32
+    bottomFaceTexture: 32
+    leftFaceTexture: 32
+    rightFaceTexture: 32
+  - blockName: Emerald
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 33
+    frontFaceTexture: 33
+    topFaceTexture: 33
+    bottomFaceTexture: 33
+    leftFaceTexture: 33
+    rightFaceTexture: 33
+  - blockName: Void Crystal
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 39
+    frontFaceTexture: 39
+    topFaceTexture: 39
+    bottomFaceTexture: 39
+    leftFaceTexture: 39
+    rightFaceTexture: 39
   clouds: {fileID: 1386095777}
   debugScreen: {fileID: 10838875}
   creativeInventoryWindow: {fileID: 0}
