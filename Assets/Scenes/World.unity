@@ -3326,6 +3326,132 @@ MonoBehaviour:
     bottomFaceTexture: 39
     leftFaceTexture: 39
     rightFaceTexture: 39
+  - blockName: Mossy cobblestone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 21
+    frontFaceTexture: 21
+    topFaceTexture: 21
+    bottomFaceTexture: 21
+    leftFaceTexture: 21
+    rightFaceTexture: 21
+  - blockName: Snow Dirt
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 24
+    frontFaceTexture: 24
+    topFaceTexture: 25
+    bottomFaceTexture: 2
+    leftFaceTexture: 24
+    rightFaceTexture: 24
+  - blockName: Snow
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 25
+    frontFaceTexture: 25
+    topFaceTexture: 25
+    bottomFaceTexture: 25
+    leftFaceTexture: 25
+    rightFaceTexture: 25
+  - blockName: Ice
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 1
+    isWater: 0
+    opacity: 12
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 27
+    frontFaceTexture: 27
+    topFaceTexture: 27
+    bottomFaceTexture: 27
+    leftFaceTexture: 27
+    rightFaceTexture: 27
+  - blockName: VoidCrystal Wood
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 34
+    frontFaceTexture: 34
+    topFaceTexture: 35
+    bottomFaceTexture: 35
+    leftFaceTexture: 34
+    rightFaceTexture: 34
+  - blockName: VoidCrystal Grass
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 36
+    frontFaceTexture: 36
+    topFaceTexture: 37
+    bottomFaceTexture: 45
+    leftFaceTexture: 36
+    rightFaceTexture: 36
+  - blockName: VoidCrystal Stone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 38
+    frontFaceTexture: 38
+    topFaceTexture: 38
+    bottomFaceTexture: 38
+    leftFaceTexture: 38
+    rightFaceTexture: 38
+  - blockName: VoidCrystal Planks
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 41
+    frontFaceTexture: 41
+    topFaceTexture: 41
+    bottomFaceTexture: 41
+    leftFaceTexture: 41
+    rightFaceTexture: 41
+  - blockName: VoidCrystal Leaves
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 1
+    isWater: 0
+    opacity: 12
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 44
+    frontFaceTexture: 44
+    topFaceTexture: 44
+    bottomFaceTexture: 44
+    leftFaceTexture: 44
+    rightFaceTexture: 44
   clouds: {fileID: 1386095777}
   debugScreen: {fileID: 10838875}
   creativeInventoryWindow: {fileID: 0}
