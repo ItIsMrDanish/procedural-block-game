@@ -3208,125 +3208,13 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    backFaceTexture: 23
-    frontFaceTexture: 23
-    topFaceTexture: 23
-    bottomFaceTexture: 23
-    leftFaceTexture: 23
-    rightFaceTexture: 23
-  - blockName: Wool
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
     backFaceTexture: 22
     frontFaceTexture: 22
     topFaceTexture: 22
     bottomFaceTexture: 22
     leftFaceTexture: 22
     rightFaceTexture: 22
-  - blockName: Coal
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 28
-    frontFaceTexture: 28
-    topFaceTexture: 28
-    bottomFaceTexture: 28
-    leftFaceTexture: 28
-    rightFaceTexture: 28
-  - blockName: Iron
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 29
-    frontFaceTexture: 29
-    topFaceTexture: 29
-    bottomFaceTexture: 29
-    leftFaceTexture: 29
-    rightFaceTexture: 29
-  - blockName: Gold
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 30
-    frontFaceTexture: 30
-    topFaceTexture: 30
-    bottomFaceTexture: 30
-    leftFaceTexture: 30
-    rightFaceTexture: 30
-  - blockName: Redstone
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 31
-    frontFaceTexture: 31
-    topFaceTexture: 31
-    bottomFaceTexture: 31
-    leftFaceTexture: 31
-    rightFaceTexture: 31
-  - blockName: Lapis
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 32
-    frontFaceTexture: 32
-    topFaceTexture: 32
-    bottomFaceTexture: 32
-    leftFaceTexture: 32
-    rightFaceTexture: 32
-  - blockName: Emerald
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 33
-    frontFaceTexture: 33
-    topFaceTexture: 33
-    bottomFaceTexture: 33
-    leftFaceTexture: 33
-    rightFaceTexture: 33
-  - blockName: Void Crystal
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 39
-    frontFaceTexture: 39
-    topFaceTexture: 39
-    bottomFaceTexture: 39
-    leftFaceTexture: 39
-    rightFaceTexture: 39
-  - blockName: Mossy cobblestone
+  - blockName: Wool
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
     renderNeighborFaces: 0
@@ -3340,40 +3228,12 @@ MonoBehaviour:
     bottomFaceTexture: 21
     leftFaceTexture: 21
     rightFaceTexture: 21
-  - blockName: Snow Dirt
+  - blockName: Coal
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
     renderNeighborFaces: 0
     isWater: 0
     opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 24
-    frontFaceTexture: 24
-    topFaceTexture: 25
-    bottomFaceTexture: 2
-    leftFaceTexture: 24
-    rightFaceTexture: 24
-  - blockName: Snow
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 0
-    isWater: 0
-    opacity: 15
-    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
-    isActive: 0
-    backFaceTexture: 25
-    frontFaceTexture: 25
-    topFaceTexture: 25
-    bottomFaceTexture: 25
-    leftFaceTexture: 25
-    rightFaceTexture: 25
-  - blockName: Ice
-    isSolid: 1
-    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
-    renderNeighborFaces: 1
-    isWater: 0
-    opacity: 12
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     backFaceTexture: 27
@@ -3382,7 +3242,7 @@ MonoBehaviour:
     bottomFaceTexture: 27
     leftFaceTexture: 27
     rightFaceTexture: 27
-  - blockName: VoidCrystal Wood
+  - blockName: Iron
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
     renderNeighborFaces: 0
@@ -3390,13 +3250,13 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    backFaceTexture: 34
-    frontFaceTexture: 34
-    topFaceTexture: 35
-    bottomFaceTexture: 35
-    leftFaceTexture: 34
-    rightFaceTexture: 34
-  - blockName: VoidCrystal Grass
+    backFaceTexture: 28
+    frontFaceTexture: 28
+    topFaceTexture: 28
+    bottomFaceTexture: 28
+    leftFaceTexture: 28
+    rightFaceTexture: 28
+  - blockName: Gold
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
     renderNeighborFaces: 0
@@ -3404,13 +3264,55 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    backFaceTexture: 36
-    frontFaceTexture: 36
-    topFaceTexture: 37
-    bottomFaceTexture: 45
-    leftFaceTexture: 36
-    rightFaceTexture: 36
-  - blockName: VoidCrystal Stone
+    backFaceTexture: 29
+    frontFaceTexture: 29
+    topFaceTexture: 29
+    bottomFaceTexture: 29
+    leftFaceTexture: 29
+    rightFaceTexture: 29
+  - blockName: Redstone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 30
+    frontFaceTexture: 30
+    topFaceTexture: 30
+    bottomFaceTexture: 30
+    leftFaceTexture: 30
+    rightFaceTexture: 30
+  - blockName: Lapis
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 31
+    frontFaceTexture: 31
+    topFaceTexture: 31
+    bottomFaceTexture: 31
+    leftFaceTexture: 31
+    rightFaceTexture: 31
+  - blockName: Emerald
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 32
+    frontFaceTexture: 32
+    topFaceTexture: 32
+    bottomFaceTexture: 32
+    leftFaceTexture: 32
+    rightFaceTexture: 32
+  - blockName: Void Crystal
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
     renderNeighborFaces: 0
@@ -3424,6 +3326,104 @@ MonoBehaviour:
     bottomFaceTexture: 38
     leftFaceTexture: 38
     rightFaceTexture: 38
+  - blockName: Mossy cobblestone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 20
+    frontFaceTexture: 20
+    topFaceTexture: 20
+    bottomFaceTexture: 20
+    leftFaceTexture: 20
+    rightFaceTexture: 20
+  - blockName: Snow Dirt
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 23
+    frontFaceTexture: 23
+    topFaceTexture: 24
+    bottomFaceTexture: 1
+    leftFaceTexture: 23
+    rightFaceTexture: 23
+  - blockName: Snow
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 24
+    frontFaceTexture: 24
+    topFaceTexture: 24
+    bottomFaceTexture: 24
+    leftFaceTexture: 24
+    rightFaceTexture: 24
+  - blockName: Ice
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 1
+    isWater: 0
+    opacity: 12
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 26
+    frontFaceTexture: 26
+    topFaceTexture: 26
+    bottomFaceTexture: 26
+    leftFaceTexture: 26
+    rightFaceTexture: 26
+  - blockName: VoidCrystal Wood
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 33
+    frontFaceTexture: 33
+    topFaceTexture: 34
+    bottomFaceTexture: 34
+    leftFaceTexture: 33
+    rightFaceTexture: 33
+  - blockName: VoidCrystal Grass
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 35
+    frontFaceTexture: 35
+    topFaceTexture: 36
+    bottomFaceTexture: 44
+    leftFaceTexture: 35
+    rightFaceTexture: 35
+  - blockName: VoidCrystal Stone
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 37
+    frontFaceTexture: 37
+    topFaceTexture: 37
+    bottomFaceTexture: 37
+    leftFaceTexture: 37
+    rightFaceTexture: 37
   - blockName: VoidCrystal Planks
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
@@ -3432,12 +3432,12 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    backFaceTexture: 41
-    frontFaceTexture: 41
-    topFaceTexture: 41
-    bottomFaceTexture: 41
-    leftFaceTexture: 41
-    rightFaceTexture: 41
+    backFaceTexture: 40
+    frontFaceTexture: 40
+    topFaceTexture: 40
+    bottomFaceTexture: 40
+    leftFaceTexture: 40
+    rightFaceTexture: 40
   - blockName: VoidCrystal Leaves
     isSolid: 1
     meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
@@ -3446,12 +3446,12 @@ MonoBehaviour:
     opacity: 12
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    backFaceTexture: 44
-    frontFaceTexture: 44
-    topFaceTexture: 44
-    bottomFaceTexture: 44
-    leftFaceTexture: 44
-    rightFaceTexture: 44
+    backFaceTexture: 43
+    frontFaceTexture: 43
+    topFaceTexture: 43
+    bottomFaceTexture: 43
+    leftFaceTexture: 43
+    rightFaceTexture: 43
   clouds: {fileID: 1386095777}
   debugScreen: {fileID: 10838875}
   creativeInventoryWindow: {fileID: 0}
