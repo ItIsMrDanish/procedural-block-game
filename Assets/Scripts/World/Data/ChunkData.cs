@@ -99,7 +99,7 @@ public class ChunkData {
 
                         var noisePos = new Vector2(worldPos.x, worldPos.z);
 
-                        if (Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraZoneScale) > col.biome.majorFloraZoneThreshold && Noise.Get2DPerlin(noisePos, 0f, col.biome.majorFloraPlacementScale) > col.biome.majorFloraPlacementThreshold) {
+                        if (Noise.Get2DPerlin(noisePos, 200f, col.biome.majorFloraZoneScale) > col.biome.majorFloraZoneThreshold && Noise.Get2DPerlin(noisePos, 200f, col.biome.majorFloraPlacementScale) > col.biome.majorFloraPlacementThreshold) {
 
                             World.Instance.EnqueueModification(Structure.GenerateMajorFlora(col.biome.majorFloraIndex, new Vector3(worldPos.x, worldY, worldPos.z), col.biome.minHeight, col.biome.maxHeight));
                         }

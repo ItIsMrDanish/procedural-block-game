@@ -12,7 +12,16 @@ public class BiomeAttributes : ScriptableObject {
     [Range(0f, 1f)] public float temperature = 0.5f;
     [Range(0f, 1f)] public float humidity = 0.5f;
 
-    // Terrain shape � multipliers applied to global noise layers.
+    // Rarity controls how large this biome's territory is.
+    // Higher = more common (wins over a wider climate range).
+    // Lower = rarer (only appears near its exact climate point).
+    // 1.0 is neutral. 2.0 = twice as common. 0.5 = half as common.
+
+    [Header("Rarity")]
+    [Tooltip("Higher = more common, lower = rarer. 1 = default.")]
+    [Range(0.1f, 5f)] public float rarity = 1f;
+
+    // Terrain shape — multipliers applied to global noise layers.
     // Default of 1 means "use global noise as-is".
 
     [Header("Terrain Shape")]
