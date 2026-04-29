@@ -29,7 +29,7 @@ MonoBehaviour:
   majorFloraZoneThreshold: 0.6
   majorFloraPlacementScale: 15
   majorFloraPlacementThreshold: 0.8
-  minHeight: 3
+  minHeight: 2
   maxHeight: 5
   lodes:
   - nodeName: Dirt

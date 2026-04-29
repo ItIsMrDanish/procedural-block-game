@@ -34,8 +34,8 @@ public class ChunkData {
         VoxelData.ChunkSize * VoxelData.ChunkSize * VoxelData.ChunkSize];
 
     // Pre-computed strides so they don't get recalculated in tight loops.
-    private static readonly int S = VoxelData.ChunkSize;           // 16
-    private static readonly int S2 = VoxelData.ChunkSize * VoxelData.ChunkSize; // 256
+    private static readonly int S  = VoxelData.ChunkSize;
+    private static readonly int S2 = VoxelData.ChunkSize * VoxelData.ChunkSize;
 
     /// <summary>Converts (x,y,z) local chunk coordinates to a flat array index.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -94,12 +94,15 @@ public class ChunkData {
                     byte blockId = TerrainGenerator.GetVoxel(worldPos, col);
 
                     // Flora — only at the exact surface voxel.
+                    // Zone uses offset 0f, placement uses 200f so they sample
+                    // independent noise fields and don't correlate.
                     if (worldY == surface && worldY >= VoxelData.SeaLevel &&
                         col.biome.placeMajorFlora) {
 
                         var noisePos = new Vector2(worldPos.x, worldPos.z);
 
-                        if (Noise.Get2DPerlin(noisePos, 200f, col.biome.majorFloraZoneScale) > col.biome.majorFloraZoneThreshold && Noise.Get2DPerlin(noisePos, 200f, col.biome.majorFloraPlacementScale) > col.biome.majorFloraPlacementThreshold) {
+                        if (Noise.Get2DPerlin(noisePos, 0f,   col.biome.majorFloraZoneScale)      > col.biome.majorFloraZoneThreshold &&
+                            Noise.Get2DPerlin(noisePos, 200f, col.biome.majorFloraPlacementScale) > col.biome.majorFloraPlacementThreshold) {
 
                             World.Instance.EnqueueModification(Structure.GenerateMajorFlora(col.biome.majorFloraIndex, new Vector3(worldPos.x, worldY, worldPos.z), col.biome.minHeight, col.biome.maxHeight));
                         }
@@ -124,12 +127,16 @@ public class ChunkData {
 
         Lighting.RecalculateNaturaLight(this);
         World.Instance.worldData.AddToModifiedChunkList(this);
-
     }
 
     // ModifyVoxel
 
     public void ModifyVoxel(Vector3Int pos, byte _id, int direction) {
+
+        // Guard: pos must be inside this chunk's 16x16x16 bounds.
+        // Flora mods can land on a chunk boundary and produce a local
+        // coordinate of exactly 16, which is out of bounds for a 0-15 array.
+        if (!IsVoxelInChunk(pos.x, pos.y, pos.z)) return;
 
         int idx = FlatIdx(pos.x, pos.y, pos.z);
 
@@ -163,7 +170,6 @@ public class ChunkData {
 
         World.Instance.worldData.AddToModifiedChunkList(this);
         if (chunk != null) World.Instance.AddChunkToUpdate(chunk);
-
     }
 
     // Helpers
@@ -200,7 +206,6 @@ public class ChunkData {
 
         Lighting.RecalculateNaturaLight(this);
         World.Instance.worldData.AddToModifiedChunkList(this);
-
     }
 
     // Samples 5 corner/centre columns to estimate max surface height in this chunk's footprint.
