@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Glimmer Sword
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Glimmer Sword
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 34bc0d49b166e294e80afb933894310b, type: 3}
   outputAmount: 1
   unstackable: 1
   armorSlot: 0

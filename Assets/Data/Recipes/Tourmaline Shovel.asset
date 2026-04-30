@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tourmaline Shovel
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Tourmaline Shovel
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 1d8cc4d7412c4204199ce7786c13a7ee, type: 3}
   outputAmount: 1
   unstackable: 1
   armorSlot: 0
@@ -22,5 +22,5 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 8157569558dfc454f95462a1b94e0219, type: 3}
     amount: 1
   - itemName: Tourmaline Ingot
-    icon: {fileID: 0}
+    icon: {fileID: 21300000, guid: 8e0a00669add61b4aa7de8a7f72ad735, type: 3}
     amount: 3

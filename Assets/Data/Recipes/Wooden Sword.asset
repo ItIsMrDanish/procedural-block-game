@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Wooden Sword
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Wooden Sword
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 12ef9f1efcf975f43be5bcc0f4ea843b, type: 3}
   outputAmount: 1
   unstackable: 1
   armorSlot: 0
