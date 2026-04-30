@@ -64,6 +64,17 @@ public class Cow : MonoBehaviour
     public float fleeStopRadius = 10f;
     public float fleeDuration = 4f; // Seconds to keep fleeing after being hit
 
+    [Header("Mesh Alignment")]
+    [Tooltip("Child Transform that holds the visible mesh. If assigned, its local Y is shifted so\n" +
+             "the mesh sits on the surface rather than halfway through the ground.\n" +
+             "Leave empty if your mesh root is already at foot-level (pivot at bottom).")]
+    public Transform meshRoot;
+
+    [Tooltip("Vertical offset applied to meshRoot so the visible mesh aligns with the AABB foot.\n" +
+             "For a default Unity cube (pivot at centre): set to mobHeight * 0.5 (e.g. 0.7 for 1.4 height).\n" +
+             "For a model with pivot already at the foot: set to 0.")]
+    public float meshVerticalOffset = 0.7f;   // half of default mobHeight 1.4
+
     [Header("Hit Flash")]
     [Tooltip("Renderer on the cow mesh — turns red briefly when hit.")]
     public Renderer meshRenderer;
@@ -117,6 +128,22 @@ public class Cow : MonoBehaviour
         {
             GameObject wGO = GameObject.Find("World");
             if (wGO != null) world = wGO.GetComponent<World>();
+        }
+
+        // ── Mesh alignment ────────────────────────────────────────────────
+        // transform.position is the FOOT of the cow (used by all collision code).
+        // If the visible mesh pivot is at its centre (default Unity primitives),
+        // the cow will appear half-submerged. Fix by shifting the mesh child up.
+        //
+        //  • meshRoot assigned → only the visual child moves up; AABB stays correct.
+        //  • meshRoot not assigned → nothing extra needed because the CowSpawner
+        //    already places transform.position at surfaceY + 1 (top of surface block).
+        if (meshRoot != null)
+        {
+            meshRoot.localPosition = new Vector3(
+                meshRoot.localPosition.x,
+                meshVerticalOffset,
+                meshRoot.localPosition.z);
         }
 
         StartIdleTimer();
@@ -367,15 +394,18 @@ public class Cow : MonoBehaviour
 
     private bool CheckSideX(float dx)
     {
-
+        // Leading X edge after the move
         float edgeX = transform.position.x + Mathf.Sign(dx) * mobWidth + dx;
         float py = transform.position.y;
         float pz = transform.position.z;
         float w = mobWidth;
 
-        for (int i = 0; i < 2; i++)
+        // Three heights: feet, mid-body, just-below-head — mirrors Player.cs.
+        // Two probes was enough to stop movement but left the visual mesh able
+        // to clip into blocks at the un-probed mid region.
+        for (int i = 0; i < 3; i++)
         {
-            float h = py + (i == 0 ? 0.1f : mobHeight - 0.1f);
+            float h = py + (i == 0 ? 0.1f : i == 1 ? mobHeight * 0.5f : mobHeight - 0.1f);
             if (CheckVoxel(new Vector3(edgeX, h, pz - w))) return true;
             if (CheckVoxel(new Vector3(edgeX, h, pz + w))) return true;
         }
@@ -384,15 +414,15 @@ public class Cow : MonoBehaviour
 
     private bool CheckSideZ(float dz)
     {
-
+        // Leading Z edge after the move
         float edgeZ = transform.position.z + Mathf.Sign(dz) * mobWidth + dz;
         float py = transform.position.y;
         float px = transform.position.x;
         float w = mobWidth;
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
-            float h = py + (i == 0 ? 0.1f : mobHeight - 0.1f);
+            float h = py + (i == 0 ? 0.1f : i == 1 ? mobHeight * 0.5f : mobHeight - 0.1f);
             if (CheckVoxel(new Vector3(px - w, h, edgeZ))) return true;
             if (CheckVoxel(new Vector3(px + w, h, edgeZ))) return true;
         }

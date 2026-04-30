@@ -1,20 +1,27 @@
 ﻿using UnityEngine;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MobHitbox — attach to the SAME GameObject as Cow.cs (or a child collider).
+// MobHitbox — attach to the root Cow GameObject OR any child collider object.
 //
 // How it works:
 //   Player.cs fires BreakBlock() on the Attack input action.
 //   BreakBlock() does a ray march to find voxels — it doesn't hit mobs.
-//   MobHitbox solves this by running its own raycast check every frame
-//   using the player's camera forward direction.
-//   When the player presses Attack and the ray hits THIS collider, TakeDamage()
-//   is called on the Cow component.
+//   MobHitbox solves this by listening to the same Attack action and doing its
+//   own Physics.Raycast each frame the button is pressed.
+//   When the ray hits ANY collider that belongs to this cow's hierarchy,
+//   TakeDamage() is called on the Cow component.
 //
 // Setup:
-//   1. Make sure the cow GameObject (or a child) has a Collider (Box/Capsule).
-//   2. Attach MobHitbox to that same GameObject.
-//   3. The component auto-locates the Player and Main Camera at Start.
+//   1. Put the cow's Collider on the ROOT GameObject (recommended) or a child.
+//   2. Attach MobHitbox to the ROOT Cow GameObject (where Cow.cs lives).
+//   3. Give the cow's collider a dedicated layer, e.g. "Mob", so the raycast
+//      is not blocked by voxel chunk meshes.
+//      • In Edit → Project Settings → Physics, set "Mob" layer to collide with
+//        Default (so player raycasts can still reach it).
+//      • Set 'mobLayer' in the Inspector to "Mob".
+//      If you don't use a dedicated layer, leave mobLayer = "Default" and
+//      make sure the cow collider is on the Default layer — but note that
+//      chunk meshes on Default can then block the ray.
 //   4. Tune 'attackReach' and 'damagePerHit' in the Inspector.
 //
 // No changes to Player.cs are required.
@@ -34,27 +41,45 @@ public class MobHitbox : MonoBehaviour
     [Tooltip("Minimum seconds between hits (prevents holding Attack = instant kill).")]
     public float attackCooldown = 0.5f;
 
+    [Tooltip("Layer name the cow's Collider lives on.\n" +
+             "Create a 'Mob' layer in Project Settings → Tags & Layers and put the\n" +
+             "cow collider on it so voxel chunk meshes (Default layer) can't block the ray.\n" +
+             "If you leave this blank the raycast hits all layers.")]
+    public string mobLayer = "Mob";
+
     // ── Private ──────────────────────────────────────────────────────────────
 
     private Cow _cow;
     private Transform _cam;
     private Transform _playerTransform;
-    private InputSystem _inputSystem;   // Same generated class used by Player.cs
+    private InputSystem _inputSystem;
 
     private float _cooldownTimer = 0f;
     private bool _attackPressed = false;
+    private int _layerMask = -1;   // -1 = all layers; set from mobLayer in Awake
 
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
     private void Awake()
     {
-
-        _cow = GetComponent<Cow>();
+        // Search this GameObject AND all parents so MobHitbox can live on a
+        // child collider object while Cow.cs lives on the root.
+        _cow = GetComponentInParent<Cow>();
         if (_cow == null)
-            Debug.LogError("[MobHitbox] No Cow component found on this GameObject!");
+            Debug.LogError("[MobHitbox] No Cow component found on this GameObject or any parent!");
 
-        // Wire up the same Attack action Player.cs uses — InputSystem is
-        // generated from the Input Action asset, so this just reads the same binding.
+        // Resolve layer mask. Using a dedicated "Mob" layer means voxel chunk
+        // meshes (which sit on Default) can never block the attack ray.
+        if (!string.IsNullOrEmpty(mobLayer))
+        {
+            int layer = LayerMask.NameToLayer(mobLayer);
+            if (layer == -1)
+                Debug.LogWarning($"[MobHitbox] Layer '{mobLayer}' not found — falling back to all layers. " +
+                                 "Create a 'Mob' layer in Project Settings → Tags & Layers.");
+            else
+                _layerMask = 1 << layer;
+        }
+
         _inputSystem = new InputSystem();
         _inputSystem.Player.Attack.performed += _ => _attackPressed = true;
     }
@@ -95,23 +120,26 @@ public class MobHitbox : MonoBehaviour
 
     private void TryHit()
     {
-
-        // Raycast from camera forward. LayerMask.GetMask("Default") or -1 for all.
         Ray ray = new Ray(_cam.position, _cam.forward);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, attackReach))
-        {
+        // Use the mob layer mask so voxel chunk meshes (Default layer) don't
+        // block the ray before it reaches the cow.
+        bool didHit = _layerMask == -1
+            ? Physics.Raycast(ray, out RaycastHit hit, attackReach)
+            : Physics.Raycast(ray, out hit, attackReach, _layerMask);
 
-            // Did the ray hit THIS collider?
-            if (hit.collider != null && hit.collider.gameObject == gameObject)
-            {
+        if (!didHit) return;
+        if (hit.collider == null) return;
 
-                _cooldownTimer = attackCooldown;
+        // Accept a hit on the root OR any child collider that belongs to this
+        // cow's hierarchy. This handles prefabs where the visible mesh (and its
+        // collider) lives on a child GameObject rather than the root.
+        if (hit.collider.transform != _cow.transform &&
+            !hit.collider.transform.IsChildOf(_cow.transform))
+            return;
 
-                if (_cow != null)
-                    _cow.TakeDamage(damagePerHit);
-            }
-        }
+        _cooldownTimer = attackCooldown;
+        _cow.TakeDamage(damagePerHit);
     }
 
     // ── Gizmo ────────────────────────────────────────────────────────────────
