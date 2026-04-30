@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Planks
   itemIcon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
-  outputAmount: 4
+  outputAmount: 2
+  armorSlot: 0
   ingredients:
   - itemName: Wood
     icon: {fileID: 21300000, guid: 2b0d6acf66b850140bfd468e8be7f708, type: 3}

@@ -1,9 +1,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ─────────────────────────────── Armor slot enum ─────────────────────────────
+
+/// <summary>
+/// Which armor slot an item occupies.
+/// None  = regular item (goes into main / hotbar inventory).
+/// Other values restrict the item to the matching armor slot.
+/// </summary>
+public enum ArmorSlotType
+{
+    None,       // Not an armor piece
+    Helmet,     // Top armor slot         (armor index 0)
+    Chestplate, // Second armor slot      (armor index 1)
+    Leggings,   // Third armor slot       (armor index 2)
+    Boots       // Bottom armor slot      (armor index 3)
+}
+
+// ─────────────────────────────── IInventory ──────────────────────────────────
+
+/// <summary>
+/// Minimal interface keeping CraftingMenu / Recipe decoupled from the
+/// concrete Inventory implementation.
+/// </summary>
+public interface IInventory
+{
+    int  GetAmount(string itemName);
+    void AddItem(string itemName, int amount);
+    void RemoveItem(string itemName, int amount);
+}
+
+// ─────────────────────────────── Ingredient ──────────────────────────────────
+
+/// <summary>One material entry inside a Recipe.</summary>
+[System.Serializable]
+public class Ingredient
+{
+    [Tooltip("Must match the item name used by your inventory system.")]
+    public string itemName;
+
+    [Tooltip("Icon shown in the material list (optional).")]
+    public Sprite icon;
+
+    [Min(1)]
+    public int amount = 1;
+}
+
+// ─────────────────────────────── Recipe ──────────────────────────────────────
+
 /// <summary>
 /// ScriptableObject representing a single crafting recipe.
-/// Create via: Assets > Create > Crafting > Recipe
+/// Create via: Assets > Create > Bloxels > Recipe
 /// </summary>
 [CreateAssetMenu(fileName = "NewRecipe", menuName = "Bloxels/Recipe", order = 1)]
 public class RecipeManager : ScriptableObject
@@ -19,13 +66,24 @@ public class RecipeManager : ScriptableObject
     [Min(1)]
     public int outputAmount = 1;
 
+    [Tooltip("When checked, this item always occupies its own slot and cannot be stacked.\n" +
+            "Useful for tools, weapons, and unique items.")]
+    public bool unstackable = false;
+
+    [Header("Armor")]
+    [Tooltip("Set to anything other than None to mark this item as armor.\n" +
+             "Armor items are placed directly into the matching armor slot\n" +
+             "and cannot stack in regular inventory slots.")]
+    public ArmorSlotType armorSlot = ArmorSlotType.None;
+
+    /// <summary>Convenience: true when this recipe produces an armor item.</summary>
+    public bool IsArmor => armorSlot != ArmorSlotType.None;
+
     [Header("Ingredients")]
     [Tooltip("List of materials required to craft this recipe once.")]
     public List<Ingredient> ingredients = new List<Ingredient>();
 
-    // ---------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------
+    // ──────────────────────────── Helpers ────────────────────────────────────
 
     /// <summary>Returns true when the inventory contains enough of every ingredient.</summary>
     public bool CanCraft(IInventory inventory, int times = 1)
@@ -46,30 +104,4 @@ public class RecipeManager : ScriptableObject
 
         inventory.AddItem(itemName, outputAmount * times);
     }
-}
-
-/// <summary>One material entry inside a Recipe.</summary>
-[System.Serializable]
-public class Ingredient
-{
-    [Tooltip("Must match the item name used by your inventory system.")]
-    public string itemName;
-
-    [Tooltip("Icon shown in the material list (optional).")]
-    public Sprite icon;
-
-    [Min(1)]
-    public int amount = 1;
-}
-
-/// <summary>
-/// Minimal interface so CraftingMenu / Recipe remain decoupled from
-/// your concrete inventory implementation. Implement this on whatever
-/// class manages the player's items.
-/// </summary>
-public interface IInventory
-{
-    int  GetAmount(string itemName);
-    void AddItem(string itemName, int amount);
-    void RemoveItem(string itemName, int amount);
 }

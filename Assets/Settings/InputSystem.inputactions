@@ -61,6 +61,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Crafting",
+                    "type": "Button",
+                    "id": "f4e54367-cb32-4796-8c8f-35317c7f889f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Jump",
                     "type": "Button",
                     "id": "9fb63918-e10e-4e32-8704-55e4986e0072",
@@ -464,18 +473,7 @@
                 {
                     "name": "",
                     "id": "f0a291d7-e5e7-4599-96fc-31081364b75d",
-                    "path": "<Keyboard>/c",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Crouch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "34d56785-c8b8-44f7-ad28-e3bec9493143",
-                    "path": "<Gamepad>/buttonEast",
+                    "path": "<Keyboard>/leftCtrl",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -487,6 +485,17 @@
                     "name": "",
                     "id": "76786ab2-d932-4c31-951f-15c1bfa5db6f",
                     "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "34d56785-c8b8-44f7-ad28-e3bec9493143",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -744,6 +753,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SelectSlot9",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fd3c8ed6-4aa7-4a47-bab7-d69ce5370cf2",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Crafting",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

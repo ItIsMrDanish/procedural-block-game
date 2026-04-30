@@ -44,6 +44,8 @@ public class Player : MonoBehaviour {
 
     [Header("References")]
     public Toolbar toolbar;
+    public Inventory inventory;
+    public CraftingMenu craftingMenu;
 
     private Transform   _cam;
     private World       _world;
@@ -79,7 +81,8 @@ public class Player : MonoBehaviour {
         _controls.Player.Sprint.canceled += _ => isSprinting = false;
         _controls.Player.Attack.performed += _ => BreakBlock();
         _controls.Player.Use.performed += _ => PlaceBlock();
-        _controls.Player.Inventory.performed += _ => { _world.inUI = !_world.inUI; };
+        _controls.Player.Inventory.performed += _ => ToggleUI(inventory.ToggleInventory, isInventoryToggle: true);
+        _controls.Player.Crafting.performed  += _ => ToggleUI(craftingMenu.ToggleMenu,    isInventoryToggle: false);
     }
 
     private void OnEnable()  => _controls.Enable();
@@ -102,10 +105,12 @@ public class Player : MonoBehaviour {
 
     private void Update() {
 
+        // Always run movement so gravity and collision keep working in UI.
+        // Only skip look and block-interaction when a UI is open.
+        UpdateMovement();
         if (!_world.inUI) {
 
             ApplyLook();
-            UpdateMovement();
             PlaceCursorBlocks();
             PushCameraOutOfBlocks();
         }
@@ -442,6 +447,27 @@ public class Player : MonoBehaviour {
 
         highlightBlock.gameObject.SetActive(false);
         placeBlock.gameObject.SetActive(false);
+    }
+
+    // UI toggle helper — single place that owns inUI and cursor state.
+    //
+    // Rules:
+    //  • Only one UI can be open at a time.  If the *other* panel is already
+    //    open, the key press is silently ignored.
+    //  • inUI and cursor state are synced after every successful toggle.
+    private void ToggleUI(System.Action panelToggle, bool isInventoryToggle)
+    {
+        // Mutual exclusion: block open attempts while the other panel is up.
+        if (isInventoryToggle && craftingMenu.IsOpen) return;
+        if (!isInventoryToggle && inventory.IsOpen)   return;
+
+        panelToggle();
+
+        // Derive inUI from actual panel states (both checked in case of edge cases).
+        bool anyOpen = inventory.IsOpen || craftingMenu.IsOpen;
+        _world.inUI      = anyOpen;
+        Cursor.lockState = anyOpen ? CursorLockMode.None   : CursorLockMode.Locked;
+        Cursor.visible   = anyOpen;
     }
 
     // Compatibility shim - World.cs accesses _player.orientation directly.

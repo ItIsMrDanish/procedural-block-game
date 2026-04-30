@@ -633,20 +633,22 @@ public class World : MonoBehaviour {
         get { return _inUI; }
         set {
             _inUI = value;
-            if (_inUI) {
-
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-                creativeInventoryWindow.SetActive(true);
-                cursorSlot.SetActive(true);
-            } else {
-
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-                creativeInventoryWindow.SetActive(false);
-                cursorSlot.SetActive(false);
-            }
+            // Only manage cursor lock here.
+            // Each UI panel (inventory, crafting) manages its own visibility.
+            // The creative inventory is opened separately via SetCreativeInventory().
+            Cursor.lockState = _inUI ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible   = _inUI;
         }
+    }
+
+    /// <summary>
+    /// Opens or closes the creative inventory window specifically.
+    /// Also sets inUI so player input is blocked while it is open.
+    /// </summary>
+    public void SetCreativeInventory(bool open) {
+        creativeInventoryWindow.SetActive(open);
+        cursorSlot.SetActive(open);
+        inUI = open;
     }
 
     bool IsChunkInWorld(int cx, int cy, int cz) {
