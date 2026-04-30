@@ -20,7 +20,7 @@ MonoBehaviour:
   erosionWeight: 1
   elevationAmplitude: 0.29
   heightOffset: 0
-  surfaceBlock: 30
+  surfaceBlock: 29
   subSurfaceBlock: 5
   subsurfaceDepth: 4
   placeMajorFlora: 1

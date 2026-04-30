@@ -14,10 +14,25 @@ public class WorldData {
     [System.NonSerialized]
     public List<ChunkData> modifiedChunks = new List<ChunkData>();
 
+    private readonly object _modifiedChunksLock = new object();
+
     public void AddToModifiedChunkList(ChunkData chunk) {
 
-        if (!modifiedChunks.Contains(chunk))
-            modifiedChunks.Add(chunk);
+        lock (_modifiedChunksLock) {
+
+            if (!modifiedChunks.Contains(chunk))
+                modifiedChunks.Add(chunk);
+        }
+    }
+
+    public List<ChunkData> GetAndClearModifiedChunks() {
+
+        lock (_modifiedChunksLock) {
+
+            var copy = new List<ChunkData>(modifiedChunks);
+            modifiedChunks.Clear();
+            return copy;
+        }
     }
 
     public WorldData(string _worldName, int _seed) {
@@ -30,68 +45,132 @@ public class WorldData {
         seed = wD.seed;
     }
 
-    // Converts any block position to the chunk origin (always multiple of ChunkSize).
     private static Vector3Int BlockToChunkOrigin(Vector3Int pos) {
-
-        return new Vector3Int(Mathf.FloorToInt((float)pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt((float)pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt((float)pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+        return new Vector3Int(
+            Mathf.FloorToInt((float)pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt((float)pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt((float)pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
     }
 
     private static Vector3Int BlockToChunkOrigin(Vector3 pos) {
-
-        return new Vector3Int(Mathf.FloorToInt(pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt(pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize, Mathf.FloorToInt(pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
+        return new Vector3Int(
+            Mathf.FloorToInt(pos.x / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt(pos.y / VoxelData.ChunkSize) * VoxelData.ChunkSize,
+            Mathf.FloorToInt(pos.z / VoxelData.ChunkSize) * VoxelData.ChunkSize);
     }
 
+    // Tracks which chunk origins are currently mid-Populate() on any thread.
+    [System.NonSerialized]
+    private readonly HashSet<Vector3Int> _populatingSet = new HashSet<Vector3Int>();
+    private readonly object _populatingLock = new object();
+
+    // RequestChunk - safe from any thread.
     public ChunkData RequestChunk(Vector3Int blockOrigin, bool create) {
 
-        ChunkData c;
+        while (true) {
 
-        lock (World.Instance.ChunkListThreadLock) {
+            ChunkData shell = null;
+            bool shouldPopulate = false;
+            bool needsPopulate = false;
 
-            if (chunks.TryGetValue(blockOrigin, out c))
-                return c;
+            lock (World.Instance.ChunkListThreadLock) {
 
-            if (!create)
-                return null;
+                if (chunks.TryGetValue(blockOrigin, out ChunkData existing))
+                    return existing;
 
-            LoadChunk(blockOrigin);
-            chunks.TryGetValue(blockOrigin, out c);
+                if (!create)
+                    return null;
+
+                lock (_populatingLock) {
+
+                    if (!_populatingSet.Contains(blockOrigin)) {
+
+                        _populatingSet.Add(blockOrigin);
+                        shouldPopulate = true;
+
+                        shell = SaveSystem.LoadChunk(worldName, blockOrigin);
+
+                        if (shell == null) {
+
+                            shell = new ChunkData(blockOrigin);
+                            needsPopulate = true;
+                        }
+
+                        // Insert shell before releasing lock so neighbours find it.
+                        chunks[blockOrigin] = shell;
+                    }
+                }
+            }
+
+            if (shouldPopulate) {
+
+                if (needsPopulate)
+                    shell.Populate();
+
+                lock (_populatingLock) { _populatingSet.Remove(blockOrigin); }
+
+                return shell;
+            }
+
+            // Another thread is populating this origin — yield CPU and retry.
+            System.Threading.Thread.Sleep(0);
         }
-
-        return c;
     }
 
+    // LoadChunk: used by LoadWorldAsync (main thread, before threading starts).
     public void LoadChunk(Vector3Int blockOrigin) {
 
-        if (chunks.ContainsKey(blockOrigin)) return;
-
-        ChunkData chunk = SaveSystem.LoadChunk(worldName, blockOrigin);
-        if (chunk != null) {
-            chunks.Add(blockOrigin, chunk);
-            return;
+        lock (World.Instance.ChunkListThreadLock) {
+            if (chunks.ContainsKey(blockOrigin)) return;
         }
 
-        chunks.Add(blockOrigin, new ChunkData(blockOrigin));
-        chunks[blockOrigin].Populate();
+        ChunkData chunk = SaveSystem.LoadChunk(worldName, blockOrigin);
+
+        if (chunk == null) {
+            chunk = new ChunkData(blockOrigin);
+            chunk.Populate();
+        }
+
+        lock (World.Instance.ChunkListThreadLock) {
+            if (!chunks.ContainsKey(blockOrigin))
+                chunks[blockOrigin] = chunk;
+        }
     }
 
     bool IsVoxelInWorld(Vector3Int pos) {
-        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels && pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels && pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
+               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
+               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     bool IsVoxelInWorld(Vector3 pos) {
-        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels && pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels && pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
+        return pos.x >= 0 && pos.x < VoxelData.WorldSizeInVoxels &&
+               pos.y >= VoxelData.WorldBottomInVoxels && pos.y < VoxelData.WorldTopInVoxels &&
+               pos.z >= 0 && pos.z < VoxelData.WorldSizeInVoxels;
     }
 
     public void SetVoxel(Vector3 pos, byte value, int direction) {
 
         if (!IsVoxelInWorld(pos)) return;
 
+        // Guard: block ID must be valid. Structure mods (VoidTree etc.) use high IDs
+        // (28, 32, 33). If blocktypes array is shorter, voxel.properties crashes.
+        if (value >= World.Instance.blocktypes.Length) {
+            UnityEngine.Debug.LogWarning($"SetVoxel: block ID {value} out of blocktypes range ({World.Instance.blocktypes.Length}). Skipping.");
+            return;
+        }
+
+        // FIX — float precision: VoxelMod.position is Vector3. FloorToInt(31.9999f)
+        // gives 31 but origin is 32, producing local = -1. Clamp to [0, ChunkSize-1].
         Vector3Int origin = BlockToChunkOrigin(pos);
         ChunkData chunk = RequestChunk(origin, true);
 
-        Vector3Int local = new Vector3Int(Mathf.FloorToInt(pos.x) - origin.x, Mathf.FloorToInt(pos.y) - origin.y, Mathf.FloorToInt(pos.z) - origin.z);
+        int cs = VoxelData.ChunkSize;
+        int lx = Mathf.Clamp(Mathf.FloorToInt(pos.x) - origin.x, 0, cs - 1);
+        int ly = Mathf.Clamp(Mathf.FloorToInt(pos.y) - origin.y, 0, cs - 1);
+        int lz = Mathf.Clamp(Mathf.FloorToInt(pos.z) - origin.z, 0, cs - 1);
 
-        chunk.ModifyVoxel(local, value, direction);
+        chunk.ModifyVoxel(new Vector3Int(lx, ly, lz), value, direction);
     }
 
     public VoxelState GetVoxel(Vector3 pos) {
@@ -103,9 +182,11 @@ public class WorldData {
 
         if (chunk == null) return null;
 
-        Vector3Int local = new Vector3Int(Mathf.FloorToInt(pos.x) - origin.x, Mathf.FloorToInt(pos.y) - origin.y, Mathf.FloorToInt(pos.z) - origin.z);
+        Vector3Int local = new Vector3Int(
+            Mathf.FloorToInt(pos.x) - origin.x,
+            Mathf.FloorToInt(pos.y) - origin.y,
+            Mathf.FloorToInt(pos.z) - origin.z);
 
-        // Use flat index — faster than [x,y,z] multidimensional access.
         return chunk.map[ChunkData.FlatIdx(local.x, local.y, local.z)];
     }
 
@@ -120,5 +201,4 @@ public class WorldData {
 
         return chunk.map[ChunkData.FlatIdx(pos.x - origin.x, pos.y - origin.y, pos.z - origin.z)];
     }
-
 }

@@ -27,8 +27,10 @@ public static class SaveSystem {
 
     public static void SaveChunks(WorldData world) {
 
-        List<ChunkData> chunks = new List<ChunkData>(world.modifiedChunks);
-        world.modifiedChunks.Clear();
+        // FIX: modifiedChunks is now protected by a lock inside WorldData.
+        // Use GetAndClearModifiedChunks() which atomically snapshots and clears
+        // the list, instead of directly accessing modifiedChunks from a bg thread.
+        List<ChunkData> chunks = world.GetAndClearModifiedChunks();
 
         int count = 0;
         foreach (ChunkData chunk in chunks) {
