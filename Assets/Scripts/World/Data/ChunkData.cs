@@ -94,8 +94,13 @@ public class ChunkData {
                     byte blockId = TerrainGenerator.GetVoxel(worldPos, col);
 
                     // Flora — only at the exact surface voxel.
-                    if (worldY == surface && worldY >= VoxelData.SeaLevel &&
-                        col.biome.placeMajorFlora) {
+                    // Flora condition: surface voxel, biome has flora enabled, AND not
+                    // underwater. Previously worldY >= SeaLevel broke Desert — its low
+                    // elevationAmplitude (0.35) regularly puts the surface below Y=64,
+                    // silently suppressing all cacti. The correct check is whether the
+                    // surface block is the biome's own block, not water-fill (14) or air (0).
+                    if (worldY == surface && col.biome.placeMajorFlora &&
+                        blockId != 14 && blockId != 0) {
 
                         var noisePos = new Vector2(worldPos.x, worldPos.z);
 

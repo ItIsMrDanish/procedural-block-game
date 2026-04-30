@@ -109,7 +109,7 @@ public static class Structure {
             for (int x = -2; x <= 2; x++) {
                 for (int z = -2; z <= 2; z++) {
                     if (Mathf.Abs(x) == 2 && Mathf.Abs(z) == 2) continue;
-                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + y, baseZ + z), 33));
+                    queue.Enqueue(new VoxelMod(new Vector3(baseX + x, baseY + y, baseZ + z), 32));
                 }
             }
         }
