@@ -85,7 +85,6 @@ public class Player : MonoBehaviour {
         _controls.Player.Crafting.performed  += _ => ToggleUI(craftingMenu.ToggleMenu,    isInventoryToggle: false);
     }
 
-    private void OnEnable()  => _controls.Enable();
     private void OnDisable() => _controls.Disable();
 
     private void Start() {
@@ -101,7 +100,18 @@ public class Player : MonoBehaviour {
         // Sync pitch tracker to camera's actual starting angle.
         _cameraPitch = _cam.localEulerAngles.x;
         if (_cameraPitch > 180f) _cameraPitch -= 360f;
+
+        // NOTE: _controls.Enable() is intentionally NOT called here.
+        // World.InitWorld() calls _player.EnableControls() after mainCanvas.SetActive(true)
+        // so the Input System action states are clean when input first becomes live.
     }
+
+    /// <summary>
+    /// Called by World.InitWorld() immediately after the main canvas is activated.
+    /// Enabling controls here guarantees no Input System action-phase weirdness caused
+    /// by the canvas activation re-triggering OnEnable on child UI components.
+    /// </summary>
+    public void EnableControls() => _controls.Enable();
 
     private void Update() {
 

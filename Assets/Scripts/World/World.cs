@@ -213,6 +213,13 @@ public class World : MonoBehaviour {
 
         player.gameObject.SetActive(true);
         mainCanvas.gameObject.SetActive(true);
+
+        // Enable player input AFTER the canvas is active. This prevents the canvas
+        // SetActive() from triggering OnEnable on child UI components while Input System
+        // actions are already live — which caused stale action phases requiring 2-3
+        // key presses before UI toggles would register correctly.
+        _player.EnableControls();
+
         StartCoroutine(Tick());
     }
 
