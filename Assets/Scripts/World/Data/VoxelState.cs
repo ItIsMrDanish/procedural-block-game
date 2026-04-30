@@ -46,7 +46,11 @@ public class VoxelState {
                 for (int i = 0; i < _neighboursToDarken.Count; i++)
                     neighbours[_neighboursToDarken[i]].light = 0;
 
-                if (chunkData.chunk != null)
+                // FIX (Bug 3): chunk is null during Populate() — the Chunk MonoBehaviour
+                // assigns itself to chunkData.chunk AFTER ChunkData is constructed.
+                // Calling AddChunkToUpdate(null) crashed or silently corrupted the set.
+                // Guard: only enqueue if the Chunk object actually exists yet.
+                if (chunkData != null && chunkData.chunk != null)
                     World.Instance.AddChunkToUpdate(chunkData.chunk);
 
             } else if (_light > 1) {
@@ -64,18 +68,15 @@ public class VoxelState {
         neighbours = new VoxelNeighbours(this);
         position = _position;
         light = 0;
-
     }
 
     public Vector3Int globalPosition {
 
         get {
-
-            // BUG FIX: was using chunkData.position.y for Z coordinate.
-            // This caused wrong global positions for all border-chunk neighbour
-            // lookups, producing visual cracks and incorrect lighting.
-
-            return new Vector3Int(position.x + chunkData.position.x, position.y + chunkData.position.y, position.z + chunkData.position.z);
+            return new Vector3Int(
+                position.x + chunkData.position.x,
+                position.y + chunkData.position.y,
+                position.z + chunkData.position.z);
         }
     }
 
@@ -102,17 +103,19 @@ public class VoxelState {
                 if (neighbours[p].light < castLight)
                     neighbours[p].light = castLight;
             }
-
-            if (chunkData.chunk != null)
-                World.Instance.AddChunkToUpdate(chunkData.chunk);
         }
+
+        // FIX (Bug 3 part 2): AddChunkToUpdate was inside the neighbours loop,
+        // so it fired 6 times per call (once per face) instead of once.
+        // Moved outside the loop. Also added null guard (same reason as light setter).
+        if (chunkData != null && chunkData.chunk != null)
+            World.Instance.AddChunkToUpdate(chunkData.chunk);
     }
 
     public BlockType properties {
 
         get { return World.Instance.blocktypes[id]; }
     }
-
 }
 
 public class VoxelNeighbours {
@@ -130,9 +133,25 @@ public class VoxelNeighbours {
 
             if (_neighbours[index] == null) {
 
-                _neighbours[index] = World.Instance.worldData.GetVoxel(
-                    parent.globalPosition + VoxelData.faceChecks[index]);
-                ReturnNeighbour(index);
+                // THREADING FIX: only lazy-load on the main thread.
+                // UpdateChunk() runs on the bg thread — calling GetVoxel() from there
+                // acquires ChunkListThreadLock, which the main thread holds in
+                // CheckViewDistance → new Chunk() → RequestChunk(). This causes a deadlock
+                // (bg thread waits for main thread's lock; main thread waits for bg thread
+                // to finish the current frame — neither ever proceeds → all chunks invisible).
+                //
+                // If a neighbour is null during UpdateChunk it means the adjacent chunk
+                // hasn't been populated yet, so the face is invisible anyway (it borders
+                // a not-yet-created chunk). Returning null here is correct: UpdateMeshData
+                // checks for null and skips the face. When the adjacent chunk eventually
+                // populates, it will call AddChunkToUpdate on its neighbours, triggering
+                // a fresh UpdateChunk that will find the wired-up neighbour properly.
+                if (!System.Threading.Thread.CurrentThread.IsBackground)
+                    _neighbours[index] = World.Instance.worldData.GetVoxel(
+                        parent.globalPosition + VoxelData.faceChecks[index]);
+
+                if (_neighbours[index] != null)
+                    ReturnNeighbour(index);
             }
 
             return _neighbours[index];
