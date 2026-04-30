@@ -214,6 +214,7 @@ public class Inventory : MonoBehaviour, IInventory
 
     public int GetAmount(string itemName)
     {
+        if (_slots == null) return 0;
         int total = 0;
         foreach (InventorySlot s in _slots)
             if (s != null && s.itemName == itemName) total += s.amount;
@@ -326,6 +327,25 @@ public class Inventory : MonoBehaviour, IInventory
 
     public bool HasItem(string itemName) => GetAmount(itemName) > 0;
     public bool HasFreeSlot()            => System.Array.Exists(_slots, s => s == null);
+
+    /// <summary>
+    /// Backfills the icon on every slot that holds itemName but has no icon assigned.
+    /// Called by CraftingMenu after Craft() so crafted items display their recipe icon.
+    /// </summary>
+    public void SetIconForItem(string itemName, Sprite icon)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || icon == null || _slots == null) return;
+        bool changed = false;
+        foreach (InventorySlot s in _slots)
+        {
+            if (s != null && s.itemName == itemName && s.icon == null)
+            {
+                s.icon  = icon;
+                changed = true;
+            }
+        }
+        if (changed) NotifyChanged();
+    }
 
     public bool CanAdd(string itemName, int amount)
     {

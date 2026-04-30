@@ -195,7 +195,12 @@ public class CraftingMenu : MonoBehaviour
         if (texts.Length > 0) texts[0].text = ingredient.itemName;
         if (texts.Length > 1)
         {
-            int have = inventory != null ? inventory.GetAmount(ingredient.itemName) : 0;
+            // Guard with try/catch: if Inventory.Awake hasn't run yet (_slots is null),
+            // GetAmount throws a NullReferenceException and leaves the prefab's placeholder
+            // text ("Nx") intact. We catch that and safely default to 0.
+            int have = 0;
+            try { have = inventory != null ? inventory.GetAmount(ingredient.itemName) : 0; }
+            catch { have = 0; }
             texts[1].text  = $"{have} / {ingredient.amount}";
             texts[1].color = have >= ingredient.amount ? Color.white : Color.red;
         }
@@ -217,6 +222,13 @@ public class CraftingMenu : MonoBehaviour
         }
 
         _selectedRecipe.Craft(inventory, amount);
+
+        // Craft() adds items via IInventory.AddItem(string, int) which has no Sprite
+        // parameter, so crafted slots end up icon-less. Backfill the icon from the
+        // recipe onto any slot that is still missing it.
+        if (_selectedRecipe.itemIcon != null)
+            inventory.SetIconForItem(_selectedRecipe.itemName, _selectedRecipe.itemIcon);
+
         ShowFeedback($"Crafted {_selectedRecipe.outputAmount * amount}x {_selectedRecipe.itemName}");
 
         // Refresh material counts to reflect new inventory state.
