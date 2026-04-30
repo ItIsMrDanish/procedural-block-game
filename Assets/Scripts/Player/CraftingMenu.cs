@@ -79,14 +79,20 @@ public class CraftingMenu : MonoBehaviour
 
     // ─────────────────────────────── Unity ───────────────────────────────────
 
-    private void Start()
+    private void Awake()
     {
-        // If inventory wasn't assigned in the Inspector, try to find it in the scene.
+        // Resolve inventory in Awake so the reference exists before any Start runs.
+        // The actual item counts are NOT read here — that happens when the menu opens,
+        // by which point all Start() methods (including Inventory.Start) are complete.
         if (inventory == null)
             inventory = FindFirstObjectByType<Inventory>();
 
         if (inventory == null)
             Debug.LogError("CraftingMenu: No Inventory found! Drag it into the Inspector slot.");
+    }
+
+    private void Start()
+    {
 
         menuPanel.SetActive(false);
         recipeDetailPanel.SetActive(false);
@@ -124,7 +130,8 @@ public class CraftingMenu : MonoBehaviour
         }
         else
         {
-            // Refresh material counts every time the menu opens so quantities are current.
+            // Always refresh material counts when the menu opens — this runs after all
+            // Start() methods have completed, so inventory item counts are accurate.
             if (_selectedRecipe != null)
                 PopulateMaterialList(_selectedRecipe);
         }
@@ -195,12 +202,7 @@ public class CraftingMenu : MonoBehaviour
         if (texts.Length > 0) texts[0].text = ingredient.itemName;
         if (texts.Length > 1)
         {
-            // Guard with try/catch: if Inventory.Awake hasn't run yet (_slots is null),
-            // GetAmount throws a NullReferenceException and leaves the prefab's placeholder
-            // text ("Nx") intact. We catch that and safely default to 0.
-            int have = 0;
-            try { have = inventory != null ? inventory.GetAmount(ingredient.itemName) : 0; }
-            catch { have = 0; }
+            int have = inventory != null ? inventory.GetAmount(ingredient.itemName) : 0;
             texts[1].text  = $"{have} / {ingredient.amount}";
             texts[1].color = have >= ingredient.amount ? Color.white : Color.red;
         }
