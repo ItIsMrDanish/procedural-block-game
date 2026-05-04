@@ -87,11 +87,16 @@ public static class Structure {
         return queue;
     }
 
-        public static Queue<VoxelMod> MakeVoidTree(Vector3 position, int minTrunkHeight, int maxTrunkHeight) {
+    public static Queue<VoxelMod> MakeVoidTree(Vector3 position, int minTrunkHeight, int maxTrunkHeight) {
 
         Queue<VoxelMod> queue = new Queue<VoxelMod>();
+
+        // FIX: previously used offset 250f — same as MakeTree. This caused void trees
+        // to generate height variation identical to regular trees, placing them at the
+        // exact same XZ positions if both biomes happened to use the same noise thresholds.
+        // Using a distinct offset (750f) gives void trees their own independent height map.
         int height = (int)(maxTrunkHeight * Noise.Get2DPerlin(
-            new Vector2(position.x, position.z), 250f, 3f));
+            new Vector2(position.x, position.z), 750f, 3f));
 
         if (height < minTrunkHeight) height = minTrunkHeight;
 

@@ -119,6 +119,81 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &3510705
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3510706}
+  - component: {fileID: 3510708}
+  - component: {fileID: 3510707}
+  m_Layer: 5
+  m_Name: UnderwaterOverlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &3510706
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3510705}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 2034093026}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -3}
+  m_SizeDelta: {x: -920, y: -262}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3510707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3510705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0.3529412, b: 0.54901963, a: 0.47058824}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &3510708
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3510705}
+  m_CullTransparentMesh: 1
 --- !u!1 &10838875
 GameObject:
   m_ObjectHideFlags: 0
@@ -569,10 +644,10 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
   - itemName: Wooden Axe
     amount: 1
-    icon: {fileID: 21300000, guid: 248fa9c3cf2872b4e816eb1001c12d64, type: 3}
+    icon: {fileID: 21300000, guid: 4ad53ad48460ece4d87aefb9f8f43e80, type: 3}
   - itemName: Glimmer Pickaxe
     amount: 1
-    icon: {fileID: 21300000, guid: 6f4def3e4433f464c9f614339b3d38f0, type: 3}
+    icon: {fileID: 21300000, guid: 6caac75072b891545b1bea9247e2eb6f, type: 3}
   - itemName: Tourmaline Shovel
     amount: 1
     icon: {fileID: 21300000, guid: 1d8cc4d7412c4204199ce7786c13a7ee, type: 3}
@@ -1387,10 +1462,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 330585546}
+  - component: {fileID: 330585551}
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585550}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1457,21 +1535,25 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &330585546
-Transform:
+--- !u!224 &330585546
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.65, z: -0.15}
+  m_LocalPosition: {x: 0, y: 0, z: -0.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 357234897}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 1.65}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1528,6 +1610,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d05dbb2987e87ce47981632872bada9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FPSLimit
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &330585550
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_CullTransparentMesh: 1
+--- !u!114 &330585551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19cabe23c457e2f1aa7244d0ca410278, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnderwaterEffect
+  overlayPanel: {fileID: 3510705}
 --- !u!1 &350648033
 GameObject:
   m_ObjectHideFlags: 0
@@ -4332,9 +4465,9 @@ MonoBehaviour:
     frameRateIndex: 1
   biomes:
   - {fileID: 11400000, guid: cd5740f276caa9f499bfa934d10444a4, type: 2}
-  - {fileID: 11400000, guid: 8ab90978f71946e479046d04672f47f3, type: 2}
   - {fileID: 11400000, guid: 02b37dc7b761c194ea34d8519d607e38, type: 2}
   - {fileID: 11400000, guid: 63d13b27ce3a1a7c588e242c2bfefe74, type: 2}
+  - {fileID: 11400000, guid: bd12ea8a0674af7e09dc2f8b6d49a331, type: 2}
   globalLightLevel: 0.8
   day: {r: 0, g: 0.8844981, b: 1, a: 1}
   night: {r: 0, g: 0.030120762, b: 0.20754719, a: 1}
@@ -8856,6 +8989,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1f3e23a24f82147428993e7a1d5c187d, type: 2}
   - {fileID: 11400000, guid: c8d2339b0ed33a946a16828128f5e3fa, type: 2}
   - {fileID: 11400000, guid: 95af52e46a3a6084abfcde5966353478, type: 2}
+  - {fileID: 11400000, guid: 214e48068cd1dcb4fbc1b4a084b5a792, type: 2}
+  - {fileID: 11400000, guid: eeb4f8eee67bf3842bad614cb1348c30, type: 2}
+  - {fileID: 11400000, guid: b713940eb023c0644960d0ec4c59cfbb, type: 2}
+  - {fileID: 11400000, guid: f0918d64a0e2a3644b6492fbd4ee469f, type: 2}
   - {fileID: 11400000, guid: 29a73f3c6decb2a4aa6cf2f55d6cc177, type: 2}
   - {fileID: 11400000, guid: df5e4cc0b81e5744a84ee6d223eef74b, type: 2}
   - {fileID: 11400000, guid: 74c7d84381266344ca7e1b82e58797d1, type: 2}
@@ -8998,6 +9135,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 3510706}
   - {fileID: 10838876}
   - {fileID: 311216140}
   - {fileID: 2074229379}

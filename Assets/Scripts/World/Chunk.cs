@@ -131,7 +131,8 @@ public class Chunk {
                     for (int z = 0; z < size; z++) {
 
                         int idx = ChunkData.FlatIdx(x, y, z);
-                        if (World.Instance.blocktypes[chunkData.map[idx].id].isSolid)
+                        BlockType bt = World.Instance.blocktypes[chunkData.map[idx].id];
+                        if (bt.isSolid || bt.isWater)
                             UpdateMeshData(data, x, y, z, idx);
                     }
                 }

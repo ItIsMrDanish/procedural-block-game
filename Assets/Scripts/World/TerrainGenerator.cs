@@ -1,104 +1,82 @@
 ﻿using UnityEngine;
 
-// Terrain generation logic.
-// ComputeColumnData() is the expensive function — it runs 8 Perlin calls per
-// unique world XZ position and is called through HeightmapCache, so each
-// position is computed exactly once regardless of vertical chunk count.
-
-// GetVoxel() is the cheap per-voxel function — it only does up to 3 Perlin
-// calls (cave check, underground only) and is otherwise pure arithmetic.
-
-// HEIGHT TARGETS:
-//   Normal terrain:   Y 66–75  (just above sea level 64)
-//   Ocean floor:      Y 40–58  (fills with water up to 64)
-//   Mountain peaks:   Y 90–130 (rare, where ridge + continent both high)
-//   Absolute limits:  Y 37–145 (clamped in code)
-
 public static class TerrainGenerator {
 
-    // Global noise parameters.
-    // These define the SCALE of each layer — biome weights scale
-    // the AMPLITUDE at the point of combination.
-
-    // Domain warp — distorts coordinates to break grid look
     private const float WarpScale     = 0.0015f;
     private const float WarpAmplitude = 18f;
 
-    // Continentalness — very low freq, land-mass vs ocean
     private const float ContinentScale  = 0.0006f;
     private const float ContinentOffset = 500f;
     private const float ContinentAmp    = 18f;
 
-    // Elevation — medium freq, rolling hills
     private const float ElevationScale  = 0.003f;
     private const float ElevationOffset = 1000f;
     private const float ElevationAmp    = 12f;
 
-    // fBm detail — second octave of elevation for natural bumps
     private const float DetailScale  = 0.008f;
     private const float DetailOffset = 1500f;
     private const float DetailAmp    = 5f;
 
-    // Ridge — sharp mountain peaks
     private const float RidgeScale  = 0.005f;
     private const float RidgeOffset = 2000f;
     private const float RidgeAmp    = 35f;
 
-    // Erosion — flattens terrain, suppresses ridges in low areas
     private const float ErosionScale  = 0.0025f;
     private const float ErosionOffset = 3000f;
     private const float ErosionAmp    = 14f;
 
-    // Climate
     private const float TempScale   = 0.0015f;
     private const float TempOffset  = 4000f;
     private const float HumidScale  = 0.0015f;
     private const float HumidOffset = 5000f;
 
-    // Cave
-    private const float CaveScale              = 0.05f;
-    private const float CaveThreshold          = 0.69f;
-    private const int   CaveMinY               = -40;
-    private const int   CaveMaxDepthFromSurface = 5;
+    // Cheese caves — large blobby caverns.
+    private const float CaveScale               = 0.05f;
+    private const float CaveThreshold           = 0.64f;
+    private const int   CaveMaxDepthFromSurface = 6;
 
-    // Minimum climate distance to avoid division-by-zero.
+    // Spaghetti tunnels — long winding passages.
+    private const float TunnelScale             = 0.02f;
+    private const float TunnelThreshold         = 0.72f;
+
     private const float MinClimateDist = 0.0001f;
 
-    // Column data struct — returned by ComputeColumnData
+    // Climate is averaged over a 5-point kernel to prevent column-by-column
+    // biome flickering caused by domain warp at borders.
+    private const float ClimateKernelRadius = 32f;
 
     public struct ColumnData {
-
         public int surfaceHeight;
         public BiomeAttributes biome;
     }
-
-    // ComputeColumnData — expensive, call via HeightmapCache
 
     public static ColumnData ComputeColumnData(int worldX, int worldZ, BiomeAttributes[] biomes) {
 
         float seed = VoxelData.seed;
 
-        // Step 1: Domain warp
         float warpX = SampleRaw(worldX * WarpScale + seed * 0.001f, worldZ * WarpScale + seed * 0.002f) * WarpAmplitude;
         float warpZ = SampleRaw(worldX * WarpScale + seed * 0.003f + 0.5f, worldZ * WarpScale + seed * 0.004f + 0.5f) * WarpAmplitude;
 
         float wx = worldX + warpX;
         float wz = worldZ + warpZ;
 
-        // Step 2: Climate (un-warped for stability)
-        float temp  = SampleScaled(worldX, worldZ, TempOffset,  TempScale);
-        float humid = SampleScaled(worldX, worldZ, HumidOffset, HumidScale);
+        // Smooth climate over 5-point kernel — eliminates per-column biome flicker.
+        float r = ClimateKernelRadius;
+        float temp =
+            ( SampleScaled(worldX,   worldZ,   TempOffset, TempScale)
+            + SampleScaled(worldX+r, worldZ,   TempOffset, TempScale)
+            + SampleScaled(worldX-r, worldZ,   TempOffset, TempScale)
+            + SampleScaled(worldX,   worldZ+r, TempOffset, TempScale)
+            + SampleScaled(worldX,   worldZ-r, TempOffset, TempScale) ) * 0.2f;
 
-        // Step 3: Biome selection + blending.
-        //
-        // Each biome's effective distance is divided by its rarity so that
-        // high-rarity biomes appear closer in climate space and win over a
-        // larger area. Low-rarity biomes only win right at their climate point.
-        //
-        // The same rarity-adjusted distance drives the blend weights, so
-        // terrain shape also transitions according to rarity.
+        float humid =
+            ( SampleScaled(worldX,   worldZ,   HumidOffset, HumidScale)
+            + SampleScaled(worldX+r, worldZ,   HumidOffset, HumidScale)
+            + SampleScaled(worldX-r, worldZ,   HumidOffset, HumidScale)
+            + SampleScaled(worldX,   worldZ+r, HumidOffset, HumidScale)
+            + SampleScaled(worldX,   worldZ-r, HumidOffset, HumidScale) ) * 0.2f;
 
-        float totalWeight        = 0f;
+        float totalWeight          = 0f;
         float blendedElevationAmp  = 0f;
         float blendedRidgeWeight   = 0f;
         float blendedErosionWeight = 0f;
@@ -112,14 +90,8 @@ public static class TerrainGenerator {
             BiomeAttributes b = biomes[i];
             float dt = temp  - b.temperature;
             float dh = humid - b.humidity;
-
-            // Raw Euclidean distance in climate space.
             float rawDist = Mathf.Sqrt(dt * dt + dh * dh);
-
-            // Rarity shrinks the effective distance — common biomes feel closer.
             float effectiveDist = rawDist / Mathf.Max(b.rarity, 0.01f);
-
-            // Inverse-distance weight for blending terrain shape.
             float w = 1f / Mathf.Max(effectiveDist, MinClimateDist);
 
             totalWeight          += w;
@@ -128,8 +100,10 @@ public static class TerrainGenerator {
             blendedErosionWeight += b.erosionWeight      * w;
             blendedHeightOffset  += b.heightOffset       * w;
 
-            // Nearest biome (by effective distance) wins for surface blocks + flora.
-            if (effectiveDist < bestD) { bestD = effectiveDist; biome = b; }
+            if (effectiveDist < bestD) {
+                bestD = effectiveDist;
+                biome = b;
+            }
         }
 
         blendedElevationAmp  /= totalWeight;
@@ -137,14 +111,12 @@ public static class TerrainGenerator {
         blendedErosionWeight /= totalWeight;
         blendedHeightOffset  /= totalWeight;
 
-        // Step 4: Macro noise layers (warped coords)
         float continent = GetContinentalness(wx, wz);
         float elevation = SampleScaled(wx, wz, ElevationOffset, ElevationScale);
         float detail    = SampleScaled(wx, wz, DetailOffset,    DetailScale);
         float ridge     = GetRidgeNoise(wx, wz);
         float erosion   = SampleScaled(wx, wz, ErosionOffset,   ErosionScale);
 
-        // Step 5: Apply blended biome weights
         float scaledElevation = elevation * blendedElevationAmp;
         float scaledDetail    = detail    * blendedElevationAmp;
         float scaledRidge     = ridge     * blendedRidgeWeight;
@@ -152,7 +124,6 @@ public static class TerrainGenerator {
 
         float ridgeMasked = scaledRidge * Mathf.Clamp01(1.2f - scaledErosion);
 
-        // Step 6: Combine into height offset from sea level
         float heightOffset =
               continent       * ContinentAmp
             + scaledElevation * ElevationAmp
@@ -161,7 +132,6 @@ public static class TerrainGenerator {
             - scaledErosion   * ErosionAmp
             + blendedHeightOffset;
 
-        // Step 7: Final surface height
         int surface = Mathf.RoundToInt(VoxelData.SeaLevel + heightOffset);
         surface = Mathf.Clamp(surface,
             VoxelData.WorldBottomInVoxels + 4,
@@ -169,8 +139,6 @@ public static class TerrainGenerator {
 
         return new ColumnData { surfaceHeight = surface, biome = biome };
     }
-
-    // GetVoxel — cheap per-voxel call
 
     public static byte GetVoxel(Vector3Int pos, ColumnData col) {
 
@@ -183,8 +151,19 @@ public static class TerrainGenerator {
         if (yPos > surface)
             return yPos < VoxelData.SeaLevel ? (byte)14 : (byte)0;
 
-        if (yPos <= surface - CaveMaxDepthFromSurface && yPos >= CaveMinY) {
-            if (IsCave(pos)) return 0;
+        // Cave carving: runs from just below surface down to bedrock.
+        // CaveMinY removed — caves exist at all depths below surface.
+        if (yPos <= surface - CaveMaxDepthFromSurface && yPos > VoxelData.WorldBottomInVoxels + 4) {
+            if (IsCave(pos) || IsTunnel(pos)) {
+                // Waterlogging: only fill with water if this cavity connects upward
+                // to the sea — i.e. every block above us up to SeaLevel is either
+                // open ocean (above surface) or also a carved cave block.
+                // Isolated underground pockets below sea level stay as air,
+                // preventing the "multiple disconnected water levels" visual.
+                if (yPos < VoxelData.SeaLevel)
+                    return IsConnectedToSea(pos, col) ? (byte)14 : (byte)0;
+                return 0;
+            }
         }
 
         byte voxelValue;
@@ -194,13 +173,11 @@ public static class TerrainGenerator {
         } else if (yPos >= surface - biome.subsurfaceDepth) {
             voxelValue = biome.subSurfaceBlock;
         } else {
-            voxelValue = 2; // Stone
+            voxelValue = 2;
         }
 
         if (voxelValue == 2 && biome.lodes != null) {
-
             for (int i = 0; i < biome.lodes.Length; i++) {
-
                 Lode lode = biome.lodes[i];
                 if (yPos > lode.minHeight && yPos < lode.maxHeight)
                     if (IsCaveNoise(pos, lode.noiseOffset, lode.scale, lode.threshold))
@@ -211,7 +188,34 @@ public static class TerrainGenerator {
         return voxelValue;
     }
 
-    // Private helpers
+    // Scans upward from a carved cave block to determine if it has an unbroken
+    // open path to sea level. "Open" means either above the terrain surface
+    // (naturally water/air) or itself a carved cave block.
+    // Returns true  → cavity is sea-connected → fill with water.
+    // Returns false → cavity is sealed underground → fill with air.
+    private static bool IsConnectedToSea(Vector3Int pos, ColumnData col) {
+
+        int surface = col.surfaceHeight;
+
+        for (int checkY = pos.y + 1; checkY < VoxelData.SeaLevel; checkY++) {
+
+            // Above terrain surface = open ocean column, connection confirmed.
+            if (checkY > surface)
+                return true;
+
+            // Inside terrain — check if this block is also carved open.
+            var checkPos = new Vector3Int(pos.x, checkY, pos.z);
+            bool carved = (checkY <= surface - CaveMaxDepthFromSurface &&
+                           checkY > VoxelData.WorldBottomInVoxels + 4) &&
+                          (IsCave(checkPos) || IsTunnel(checkPos));
+
+            if (!carved)
+                return false; // Solid block seals the column — isolated pocket
+        }
+
+        // Reached SeaLevel — connected.
+        return true;
+    }
 
     private static bool IsCave(Vector3Int pos) {
 
@@ -224,6 +228,21 @@ public static class TerrainGenerator {
         float CA = Mathf.PerlinNoise(z, x);
 
         return (AB + BC + CA) / 3f > CaveThreshold;
+    }
+
+    // Spaghetti tunnel: uses a finer noise scale and a squashed Y axis so tunnels
+    // run more horizontally than vertically, giving long winding passages.
+    private static bool IsTunnel(Vector3Int pos) {
+
+        float x  = pos.x * TunnelScale + VoxelData.seed * 0.4f;
+        float y  = pos.y * TunnelScale * 0.5f + VoxelData.seed * 0.5f;  // squash Y = more horizontal tunnels
+        float z  = pos.z * TunnelScale + VoxelData.seed * 0.6f;
+
+        float AB = Mathf.PerlinNoise(x, y);
+        float BC = Mathf.PerlinNoise(y, z);
+        float CA = Mathf.PerlinNoise(z, x);
+
+        return (AB + BC + CA) / 3f > TunnelThreshold;
     }
 
     private static bool IsCaveNoise(Vector3Int pos, float offset, float scale, float threshold) {
@@ -240,26 +259,22 @@ public static class TerrainGenerator {
     }
 
     private static float GetContinentalness(float x, float z) {
-
         float v = SampleScaled(x, z, ContinentOffset, ContinentScale);
         return Mathf.Clamp(v * 2.2f - 1.0f, -1f, 1f);
     }
 
     private static float GetRidgeNoise(float x, float z) {
-
         float v = SampleScaled(x, z, RidgeOffset, RidgeScale);
         return 1f - Mathf.Abs(2f * v - 1f);
     }
 
     private static float SampleScaled(float x, float z, float offset, float scale) {
-
         float px = (x + offset + VoxelData.seed + 0.1f)    * scale;
         float pz = (z + offset + VoxelData.seed + 9371.1f) * scale;
         return Mathf.PerlinNoise(px, pz);
     }
 
     private static float SampleRaw(float x, float z) {
-
         return Mathf.PerlinNoise(x, z) * 2f - 1f;
     }
 }
