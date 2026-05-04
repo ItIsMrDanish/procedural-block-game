@@ -569,10 +569,10 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
   - itemName: Wooden Axe
     amount: 1
-    icon: {fileID: 21300000, guid: 248fa9c3cf2872b4e816eb1001c12d64, type: 3}
+    icon: {fileID: 21300000, guid: 4ad53ad48460ece4d87aefb9f8f43e80, type: 3}
   - itemName: Glimmer Pickaxe
     amount: 1
-    icon: {fileID: 21300000, guid: 6f4def3e4433f464c9f614339b3d38f0, type: 3}
+    icon: {fileID: 21300000, guid: 6caac75072b891545b1bea9247e2eb6f, type: 3}
   - itemName: Tourmaline Shovel
     amount: 1
     icon: {fileID: 21300000, guid: 1d8cc4d7412c4204199ce7786c13a7ee, type: 3}
@@ -8856,6 +8856,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1f3e23a24f82147428993e7a1d5c187d, type: 2}
   - {fileID: 11400000, guid: c8d2339b0ed33a946a16828128f5e3fa, type: 2}
   - {fileID: 11400000, guid: 95af52e46a3a6084abfcde5966353478, type: 2}
+  - {fileID: 11400000, guid: 214e48068cd1dcb4fbc1b4a084b5a792, type: 2}
+  - {fileID: 11400000, guid: eeb4f8eee67bf3842bad614cb1348c30, type: 2}
+  - {fileID: 11400000, guid: b713940eb023c0644960d0ec4c59cfbb, type: 2}
+  - {fileID: 11400000, guid: f0918d64a0e2a3644b6492fbd4ee469f, type: 2}
   - {fileID: 11400000, guid: 29a73f3c6decb2a4aa6cf2f55d6cc177, type: 2}
   - {fileID: 11400000, guid: df5e4cc0b81e5744a84ee6d223eef74b, type: 2}
   - {fileID: 11400000, guid: 74c7d84381266344ca7e1b82e58797d1, type: 2}

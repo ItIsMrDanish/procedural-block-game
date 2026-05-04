@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Wooden Axe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Wooden Axe
-  itemIcon: {fileID: 21300000, guid: 248fa9c3cf2872b4e816eb1001c12d64, type: 3}
+  itemIcon: {fileID: 21300000, guid: 4ad53ad48460ece4d87aefb9f8f43e80, type: 3}
   outputAmount: 1
   unstackable: 1
   armorSlot: 0
