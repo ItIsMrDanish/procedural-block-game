@@ -10,17 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c02ed4198861c4f448593216c869a1d8, type: 3}
-  m_Name: Wooden Pickaxe
+  m_Name: Leather Leggings
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
-  itemName: Wooden Pickaxe
-  itemIcon: {fileID: 21300000, guid: 20bdc43255c482548bc691dbca3d7980, type: 3}
+  itemName: Leather Leggings
+  itemIcon: {fileID: 0}
   outputAmount: 1
   unstackable: 1
-  armorSlot: 0
+  armorSlot: 3
   ingredients:
-  - itemName: Stick
-    icon: {fileID: 21300000, guid: 8157569558dfc454f95462a1b94e0219, type: 3}
-    amount: 1
-  - itemName: Planks
-    icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
-    amount: 3
+  - itemName: Leather
+    icon: {fileID: 21300000, guid: f1cee12bba8abaa428ec0a0ae0d6632b, type: 3}
+    amount: 5

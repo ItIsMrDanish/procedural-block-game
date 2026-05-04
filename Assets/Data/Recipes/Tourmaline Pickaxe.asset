@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tourmaline Pickaxe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
   itemName: Tourmaline Pickaxe
-  itemIcon: {fileID: 21300000, guid: d3330f6d4a6718b4885c5d8902378795, type: 3}
+  itemIcon: {fileID: 21300000, guid: 23614508976d753468763f0e4a0dc406, type: 3}
   outputAmount: 1
   unstackable: 1
   armorSlot: 0
