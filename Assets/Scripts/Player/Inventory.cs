@@ -68,7 +68,11 @@ public class Inventory : MonoBehaviour, IInventory
     private InventorySlot[] _slots;                              // null = empty slot
     private InventorySlot[] _armorSlots = new InventorySlot[4]; // Helmet=0…Boots=3
 
+    // HUD hotbar — the 9 Toolbar child GameObjects injected by Toolbar.Awake().
     private SlotUI[] _hotbarUIs;
+    // Panel hotbar — a second mirrored set spawned under hotbarRoot inside the inventory panel.
+    // Both are refreshed together so they always show identical content.
+    private SlotUI[] _panelHotbarUIs;
     private SlotUI[] _mainUIs;
     private SlotUI[] _armorUIs;
 
@@ -142,12 +146,63 @@ public class Inventory : MonoBehaviour, IInventory
 
     // ───────────────────────────── UI construction ───────────────────────────
 
+    /// <summary>
+    /// Called by Toolbar.Awake() BEFORE Inventory.Start() runs.
+    /// Provides the 9 pre-existing HUD slot GameObjects so Inventory does NOT
+    /// spawn a second set under hotbarRoot. Each GameObject must already have
+    /// the "UIItemSlot" tag; Inventory will stamp InventorySlotIndex onto them.
+    /// </summary>
+    /// <summary>
+    /// Called by Toolbar.Awake() BEFORE Inventory.Start() runs.
+    /// Registers the 9 HUD slot GameObjects as the toolbar's SlotUI array.
+    /// Inventory.BuildUI() will ALSO spawn a separate mirrored set under hotbarRoot
+    /// for display inside the inventory panel — same data, two visual representations.
+    /// </summary>
+    public void InjectHotbarSlots(GameObject[] hotbarSlotObjects)
+    {
+        if (hotbarSlotObjects == null || hotbarSlotObjects.Length != HotbarSize)
+        {
+            Debug.LogError("Inventory.InjectHotbarSlots: expected exactly 9 slot GameObjects.");
+            return;
+        }
+
+        _hotbarUIs = new SlotUI[HotbarSize];
+        for (int i = 0; i < HotbarSize; i++)
+        {
+            GameObject go = hotbarSlotObjects[i];
+            go.tag = "UIItemSlot";
+
+            InventorySlotIndex idx = go.GetComponent<InventorySlotIndex>();
+            if (idx == null) idx = go.AddComponent<InventorySlotIndex>();
+            idx.slotIndex = i;
+
+            _hotbarUIs[i] = new SlotUI(go);
+        }
+
+        _hotbarSlotsInjected = true;
+    }
+
+    private bool _hotbarSlotsInjected = false;
+
     private void BuildUI()
     {
         int mainSize = maxSlots - HotbarSize;
-        _hotbarUIs = SpawnSlots(hotbarRoot,   HotbarSize);
-        _mainUIs   = SpawnSlots(mainGridRoot, mainSize);
-        _armorUIs  = SpawnSlots(armorRoot,    ArmorCount);
+
+        if (!_hotbarSlotsInjected)
+        {
+            // No Toolbar injection — spawn a single hotbar set under hotbarRoot.
+            _hotbarUIs = SpawnSlots(hotbarRoot, HotbarSize, startIndex: 0);
+        }
+        else
+        {
+            // Toolbar already provided the HUD slots (_hotbarUIs).
+            // Spawn a SECOND mirrored set under hotbarRoot for the inventory panel.
+            // Both arrays read from the same _slots[0-8] data and are refreshed together.
+            _panelHotbarUIs = SpawnSlots(hotbarRoot, HotbarSize, startIndex: 0);
+        }
+
+        _mainUIs  = SpawnSlots(mainGridRoot, mainSize,   startIndex: HotbarSize);
+        _armorUIs = SpawnSlots(armorRoot,    ArmorCount, startIndex: 0);
 
         string[] labels = { "Helmet", "Chestplate", "Leggings", "Boots" };
         for (int i = 0; i < ArmorCount; i++)
@@ -155,7 +210,7 @@ public class Inventory : MonoBehaviour, IInventory
                 _armorUIs[i].label.text = labels[i];
     }
 
-    private SlotUI[] SpawnSlots(Transform parent, int count)
+    private SlotUI[] SpawnSlots(Transform parent, int count, int startIndex = 0)
     {
         SlotUI[] result = new SlotUI[count];
         if (parent == null)
@@ -164,7 +219,18 @@ public class Inventory : MonoBehaviour, IInventory
             return result;
         }
         for (int i = 0; i < count; i++)
-            result[i] = new SlotUI(Instantiate(slotUIPrefab, parent));
+        {
+            GameObject go = Instantiate(slotUIPrefab, parent);
+
+            // Tag the root so DragAndDropHandler's raycaster can identify it.
+            go.tag = "UIItemSlot";
+
+            // Stamp the flat inventory index so the handler knows which slot was clicked.
+            InventorySlotIndex idx = go.AddComponent<InventorySlotIndex>();
+            idx.slotIndex = startIndex + i;
+
+            result[i] = new SlotUI(go);
+        }
         return result;
     }
 
@@ -172,8 +238,15 @@ public class Inventory : MonoBehaviour, IInventory
 
     private void RefreshUI()
     {
-        for (int i = 0; i < HotbarSize && i < _hotbarUIs.Length; i++)
-            ApplySlotToUI(_slots[i], _hotbarUIs[i]);
+        // HUD hotbar (Toolbar children).
+        if (_hotbarUIs != null)
+            for (int i = 0; i < HotbarSize && i < _hotbarUIs.Length; i++)
+                ApplySlotToUI(_slots[i], _hotbarUIs[i]);
+
+        // Panel hotbar mirror — only exists when Toolbar injection was used.
+        if (_panelHotbarUIs != null)
+            for (int i = 0; i < HotbarSize && i < _panelHotbarUIs.Length; i++)
+                ApplySlotToUI(_slots[i], _panelHotbarUIs[i]);
 
         int mainSize = maxSlots - HotbarSize;
         for (int i = 0; i < mainSize && i < _mainUIs.Length; i++)
@@ -228,6 +301,7 @@ public class Inventory : MonoBehaviour, IInventory
     public int AddItem(string itemName, int amount, Sprite icon = null)
     {
         if (string.IsNullOrWhiteSpace(itemName) || amount <= 0) return amount;
+
         int remaining = amount;
 
         bool unstackable = IsUnstackable(itemName);
@@ -322,6 +396,59 @@ public class Inventory : MonoBehaviour, IInventory
 
     public bool IsArmorSlotOccupied(ArmorSlotType slotType)
         => slotType != ArmorSlotType.None && _armorSlots[(int)slotType - 1] != null;
+
+    // ───────────────────────────── Drag-and-drop direct writes ──────────────
+
+    /// <summary>
+    /// Overwrites slot [index] with a copy of <paramref name="source"/>.
+    /// Used by DragAndDropHandler so the player can drop an item into a
+    /// specific slot rather than always letting AddItem choose the position.
+    /// Fires OnInventoryChanged.
+    /// </summary>
+    public void SetSlotDirect(int index, InventorySlot source)
+    {
+        if (source == null || index < 0 || index >= maxSlots) return;
+        _slots[index] = new InventorySlot(source.itemName, source.amount, source.icon);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds <paramref name="amount"/> to the stack already in slot [index].
+    /// Does NOT create a new slot if the slot is empty.
+    /// Fires OnInventoryChanged.
+    /// </summary>
+    public void AddToSlotDirect(int index, int amount)
+    {
+        if (index < 0 || index >= maxSlots || _slots[index] == null || amount <= 0) return;
+        _slots[index].amount = Mathf.Min(_slots[index].amount + amount, maxStackSize);
+        NotifyChanged();
+    }
+
+    // ───────────────────────────── Toolbar accessors ─────────────────────────
+
+    /// <summary>
+    /// Returns the InventorySlot at the given flat index (0–maxSlots-1).
+    /// Returns null if the slot is empty or the index is out of range.
+    /// Used by Toolbar to read hotbar slots 0–8 without exposing the full array.
+    /// </summary>
+    public InventorySlot GetSlot(int index)
+    {
+        if (_slots == null || index < 0 || index >= _slots.Length) return null;
+        return _slots[index];
+    }
+
+    /// <summary>
+    /// Returns the Transform of a hotbar slot's root GameObject so Toolbar can
+    /// position its highlight. Works regardless of whether slots were injected
+    /// (Toolbar children) or spawned under hotbarRoot.
+    /// </summary>
+    public Transform GetHotbarSlotTransform(int hotbarIndex)
+    {
+        if (_hotbarUIs == null || hotbarIndex < 0 || hotbarIndex >= _hotbarUIs.Length)
+            return null;
+        SlotUI ui = _hotbarUIs[hotbarIndex];
+        return ui?.root != null ? ui.root.transform : null;
+    }
 
     // ───────────────────────────── Helpers ───────────────────────────────────
 
@@ -439,4 +566,14 @@ public class SlotUI
         countText = texts.Length > 0 ? texts[0] : null;
         label     = texts.Length > 1 ? texts[1] : null;
     }
+}
+
+/// <summary>
+/// Tiny component stamped onto every slot GameObject by Inventory.SpawnSlots().
+/// Lets DragAndDropHandler resolve a raycaster hit back to a flat inventory index.
+/// </summary>
+public class InventorySlotIndex : MonoBehaviour
+{
+    /// <summary>Flat index into Inventory._slots (0 = first hotbar slot).</summary>
+    public int slotIndex;
 }

@@ -393,15 +393,41 @@ public class Player : MonoBehaviour {
             chunk.EditVoxel(highlightBlock.position, 0);
     }
 
+    // The InventorySlot currently selected in the hotbar.
+    // Kept in sync by Toolbar via SetSelectedItem() every time the selection
+    // changes or the inventory contents change.
+    private InventorySlot _selectedItem;
+
+    /// <summary>
+    /// Called by Toolbar whenever the selected hotbar slot or its contents change.
+    /// May receive null when the selected slot is empty.
+    /// </summary>
+    public void SetSelectedItem(InventorySlot slot) => _selectedItem = slot;
+
     private void PlaceBlock() {
 
         if (_world.inUI) return;
         if (!highlightBlock.gameObject.activeSelf) return;
-        if (!toolbar.slots[toolbar.slotIndex].HasItem) return;
+
+        // Nothing selected or the selected slot is empty — can't place.
+        if (_selectedItem == null) return;
+
+        // Resolve the item name to a block-type byte ID by searching World.blocktypes.
+        // Index 0 is always Air, so a match at 0 is treated as non-placeable.
+        byte blockID = 0;
+        for (int i = 1; i < _world.blocktypes.Length; i++) {
+            if (_world.blocktypes[i].blockName == _selectedItem.itemName) {
+                blockID = (byte)i;
+                break;
+            }
+        }
+
+        // Item name didn't match any placeable block type.
+        if (blockID == 0) return;
 
         // Reject placement if the target block overlaps the player's AABB.
         Vector3 bMin = placeBlock.position; // Block min corner (floor-snapped)
-        Vector3 bMax = bMin + Vector3.one; // Block max corner (1×1×1 voxel)
+        Vector3 bMax = bMin + Vector3.one;  // Block max corner (1×1×1 voxel)
 
         float px = transform.position.x;
         float py = transform.position.y;
@@ -414,12 +440,13 @@ public class Player : MonoBehaviour {
 
         if (ox && oy && oz) return;  // Block would be inside the player — refuse
 
-        // Place it
+        // Place the block and consume one from the inventory stack.
         Chunk chunk = _world.GetChunkFromVector3(placeBlock.position);
         if (chunk != null) {
-
-            chunk.EditVoxel(placeBlock.position, toolbar.slots[toolbar.slotIndex].itemSlot.stack.id);
-            toolbar.slots[toolbar.slotIndex].itemSlot.Take(1);
+            chunk.EditVoxel(placeBlock.position, blockID);
+            inventory.RemoveItem(_selectedItem.itemName, 1);
+            // _selectedItem is refreshed automatically:
+            // inventory.RemoveItem → OnInventoryChanged → Toolbar.NotifyPlayer → SetSelectedItem
         }
     }
 
