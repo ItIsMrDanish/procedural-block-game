@@ -191,7 +191,7 @@ public class World : MonoBehaviour {
         LoadProgress = 0.8f;
         yield return null;
 
-        spawnPosition = new Vector3(VoxelData.WorldCentre, VoxelData.SeaLevel + 30f, VoxelData.WorldCentre);
+        spawnPosition = FindLandSpawn();
 
         player.position = spawnPosition;
         CheckViewDistance();
@@ -627,6 +627,43 @@ public class World : MonoBehaviour {
             HeightmapCache.PreWarm(pwX, pwZ, pwR, pwBiomes));
     }
 
+
+    // Spirals outward from the world centre until it finds a column whose surface
+    // is at or above sea level (not ocean). Spawns the player 2 blocks above
+    // that surface so they land cleanly on solid ground.
+    private Vector3 FindLandSpawn() {
+
+        int centre = VoxelData.WorldCentre;
+        const int stepSize  = 8;
+        const int maxRadius = 400;
+
+        for (int radius = 0; radius <= maxRadius; radius += stepSize) {
+
+            if (radius == 0) {
+                var col = HeightmapCache.GetOrCompute(centre, centre, biomes);
+                if (col.surfaceHeight >= VoxelData.SeaLevel)
+                    return new Vector3(centre, col.surfaceHeight + 2f, centre);
+                continue;
+            }
+
+            for (int i = -radius; i <= radius; i += stepSize) {
+                int[] xs = { centre + i, centre + i, centre - radius, centre + radius };
+                int[] zs = { centre - radius, centre + radius, centre + i, centre + i };
+                for (int side = 0; side < 4; side++) {
+                    int wx = xs[side];
+                    int wz = zs[side];
+                    if (wx < 0 || wx >= VoxelData.WorldSizeInVoxels) continue;
+                    if (wz < 0 || wz >= VoxelData.WorldSizeInVoxels) continue;
+                    var col = HeightmapCache.GetOrCompute(wx, wz, biomes);
+                    if (col.surfaceHeight >= VoxelData.SeaLevel)
+                        return new Vector3(wx, col.surfaceHeight + 2f, wz);
+                }
+            }
+        }
+
+        Debug.LogWarning("FindLandSpawn: no land found, using fallback.");
+        return new Vector3(centre, VoxelData.SeaLevel + 30f, centre);
+    }
     public bool CheckForVoxel(Vector3 pos) {
 
         VoxelState voxel = worldData.GetVoxel(pos);

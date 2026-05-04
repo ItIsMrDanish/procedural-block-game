@@ -4332,9 +4332,9 @@ MonoBehaviour:
     frameRateIndex: 1
   biomes:
   - {fileID: 11400000, guid: cd5740f276caa9f499bfa934d10444a4, type: 2}
-  - {fileID: 11400000, guid: 8ab90978f71946e479046d04672f47f3, type: 2}
   - {fileID: 11400000, guid: 02b37dc7b761c194ea34d8519d607e38, type: 2}
   - {fileID: 11400000, guid: 63d13b27ce3a1a7c588e242c2bfefe74, type: 2}
+  - {fileID: 11400000, guid: bd12ea8a0674af7e09dc2f8b6d49a331, type: 2}
   globalLightLevel: 0.8
   day: {r: 0, g: 0.8844981, b: 1, a: 1}
   night: {r: 0, g: 0.030120762, b: 0.20754719, a: 1}

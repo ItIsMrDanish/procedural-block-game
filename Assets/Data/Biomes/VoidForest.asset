@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff93544b609c0a14ebfa25d0858f158e, type: 3}
   m_Name: VoidForest
   m_EditorClassIdentifier: Assembly-CSharp::BiomeAttributes
-  biomeName: ' Void Forest'
+  biomeName: Void Forest
   temperature: 0.65
   humidity: 0.4
-  rarity: 5
+  rarity: 1
   ridgeWeight: 1
   erosionWeight: 1
   elevationAmplitude: 0.29
@@ -31,28 +31,7 @@ MonoBehaviour:
   majorFloraPlacementThreshold: 0.755
   minHeight: 5
   maxHeight: 12
-  lodes:
-  - nodeName: Dirt
-    blockID: 5
-    minHeight: 1
-    maxHeight: 255
-    scale: 0.1
-    threshold: 0.1
-    noiseOffset: 0
-  - nodeName: Sand
-    blockID: 4
-    minHeight: 30
-    maxHeight: 60
-    scale: 0.2
-    threshold: 0.06
-    noiseOffset: 500
-  - nodeName: Caves
-    blockID: 0
-    minHeight: 5
-    maxHeight: 60
-    scale: 0.1
-    threshold: 0.55
-    noiseOffset: 43534
+  lodes: []
   offset: 87544
   scale: 0.17
   terrainHeight: 80
