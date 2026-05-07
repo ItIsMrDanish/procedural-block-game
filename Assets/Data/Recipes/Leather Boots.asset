@@ -12,12 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c02ed4198861c4f448593216c869a1d8, type: 3}
   m_Name: Leather Boots
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
-  itemName: Leather Boots
-  itemIcon: {fileID: 0}
+  outputItem: {fileID: 11400000, guid: 930daf945efe8c543a3ce04f4ce91d27, type: 2}
   outputAmount: 1
   unstackable: 1
-  armorSlot: 4
+  itemType: 0
+  toolType: 0
+  weaponType: 1
+  material: 2
+  isArmor: 1
+  armorSlot: 3
   ingredients:
-  - itemName: Leather
-    icon: {fileID: 21300000, guid: f1cee12bba8abaa428ec0a0ae0d6632b, type: 3}
+  - item: {fileID: 11400000, guid: 48e1b02870800b94492b5ea2b7e3865e, type: 2}
     amount: 5

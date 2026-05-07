@@ -7169,6 +7169,76 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1557619260}
   m_CullTransparentMesh: 1
+--- !u!1 &1573545100
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1573545102}
+  - component: {fileID: 1573545101}
+  m_Layer: 0
+  m_Name: RecipeManagerSettings
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1573545101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573545100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4259cb6796c7df64fab475059a396604, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RecipeManagerSettings
+  wood:
+    damage: 1
+    hardness: 1
+  stone:
+    damage: 2
+    hardness: 3
+  leather:
+    damage: 1.5
+    hardness: 2
+    damageReduction: 1
+  metal:
+    damage: 4
+    hardness: 6
+    damageReduction: 3
+  tourmaline:
+    damage: 7
+    hardness: 10
+    damageReduction: 6
+  axeWeapon:
+    damage: 6
+    reach: 1.8
+    attackSpeed: 0.8
+  sword:
+    damage: 5
+    reach: 2
+    attackSpeed: 1.2
+--- !u!4 &1573545102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573545100}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1596499027
 GameObject:
   m_ObjectHideFlags: 0
@@ -9062,6 +9132,19 @@ MonoBehaviour:
   - {fileID: 11400000, guid: eeb4f8eee67bf3842bad614cb1348c30, type: 2}
   - {fileID: 11400000, guid: b713940eb023c0644960d0ec4c59cfbb, type: 2}
   - {fileID: 11400000, guid: f0918d64a0e2a3644b6492fbd4ee469f, type: 2}
+  - {fileID: 11400000, guid: 357d8a11b935d194185d84cfaaa1f74c, type: 2}
+  - {fileID: 11400000, guid: 3a155068370a65243b221f360060dd3e, type: 2}
+  - {fileID: 11400000, guid: 98a7273640a6920428c2957518c76add, type: 2}
+  - {fileID: 11400000, guid: acea3b93b4e8e614c9634af5686be073, type: 2}
+  - {fileID: 11400000, guid: a2925130cd60aec428e472562168b4e3, type: 2}
+  - {fileID: 11400000, guid: c37d6c8f759bea143a8d93c4a62cfbc0, type: 2}
+  - {fileID: 11400000, guid: 85e2cc4f1fda4964d84cda3e058e5f54, type: 2}
+  - {fileID: 11400000, guid: f34d82e9be426f7498f307b110caaaae, type: 2}
+  - {fileID: 11400000, guid: 28d57654ae1684f4ca7d67c8ff2024f0, type: 2}
+  - {fileID: 11400000, guid: 30eae542fad3581488d1ed27a30d8bdb, type: 2}
+  - {fileID: 11400000, guid: d717b487447000e429dec22098c22454, type: 2}
+  - {fileID: 11400000, guid: ad3eff60b5202574d85357dbfcec98f0, type: 2}
+  - {fileID: 11400000, guid: 285d1e88257813d4f85ea4bb53445ccd, type: 2}
   - {fileID: 11400000, guid: 29a73f3c6decb2a4aa6cf2f55d6cc177, type: 2}
   - {fileID: 11400000, guid: df5e4cc0b81e5744a84ee6d223eef74b, type: 2}
   - {fileID: 11400000, guid: 74c7d84381266344ca7e1b82e58797d1, type: 2}
@@ -10251,3 +10334,4 @@ SceneRoots:
   - {fileID: 37912307}
   - {fileID: 1989221164}
   - {fileID: 1386095778}
+  - {fileID: 1573545102}

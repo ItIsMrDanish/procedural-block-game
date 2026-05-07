@@ -369,12 +369,12 @@ public class Inventory : MonoBehaviour, IInventory
 
     public bool EquipArmor(string itemName, ArmorSlotType slotType, Sprite icon = null)
     {
-        if (slotType == ArmorSlotType.None)
+        int idx = (int)slotType; // Helmet=0, Chestplate=1, Leggings=2, Boots=3
+        if (idx < 0 || idx >= ArmorCount)
         {
-            Debug.LogWarning($"Cannot equip '{itemName}': ArmorSlotType is None.");
+            Debug.LogWarning($"Cannot equip '{itemName}': ArmorSlotType index {idx} is out of range.");
             return false;
         }
-        int idx = (int)slotType - 1;
         if (_armorSlots[idx] != null) AddItem(_armorSlots[idx].itemName, 1, _armorSlots[idx].icon);
         _armorSlots[idx] = new InventorySlot(itemName, 1, icon);
         NotifyChanged();
@@ -383,8 +383,8 @@ public class Inventory : MonoBehaviour, IInventory
 
     public void UnequipArmor(ArmorSlotType slotType)
     {
-        if (slotType == ArmorSlotType.None) return;
-        int idx = (int)slotType - 1;
+        int idx = (int)slotType;
+        if (idx < 0 || idx >= ArmorCount) return;
         if (_armorSlots[idx] == null) return;
         AddItem(_armorSlots[idx].itemName, 1, _armorSlots[idx].icon);
         _armorSlots[idx] = null;
@@ -392,10 +392,16 @@ public class Inventory : MonoBehaviour, IInventory
     }
 
     public InventorySlot GetArmorSlot(ArmorSlotType slotType)
-        => slotType == ArmorSlotType.None ? null : _armorSlots[(int)slotType - 1];
+    {
+        int idx = (int)slotType;
+        return (idx >= 0 && idx < ArmorCount) ? _armorSlots[idx] : null;
+    }
 
     public bool IsArmorSlotOccupied(ArmorSlotType slotType)
-        => slotType != ArmorSlotType.None && _armorSlots[(int)slotType - 1] != null;
+    {
+        int idx = (int)slotType;
+        return idx >= 0 && idx < ArmorCount && _armorSlots[idx] != null;
+    }
 
     // ───────────────────────────── Drag-and-drop direct writes ──────────────
 

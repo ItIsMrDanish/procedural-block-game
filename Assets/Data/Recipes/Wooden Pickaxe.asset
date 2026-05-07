@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c02ed4198861c4f448593216c869a1d8, type: 3}
   m_Name: Wooden Pickaxe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
-  itemName: Wooden Pickaxe
-  itemIcon: {fileID: 21300000, guid: 20bdc43255c482548bc691dbca3d7980, type: 3}
+  outputItem: {fileID: 11400000, guid: d699637eeac1f0241806339acceb69f6, type: 2}
   outputAmount: 1
   unstackable: 1
+  itemType: 2
+  toolType: 1
+  weaponType: 1
+  material: 0
+  isArmor: 0
   armorSlot: 0
   ingredients:
-  - itemName: Stick
-    icon: {fileID: 21300000, guid: 8157569558dfc454f95462a1b94e0219, type: 3}
+  - item: {fileID: 11400000, guid: 2e61542198bf80d4f949228029588fe1, type: 2}
     amount: 1
-  - itemName: Planks
-    icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
+  - item: {fileID: 11400000, guid: a4345fd5ec91fac48ba1d4888023739f, type: 2}
     amount: 3

@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c02ed4198861c4f448593216c869a1d8, type: 3}
   m_Name: Planks
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
-  itemName: Planks
-  itemIcon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
+  outputItem: {fileID: 11400000, guid: a4345fd5ec91fac48ba1d4888023739f, type: 2}
   outputAmount: 2
+  unstackable: 0
+  itemType: 1
+  toolType: 0
+  weaponType: 1
+  material: 0
+  isArmor: 0
   armorSlot: 0
   ingredients:
-  - itemName: Wood
-    icon: {fileID: 21300000, guid: 2b0d6acf66b850140bfd468e8be7f708, type: 3}
+  - item: {fileID: 11400000, guid: 22d84c553b2eec143a3592216311e8a5, type: 2}
     amount: 1

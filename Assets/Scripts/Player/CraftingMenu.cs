@@ -108,7 +108,7 @@ public class CraftingMenu : MonoBehaviour
         {
             foreach (RecipeManager recipe in recipes)
                 if (recipe != null && recipe.unstackable)
-                    inventory.RegisterUnstackable(recipe.itemName);
+                    inventory.RegisterUnstackable(recipe.ItemName);
         }
     }
 
@@ -154,10 +154,10 @@ public class CraftingMenu : MonoBehaviour
     private void ConfigureRecipeEntry(GameObject entry, RecipeManager recipe)
     {
         Image icon = entry.GetComponentInChildren<Image>();
-        if (icon != null && recipe.itemIcon != null) icon.sprite = recipe.itemIcon;
+        if (icon != null && recipe.ItemIcon != null) icon.sprite = recipe.ItemIcon;
 
         TMP_Text label = entry.GetComponentInChildren<TMP_Text>();
-        if (label != null) label.text = recipe.itemName;
+        if (label != null) label.text = recipe.ItemName;
 
         Button btn = entry.GetComponent<Button>();
         if (btn != null)
@@ -174,8 +174,8 @@ public class CraftingMenu : MonoBehaviour
         _selectedRecipe = recipe;
         recipeDetailPanel.SetActive(true);
 
-        if (recipeDetailTitle != null) recipeDetailTitle.text = $"Recipe: {recipe.itemName}";
-        if (recipeDetailIcon != null && recipe.itemIcon != null) recipeDetailIcon.sprite = recipe.itemIcon;
+        if (recipeDetailTitle != null) recipeDetailTitle.text = $"Recipe: {recipe.ItemName}";
+        if (recipeDetailIcon != null && recipe.ItemIcon != null) recipeDetailIcon.sprite = recipe.ItemIcon;
 
         PopulateMaterialList(recipe);
     }
@@ -196,13 +196,13 @@ public class CraftingMenu : MonoBehaviour
     private void ConfigureMaterialRow(GameObject row, Ingredient ingredient)
     {
         Image icon = row.GetComponentInChildren<Image>();
-        if (icon != null && ingredient.icon != null) icon.sprite = ingredient.icon;
+        if (icon != null && ingredient.Icon != null) icon.sprite = ingredient.Icon;
 
         TMP_Text[] texts = row.GetComponentsInChildren<TMP_Text>();
-        if (texts.Length > 0) texts[0].text = ingredient.itemName;
+        if (texts.Length > 0) texts[0].text = ingredient.ItemName;
         if (texts.Length > 1)
         {
-            int have = inventory != null ? inventory.GetAmount(ingredient.itemName) : 0;
+            int have = inventory != null ? inventory.GetAmount(ingredient.ItemName) : 0;
             texts[1].text  = $"{have} / {ingredient.amount}";
             texts[1].color = have >= ingredient.amount ? Color.white : Color.red;
         }
@@ -219,19 +219,18 @@ public class CraftingMenu : MonoBehaviour
 
         if (!_selectedRecipe.CanCraft(inventory, amount))
         {
-            ShowFeedback($"Not enough materials to craft {_selectedRecipe.itemName}!");
+            ShowFeedback($"Not enough materials to craft {_selectedRecipe.ItemName}!");
             return;
         }
 
         _selectedRecipe.Craft(inventory, amount);
 
-        // Craft() adds items via IInventory.AddItem(string, int) which has no Sprite
-        // parameter, so crafted slots end up icon-less. Backfill the icon from the
-        // recipe onto any slot that is still missing it.
-        if (_selectedRecipe.itemIcon != null)
-            inventory.SetIconForItem(_selectedRecipe.itemName, _selectedRecipe.itemIcon);
+        // Craft() adds items via IInventory.AddItem(string, int) which carries no Sprite.
+        // Backfill the icon from the recipe onto any slot that is still missing it.
+        if (_selectedRecipe.ItemIcon != null)
+            inventory.SetIconForItem(_selectedRecipe.ItemName, _selectedRecipe.ItemIcon);
 
-        ShowFeedback($"Crafted {_selectedRecipe.outputAmount * amount}x {_selectedRecipe.itemName}");
+        ShowFeedback($"Crafted {_selectedRecipe.outputAmount * amount}x {_selectedRecipe.ItemName}");
 
         // Refresh material counts to reflect new inventory state.
         PopulateMaterialList(_selectedRecipe);
