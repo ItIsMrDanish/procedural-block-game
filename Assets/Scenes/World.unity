@@ -7265,27 +7265,25 @@ MonoBehaviour:
     hardness: 1
   stone:
     damage: 2
-    hardness: 3
-  leather:
-    damage: 1.5
     hardness: 2
-    damageReduction: 1
+  leather:
+    damageReduction: 0.05
   metal:
-    damage: 4
-    hardness: 6
-    damageReduction: 3
+    damage: 3
+    hardness: 3
+    damageReduction: 0.1
   tourmaline:
-    damage: 7
-    hardness: 10
-    damageReduction: 6
+    damage: 4
+    hardness: 4
+    damageReduction: 0.15
   axeWeapon:
     damage: 6
     reach: 1.8
-    attackSpeed: 0.8
+    attackSpeed: 1
   sword:
     damage: 5
     reach: 2
-    attackSpeed: 1.2
+    attackSpeed: 1.5
 --- !u!4 &1573545102
 Transform:
   m_ObjectHideFlags: 0

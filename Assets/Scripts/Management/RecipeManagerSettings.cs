@@ -54,25 +54,39 @@ public enum ArmorSlotType
 
 /// <summary>
 /// Stats common to every material (applied to tools, weapons, and armour bases).
+/// Values are additive: the final stat = weapon/tool base + material value.
 /// </summary>
 [Serializable]
 public class MaterialStats
 {
-    [Tooltip("Base damage bonus granted by this material.")]
-    public float damage = 1f;
+    [Tooltip("Damage added to the weapon/tool base damage. Base (no bonus) = 0.")]
+    public float damage = 0f;
 
-    [Tooltip("Hardness / durability multiplier for tools made from this material.")]
-    public float hardness = 1f;
+    [Tooltip("Hardness added to the tool base hardness. Base (no bonus) = 0.")]
+    public float hardness = 0f;
 }
 
 /// <summary>
-/// Extended material stats for materials that also provide armour protection
-/// (Leather, Metal, Tourmaline). Wood and Stone do NOT use this.
+/// Stats for Leather — armour-only material.
+/// Has no Damage or Hardness since Leather cannot be used for tools or weapons.
+/// </summary>
+[Serializable]
+public class LeatherStats
+{
+    [Tooltip("Percentage of incoming damage blocked per armour piece worn (0–1). Base = 0 %.")]
+    [Range(0f, 0.25f)]
+    public float damageReduction = 0f;
+}
+
+/// <summary>
+/// Extended material stats for Metal and Tourmaline — materials used for tools/weapons
+/// that also provide percentage-based armour damage reduction when worn.
 /// </summary>
 [Serializable]
 public class ArmorMaterialStats : MaterialStats
 {
-    [Tooltip("Flat damage reduction provided when this material is worn as armour.")]
+    [Tooltip("Percentage of incoming damage blocked per armour piece worn (0–1). Base = 0 %.")]
+    [Range(0f, 0.25f)]
     public float damageReduction = 0f;
 }
 
@@ -83,8 +97,8 @@ public class ArmorMaterialStats : MaterialStats
 [Serializable]
 public class WeaponTypeStats
 {
-    [Tooltip("Base damage for this weapon type (multiplied by material damage).")]
-    public float damage = 5f;
+    [Tooltip("Base damage for this weapon type. Material damage is added on top.")]
+    public float damage = 1f;
 
     [Tooltip("Attack reach in world units.")]
     public float reach = 2f;
@@ -123,22 +137,21 @@ public class RecipeManagerSettings : MonoBehaviour
 
     // ── Material stats ────────────────────────────────────────────────────────
 
-    [Header("Material Stats — No Armour Protection")]
+    [Header("Material Stats")]
     [Tooltip("Stats for Wood-tier items. No damage reduction (Wood cannot be armour).")]
     public MaterialStats wood = new MaterialStats { damage = 1f, hardness = 1f };
 
     [Tooltip("Stats for Stone-tier items. No damage reduction (Stone cannot be armour).")]
-    public MaterialStats stone = new MaterialStats { damage = 2f, hardness = 3f };
+    public MaterialStats stone = new MaterialStats { damage = 1f, hardness = 1f };
 
-    [Header("Material Stats — With Armour Protection")]
-    [Tooltip("Stats for Leather-tier items. Supports armour damage reduction.")]
-    public ArmorMaterialStats leather = new ArmorMaterialStats { damage = 1.5f, hardness = 2f, damageReduction = 1f };
+    [Tooltip("Stats for Leather-tier items. Armour-only material — no damage or hardness.")]
+    public LeatherStats leather = new LeatherStats { damageReduction = 0f };
 
     [Tooltip("Stats for Metal-tier items. Supports armour damage reduction.")]
-    public ArmorMaterialStats metal = new ArmorMaterialStats { damage = 4f, hardness = 6f, damageReduction = 3f };
+    public ArmorMaterialStats metal = new ArmorMaterialStats { damage = 1f, hardness = 1f, damageReduction = 0f };
 
     [Tooltip("Stats for Tourmaline-tier items. Supports armour damage reduction.")]
-    public ArmorMaterialStats tourmaline = new ArmorMaterialStats { damage = 7f, hardness = 10f, damageReduction = 6f };
+    public ArmorMaterialStats tourmaline = new ArmorMaterialStats { damage = 1f, hardness = 1f, damageReduction = 0f };
 
     // ── Weapon type stats ─────────────────────────────────────────────────────
 
@@ -151,32 +164,34 @@ public class RecipeManagerSettings : MonoBehaviour
 
     // ── Convenience accessors ─────────────────────────────────────────────────
 
-    /// <summary>Returns the base <see cref="MaterialStats"/> for any material type.</summary>
+    /// <summary>
+    /// Returns the base <see cref="MaterialStats"/> for tool/weapon materials.
+    /// NOTE: Leather is armour-only and has no MaterialStats — returns null for Leather.
+    /// </summary>
     public MaterialStats GetMaterialStats(MaterialType mat)
     {
         switch (mat)
         {
             case MaterialType.Wood:       return wood;
             case MaterialType.Stone:      return stone;
-            case MaterialType.Leather:    return leather;
             case MaterialType.Metal:      return metal;
             case MaterialType.Tourmaline: return tourmaline;
-            default:                      return wood;
+            default:                      return null; // Leather has no tool/weapon stats
         }
     }
 
     /// <summary>
-    /// Returns the <see cref="ArmorMaterialStats"/> for materials that support armour.
-    /// Returns null for Wood and Stone (which have no damage reduction).
+    /// Returns the damage reduction percentage (0–1) for armour materials.
+    /// Returns 0 for Wood and Stone (no armour protection).
     /// </summary>
-    public ArmorMaterialStats GetArmorMaterialStats(MaterialType mat)
+    public float GetDamageReduction(MaterialType mat)
     {
         switch (mat)
         {
-            case MaterialType.Leather:    return leather;
-            case MaterialType.Metal:      return metal;
-            case MaterialType.Tourmaline: return tourmaline;
-            default:                      return null;
+            case MaterialType.Leather:    return leather.damageReduction;
+            case MaterialType.Metal:      return metal.damageReduction;
+            case MaterialType.Tourmaline: return tourmaline.damageReduction;
+            default:                      return 0f;
         }
     }
 

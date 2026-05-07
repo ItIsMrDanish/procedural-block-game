@@ -124,7 +124,7 @@ public class RecipeManagerEditor : Editor
         EditorGUILayout.Space(2);
         EditorGUILayout.HelpBox(
             $"Resolved Weapon Stats (preview)\n" +
-            $"  Damage      : {baseW.damage * baseMat.damage:F2}\n" +
+            $"  Damage      : {baseW.damage + baseMat.damage:F2}  ({baseW.damage:F2} base + {baseMat.damage:F2} material)\n" +
             $"  Reach       : {baseW.reach:F2}\n" +
             $"  Attack Speed: {baseW.attackSpeed:F2}",
             MessageType.None);
@@ -136,10 +136,10 @@ public class RecipeManagerEditor : Editor
                        ?? Object.FindObjectOfType<RecipeManagerSettings>();
         if (settings == null) return;
 
-        var mat         = (MaterialType)_material.enumValueIndex;
-        var armorStats  = settings.GetArmorMaterialStats(mat);
+        var mat = (MaterialType)_material.enumValueIndex;
+        float dr = settings.GetDamageReduction(mat);
 
-        if (armorStats == null)
+        if (dr <= 0f)
         {
             EditorGUILayout.HelpBox(
                 $"{mat} does not provide Damage Reduction (only Leather, Metal, Tourmaline do).",
@@ -150,8 +150,7 @@ public class RecipeManagerEditor : Editor
         EditorGUILayout.Space(2);
         EditorGUILayout.HelpBox(
             $"Resolved Armor Stats (preview)\n" +
-            $"  Damage Reduction: {armorStats.damageReduction:F2}\n" +
-            $"  Hardness        : {armorStats.hardness:F2}",
+            $"  Damage Reduction: {dr * 100f:F0} % per piece",
             MessageType.None);
     }
 }

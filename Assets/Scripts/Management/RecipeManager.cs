@@ -169,17 +169,24 @@ public class RecipeManager : ScriptableObject
         WeaponTypeStats baseStats = settings.GetWeaponTypeStats(weaponType);
         MaterialStats   matStats  = settings.GetMaterialStats(material);
 
+        if (matStats == null)
+        {
+            Debug.LogWarning($"RecipeManager: {material} has no tool/weapon stats (Leather is armour-only). Damage multiplier defaulting to 1.");
+            matStats = new MaterialStats { damage = 1f, hardness = 1f };
+        }
+
         return new WeaponTypeStats
         {
-            damage      = baseStats.damage * matStats.damage,
+            damage      = baseStats.damage + matStats.damage,
             reach       = baseStats.reach,
             attackSpeed = baseStats.attackSpeed
         };
     }
 
     /// <summary>
-    /// Resolves the armour damage-reduction value for armour items.
-    /// Returns 0 for materials that don't support armour (Wood / Stone).
+    /// Returns the damage reduction percentage (0–1) for this armour recipe.
+    /// E.g. 0.05 = 5 % reduction per piece worn.
+    /// Returns 0 for non-armour recipes or materials without DR (Wood / Stone).
     /// Requires a <see cref="RecipeManagerSettings"/> singleton in the scene.
     /// </summary>
     public float GetResolvedDamageReduction()
@@ -192,7 +199,6 @@ public class RecipeManager : ScriptableObject
             return 0f;
         }
 
-        ArmorMaterialStats armorMat = settings.GetArmorMaterialStats(material);
-        return armorMat?.damageReduction ?? 0f;
+        return settings.GetDamageReduction(material);
     }
 }

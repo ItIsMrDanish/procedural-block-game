@@ -72,7 +72,7 @@ public class RecipeManagerSettingsEditor : Editor
         if (_foldMaterialArmor)
         {
             EditorGUI.indentLevel++;
-            DrawMaterialArmor(_leather,    "Leather");
+            DrawMaterialLeather(_leather, "Leather");
             DrawMaterialArmor(_metal,      "Metal");
             DrawMaterialArmor(_tourmaline, "Tourmaline");
             EditorGUI.indentLevel--;
@@ -107,6 +107,15 @@ public class RecipeManagerSettingsEditor : Editor
         return s;
     }
 
+    void DrawMaterialLeather(SerializedProperty prop, string label)
+    {
+        EditorGUILayout.LabelField(label, SubHeaderStyle());
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(prop.FindPropertyRelative("damageReduction"), new GUIContent("Damage Reduction (0–1)"));
+        EditorGUI.indentLevel--;
+        EditorGUILayout.Space(2);
+    }
+
     void DrawMaterialBasic(SerializedProperty prop, string label)
     {
         EditorGUILayout.LabelField(label, SubHeaderStyle());
@@ -123,7 +132,7 @@ public class RecipeManagerSettingsEditor : Editor
         EditorGUI.indentLevel++;
         EditorGUILayout.PropertyField(prop.FindPropertyRelative("damage"),          new GUIContent("Damage"));
         EditorGUILayout.PropertyField(prop.FindPropertyRelative("hardness"),        new GUIContent("Hardness"));
-        EditorGUILayout.PropertyField(prop.FindPropertyRelative("damageReduction"), new GUIContent("Damage Reduction"));
+        EditorGUILayout.PropertyField(prop.FindPropertyRelative("damageReduction"), new GUIContent("Damage Reduction (0–1)"));
         EditorGUI.indentLevel--;
         EditorGUILayout.Space(2);
     }
