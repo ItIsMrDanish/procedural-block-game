@@ -12,8 +12,7 @@ using TMPro;
 /// No InputSystem lives here. Player.cs calls ToggleMenu() directly.
 /// This script does NOT touch world.inUI or cursor state — Player.cs owns that.
 /// </summary>
-public class CraftingMenu : MonoBehaviour
-{
+public class CraftingMenu : MonoBehaviour {
     // ───────────────────────────── Inspector fields ───────────────────────────
 
     [Header("Inventory Reference")]
@@ -61,7 +60,7 @@ public class CraftingMenu : MonoBehaviour
     [SerializeField] private TMP_Text craftFeedbackText;
 
     [Tooltip("Seconds the feedback message remains visible.")]
-    [SerializeField] [Range(1f, 8f)] private float feedbackDuration = 3f;
+    [SerializeField][Range(1f, 8f)] private float feedbackDuration = 3f;
 
     [Header("Recipes")]
     [Tooltip("All available recipes. Drag Recipe ScriptableObjects here.")]
@@ -69,7 +68,7 @@ public class CraftingMenu : MonoBehaviour
 
     // ───────────────────────────── Private state ──────────────────────────────
 
-    private bool      _menuOpen;
+    private bool _menuOpen;
 
     public bool IsOpen => _menuOpen;
     private RecipeManager _selectedRecipe;
@@ -79,8 +78,7 @@ public class CraftingMenu : MonoBehaviour
 
     // ─────────────────────────────── Unity ───────────────────────────────────
 
-    private void Awake()
-    {
+    private void Awake() {
         // Resolve inventory in Awake so the reference exists before any Start runs.
         // The actual item counts are NOT read here — that happens when the menu opens,
         // by which point all Start() methods (including Inventory.Start) are complete.
@@ -91,8 +89,7 @@ public class CraftingMenu : MonoBehaviour
             Debug.LogError("CraftingMenu: No Inventory found! Drag it into the Inspector slot.");
     }
 
-    private void Start()
-    {
+    private void Start() {
 
         menuPanel.SetActive(false);
         recipeDetailPanel.SetActive(false);
@@ -104,8 +101,7 @@ public class CraftingMenu : MonoBehaviour
         PopulateRecipeList();
 
         // Register unstackable items with the inventory so it enforces 1-per-slot.
-        if (inventory != null)
-        {
+        if (inventory != null) {
             foreach (RecipeManager recipe in recipes)
                 if (recipe != null && recipe.unstackable)
                     inventory.RegisterUnstackable(recipe.ItemName);
@@ -118,20 +114,15 @@ public class CraftingMenu : MonoBehaviour
     /// Called by Player.cs from _controls.Player.Crafting.performed.
     /// Does NOT touch world.inUI or cursor lock — Player.cs manages those.
     /// </summary>
-    public void ToggleMenu()
-    {
+    public void ToggleMenu() {
         _menuOpen = !_menuOpen;
         menuPanel.SetActive(_menuOpen);
 
-        if (!_menuOpen)
-        {
+        if (!_menuOpen) {
             _selectedRecipe = null;
             recipeDetailPanel.SetActive(false);
-        }
-        else
-        {
-            // Always refresh material counts when the menu opens — this runs after all
-            // Start() methods have completed, so inventory item counts are accurate.
+        } else {
+            Canvas.ForceUpdateCanvases();
             if (_selectedRecipe != null)
                 PopulateMaterialList(_selectedRecipe);
         }
@@ -139,20 +130,17 @@ public class CraftingMenu : MonoBehaviour
 
     // ─────────────────────────────── Left panel ───────────────────────────────
 
-    private void PopulateRecipeList()
-    {
+    private void PopulateRecipeList() {
         foreach (Transform child in recipeListContent)
             Destroy(child.gameObject);
 
-        foreach (RecipeManager recipe in recipes)
-        {
+        foreach (RecipeManager recipe in recipes) {
             GameObject entry = Instantiate(recipeEntryPrefab, recipeListContent);
             ConfigureRecipeEntry(entry, recipe);
         }
     }
 
-    private void ConfigureRecipeEntry(GameObject entry, RecipeManager recipe)
-    {
+    private void ConfigureRecipeEntry(GameObject entry, RecipeManager recipe) {
         Image icon = entry.GetComponentInChildren<Image>();
         if (icon != null && recipe.ItemIcon != null) icon.sprite = recipe.ItemIcon;
 
@@ -160,8 +148,7 @@ public class CraftingMenu : MonoBehaviour
         if (label != null) label.text = recipe.ItemName;
 
         Button btn = entry.GetComponent<Button>();
-        if (btn != null)
-        {
+        if (btn != null) {
             RecipeManager captured = recipe;
             btn.onClick.AddListener(() => SelectRecipe(captured));
         }
@@ -169,8 +156,7 @@ public class CraftingMenu : MonoBehaviour
 
     // ─────────────────────────────── Right panel ──────────────────────────────
 
-    private void SelectRecipe(RecipeManager recipe)
-    {
+    private void SelectRecipe(RecipeManager recipe) {
         _selectedRecipe = recipe;
         recipeDetailPanel.SetActive(true);
 
@@ -180,45 +166,39 @@ public class CraftingMenu : MonoBehaviour
         PopulateMaterialList(recipe);
     }
 
-    private void PopulateMaterialList(RecipeManager recipe)
-    {
+    private void PopulateMaterialList(RecipeManager recipe) {
         foreach (GameObject row in _spawnedMaterialRows) Destroy(row);
         _spawnedMaterialRows.Clear();
 
-        foreach (Ingredient ingredient in recipe.ingredients)
-        {
+        foreach (Ingredient ingredient in recipe.ingredients) {
             GameObject row = Instantiate(materialEntryPrefab, materialListContent);
             _spawnedMaterialRows.Add(row);
             ConfigureMaterialRow(row, ingredient);
         }
     }
 
-    private void ConfigureMaterialRow(GameObject row, Ingredient ingredient)
-    {
+    private void ConfigureMaterialRow(GameObject row, Ingredient ingredient) {
         Image icon = row.GetComponentInChildren<Image>();
         if (icon != null && ingredient.Icon != null) icon.sprite = ingredient.Icon;
 
         TMP_Text[] texts = row.GetComponentsInChildren<TMP_Text>();
         if (texts.Length > 0) texts[0].text = ingredient.ItemName;
-        if (texts.Length > 1)
-        {
+        if (texts.Length > 1) {
             int have = inventory != null ? inventory.GetAmount(ingredient.ItemName) : 0;
-            texts[1].text  = $"{have} / {ingredient.amount}";
+            texts[1].text = $"{have} / {ingredient.amount}";
             texts[1].color = have >= ingredient.amount ? Color.white : Color.red;
         }
     }
 
     // ─────────────────────────────── Crafting ─────────────────────────────────
 
-    private void OnCraftClicked()
-    {
+    private void OnCraftClicked() {
         if (_selectedRecipe == null) return;
         if (inventory == null) { Debug.LogWarning("CraftingMenu: No Inventory assigned."); return; }
 
         int amount = ParseCraftAmount();
 
-        if (!_selectedRecipe.CanCraft(inventory, amount))
-        {
+        if (!_selectedRecipe.CanCraft(inventory, amount)) {
             ShowFeedback($"Not enough materials to craft {_selectedRecipe.ItemName}!");
             return;
         }
@@ -236,8 +216,7 @@ public class CraftingMenu : MonoBehaviour
         PopulateMaterialList(_selectedRecipe);
     }
 
-    private int ParseCraftAmount()
-    {
+    private int ParseCraftAmount() {
         if (craftAmountInput == null || string.IsNullOrWhiteSpace(craftAmountInput.text)) return 1;
         if (int.TryParse(craftAmountInput.text, out int parsed) && parsed >= 1) return parsed;
         Debug.LogWarning($"CraftingMenu: '{craftAmountInput.text}' is not a valid positive integer. Defaulting to 1.");
@@ -246,15 +225,13 @@ public class CraftingMenu : MonoBehaviour
 
     // ─────────────────────────────── Feedback ─────────────────────────────────
 
-    private void ShowFeedback(string message)
-    {
+    private void ShowFeedback(string message) {
         if (craftFeedbackText == null) return;
         if (_feedbackCoroutine != null) StopCoroutine(_feedbackCoroutine);
         _feedbackCoroutine = StartCoroutine(FeedbackRoutine(message));
     }
 
-    private IEnumerator FeedbackRoutine(string message)
-    {
+    private IEnumerator FeedbackRoutine(string message) {
         craftFeedbackText.text = message;
         craftFeedbackText.gameObject.SetActive(true);
         yield return StartCoroutine(FadeTo(craftFeedbackText, 0f, 1f, 0.2f));
@@ -264,12 +241,10 @@ public class CraftingMenu : MonoBehaviour
         _feedbackCoroutine = null;
     }
 
-    private IEnumerator FadeTo(TMP_Text text, float from, float to, float duration)
-    {
+    private IEnumerator FadeTo(TMP_Text text, float from, float to, float duration) {
         float elapsed = 0f;
         Color c = text.color;
-        while (elapsed < duration)
-        {
+        while (elapsed < duration) {
             elapsed += Time.deltaTime;
             c.a = Mathf.Lerp(from, to, elapsed / duration);
             text.color = c;
