@@ -61,6 +61,13 @@ MonoBehaviour:
     scale: 0.1
     threshold: 0.72
     noiseOffset: 600
+  - nodeName: Void Crystal
+    blockID: 22
+    minHeight: -64
+    maxHeight: -30
+    scale: 0.67
+    threshold: 0.84
+    noiseOffset: 600
   offset: 87544
   scale: 0.17
   terrainHeight: 80

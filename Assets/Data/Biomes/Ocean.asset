@@ -37,29 +37,36 @@ MonoBehaviour:
     blockID: 17
     minHeight: -64
     maxHeight: 120
-    scale: 0.04
-    threshold: 0.6
+    scale: 0.08
+    threshold: 0.65
     noiseOffset: 100
   - nodeName: Iron
     blockID: 18
     minHeight: -64
     maxHeight: 80
-    scale: 0.04
-    threshold: 0.62
+    scale: 0.08
+    threshold: 0.67
     noiseOffset: 200
   - nodeName: Gold
     blockID: 19
     minHeight: -64
     maxHeight: 20
-    scale: 0.035
-    threshold: 0.67
+    scale: 0.08
+    threshold: 0.72
     noiseOffset: 300
   - nodeName: Emerald
     blockID: 22
     minHeight: -30
     maxHeight: 50
-    scale: 0.03
+    scale: 0.1
     threshold: 0.72
+    noiseOffset: 600
+  - nodeName: Void Crystal
+    blockID: 22
+    minHeight: -64
+    maxHeight: -30
+    scale: 0.67
+    threshold: 0.84
     noiseOffset: 600
   offset: 0
   scale: 1
