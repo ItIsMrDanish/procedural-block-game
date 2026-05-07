@@ -4930,6 +4930,20 @@ MonoBehaviour:
     bottomFaceTexture: 43
     leftFaceTexture: 43
     rightFaceTexture: 43
+  - blockName: VoidCrystal Dirt
+    isSolid: 1
+    meshData: {fileID: 11400000, guid: d9883492e5e54b94ca0864d953b76af1, type: 2}
+    renderNeighborFaces: 0
+    isWater: 0
+    opacity: 15
+    icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
+    isActive: 0
+    backFaceTexture: 44
+    frontFaceTexture: 44
+    topFaceTexture: 44
+    bottomFaceTexture: 44
+    leftFaceTexture: 44
+    rightFaceTexture: 44
   clouds: {fileID: 1386095777}
   debugScreen: {fileID: 10838875}
   creativeInventoryWindow: {fileID: 77128231}

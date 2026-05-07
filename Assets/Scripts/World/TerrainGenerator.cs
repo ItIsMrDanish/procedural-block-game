@@ -7,7 +7,10 @@ public static class TerrainGenerator {
 
     private const float ContinentScale  = 0.0006f;
     private const float ContinentOffset = 500f;
-    private const float ContinentAmp    = 18f;
+
+    // Raised from 18 to 28 so low-continent areas reliably drop well below
+    // sea level, producing actual oceans rather than shallow dips.
+    private const float ContinentAmp    = 28f;
 
     private const float ElevationScale  = 0.003f;
     private const float ElevationOffset = 1000f;
@@ -31,36 +34,44 @@ public static class TerrainGenerator {
     private const float HumidOffset = 5000f;
 
     // Cheese caves — large blobby caverns.
-    private const float CaveScale               = 0.05f;
-    private const float CaveThreshold           = 0.64f;
+    private const float CaveScale              = 0.05f;
+    private const float CaveThreshold          = 0.64f;
     private const int   CaveMaxDepthFromSurface = 6;
 
-    // Spaghetti tunnels — long winding passages.
-    private const float TunnelScale             = 0.02f;
-    private const float TunnelThreshold         = 0.72f;
+    // Spaghetti tunnels — long winding horizontal passages.
+    private const float TunnelScale     = 0.02f;
+    private const float TunnelThreshold = 0.72f;
 
     private const float MinClimateDist = 0.0001f;
 
-    // Climate is averaged over a 5-point kernel to prevent column-by-column
-    // biome flickering caused by domain warp at borders.
+    // Climate smoothed over 5-point kernel to prevent column-by-column biome
+    // flickering caused by domain warp at borders.
     private const float ClimateKernelRadius = 32f;
+
+    // Ocean floor: sand down to this many blocks below surface before stone.
+    private const int OceanSandDepth = 3;
 
     public struct ColumnData {
         public int surfaceHeight;
         public BiomeAttributes biome;
+
+        // True when this column is underwater (surface < SeaLevel).
+        // Cached here so GetVoxel doesn't have to recompute it.
+        public bool isOcean;
     }
 
     public static ColumnData ComputeColumnData(int worldX, int worldZ, BiomeAttributes[] biomes) {
 
         float seed = VoxelData.seed;
 
+        // Domain warp — applied to terrain noise only, NOT climate.
         float warpX = SampleRaw(worldX * WarpScale + seed * 0.001f, worldZ * WarpScale + seed * 0.002f) * WarpAmplitude;
         float warpZ = SampleRaw(worldX * WarpScale + seed * 0.003f + 0.5f, worldZ * WarpScale + seed * 0.004f + 0.5f) * WarpAmplitude;
 
         float wx = worldX + warpX;
         float wz = worldZ + warpZ;
 
-        // Smooth climate over 5-point kernel — eliminates per-column biome flicker.
+        // Climate — 5-point averaged kernel for stable biome borders.
         float r = ClimateKernelRadius;
         float temp =
             ( SampleScaled(worldX,   worldZ,   TempOffset, TempScale)
@@ -76,6 +87,7 @@ public static class TerrainGenerator {
             + SampleScaled(worldX,   worldZ+r, HumidOffset, HumidScale)
             + SampleScaled(worldX,   worldZ-r, HumidOffset, HumidScale) ) * 0.2f;
 
+        // Biome selection + blended terrain weights.
         float totalWeight          = 0f;
         float blendedElevationAmp  = 0f;
         float blendedRidgeWeight   = 0f;
@@ -90,7 +102,7 @@ public static class TerrainGenerator {
             BiomeAttributes b = biomes[i];
             float dt = temp  - b.temperature;
             float dh = humid - b.humidity;
-            float rawDist = Mathf.Sqrt(dt * dt + dh * dh);
+            float rawDist     = Mathf.Sqrt(dt * dt + dh * dh);
             float effectiveDist = rawDist / Mathf.Max(b.rarity, 0.01f);
             float w = 1f / Mathf.Max(effectiveDist, MinClimateDist);
 
@@ -111,6 +123,7 @@ public static class TerrainGenerator {
         blendedErosionWeight /= totalWeight;
         blendedHeightOffset  /= totalWeight;
 
+        // Macro terrain layers.
         float continent = GetContinentalness(wx, wz);
         float elevation = SampleScaled(wx, wz, ElevationOffset, ElevationScale);
         float detail    = SampleScaled(wx, wz, DetailOffset,    DetailScale);
@@ -122,7 +135,16 @@ public static class TerrainGenerator {
         float scaledRidge     = ridge     * blendedRidgeWeight;
         float scaledErosion   = erosion   * blendedErosionWeight;
 
+        // Ridges suppressed where erosion is high.
         float ridgeMasked = scaledRidge * Mathf.Clamp01(1.2f - scaledErosion);
+
+        // Ocean shaping: when continent is strongly negative, clamp elevation
+        // and ridge contributions so ocean floors are flat and deep rather than
+        // having underwater mountain ranges poking above sea level.
+        float oceanFactor = Mathf.Clamp01(-continent * 2f); // 0 on land, 1 deep ocean
+        scaledElevation *= (1f - oceanFactor * 0.8f);
+        scaledDetail    *= (1f - oceanFactor * 0.9f);
+        ridgeMasked     *= (1f - oceanFactor);        // no ridges underwater
 
         float heightOffset =
               continent       * ContinentAmp
@@ -137,7 +159,9 @@ public static class TerrainGenerator {
             VoxelData.WorldBottomInVoxels + 4,
             VoxelData.WorldTopInVoxels    - 4);
 
-        return new ColumnData { surfaceHeight = surface, biome = biome };
+        bool isOcean = surface < VoxelData.SeaLevel;
+
+        return new ColumnData { surfaceHeight = surface, biome = biome, isOcean = isOcean };
     }
 
     public static byte GetVoxel(Vector3Int pos, ColumnData col) {
@@ -146,20 +170,19 @@ public static class TerrainGenerator {
         int surface = col.surfaceHeight;
         BiomeAttributes biome = col.biome;
 
+        // Bedrock floor.
         if (yPos == VoxelData.WorldBottomInVoxels) return 1;
 
+        // Above surface: water if below sea level, air otherwise.
         if (yPos > surface)
             return yPos < VoxelData.SeaLevel ? (byte)14 : (byte)0;
 
-        // Cave carving: runs from just below surface down to bedrock.
-        // CaveMinY removed — caves exist at all depths below surface.
+        // Cave carving — only below the surface crust, above bedrock.
         if (yPos <= surface - CaveMaxDepthFromSurface && yPos > VoxelData.WorldBottomInVoxels + 4) {
             if (IsCave(pos) || IsTunnel(pos)) {
-                // Waterlogging: only fill with water if this cavity connects upward
-                // to the sea — i.e. every block above us up to SeaLevel is either
-                // open ocean (above surface) or also a carved cave block.
-                // Isolated underground pockets below sea level stay as air,
-                // preventing the "multiple disconnected water levels" visual.
+                // Only flood carved pockets that have an unbroken open column
+                // up to sea level — prevents isolated underground lakes at
+                // arbitrary depths appearing at different water heights.
                 if (yPos < VoxelData.SeaLevel)
                     return IsConnectedToSea(pos, col) ? (byte)14 : (byte)0;
                 return 0;
@@ -169,14 +192,33 @@ public static class TerrainGenerator {
         byte voxelValue;
 
         if (yPos == surface) {
-            voxelValue = (yPos < VoxelData.SeaLevel) ? (byte)4 : biome.surfaceBlock;
+
+            if (col.isOcean) {
+                // Ocean surface block: always sand (4).
+                voxelValue = 4;
+            } else {
+                voxelValue = biome.surfaceBlock;
+            }
+
         } else if (yPos >= surface - biome.subsurfaceDepth) {
-            voxelValue = biome.subSurfaceBlock;
+
+            if (col.isOcean) {
+                // Ocean subsurface: sand for the first OceanSandDepth layers,
+                // then fall through to stone/underground below.
+                int depthBelowSurface = surface - yPos;
+                voxelValue = (depthBelowSurface <= OceanSandDepth)
+                    ? (byte)4
+                    : biome.undergroundBlock;
+            } else {
+                voxelValue = biome.subSurfaceBlock;
+            }
+
         } else {
-            voxelValue = 2;
+            voxelValue = biome.undergroundBlock;
         }
 
-        if (voxelValue == 2 && biome.lodes != null) {
+        // Ore lodes — run on stone or the biome's custom underground block.
+        if ((voxelValue == 2 || voxelValue == biome.undergroundBlock) && biome.lodes != null) {
             for (int i = 0; i < biome.lodes.Length; i++) {
                 Lode lode = biome.lodes[i];
                 if (yPos > lode.minHeight && yPos < lode.maxHeight)
@@ -189,34 +231,29 @@ public static class TerrainGenerator {
     }
 
     // Scans upward from a carved cave block to determine if it has an unbroken
-    // open path to sea level. "Open" means either above the terrain surface
-    // (naturally water/air) or itself a carved cave block.
-    // Returns true  → cavity is sea-connected → fill with water.
-    // Returns false → cavity is sealed underground → fill with air.
+    // open path to sea level. Open = above terrain surface (open ocean) or also carved.
     private static bool IsConnectedToSea(Vector3Int pos, ColumnData col) {
 
         int surface = col.surfaceHeight;
 
         for (int checkY = pos.y + 1; checkY < VoxelData.SeaLevel; checkY++) {
 
-            // Above terrain surface = open ocean column, connection confirmed.
             if (checkY > surface)
-                return true;
+                return true; // Open ocean column above — connected.
 
-            // Inside terrain — check if this block is also carved open.
             var checkPos = new Vector3Int(pos.x, checkY, pos.z);
-            bool carved = (checkY <= surface - CaveMaxDepthFromSurface &&
-                           checkY > VoxelData.WorldBottomInVoxels + 4) &&
-                          (IsCave(checkPos) || IsTunnel(checkPos));
+            bool carved = checkY <= surface - CaveMaxDepthFromSurface
+                       && checkY > VoxelData.WorldBottomInVoxels + 4
+                       && (IsCave(checkPos) || IsTunnel(checkPos));
 
             if (!carved)
-                return false; // Solid block seals the column — isolated pocket
+                return false; // Solid block seals the path — isolated pocket.
         }
 
-        // Reached SeaLevel — connected.
         return true;
     }
 
+    // Cheese caves — large blobby caverns.
     private static bool IsCave(Vector3Int pos) {
 
         float x = pos.x * CaveScale + VoxelData.seed * 0.1f;
@@ -230,13 +267,12 @@ public static class TerrainGenerator {
         return (AB + BC + CA) / 3f > CaveThreshold;
     }
 
-    // Spaghetti tunnel: uses a finer noise scale and a squashed Y axis so tunnels
-    // run more horizontally than vertically, giving long winding passages.
+    // Spaghetti tunnels — Y axis squashed so passages run more horizontally.
     private static bool IsTunnel(Vector3Int pos) {
 
-        float x  = pos.x * TunnelScale + VoxelData.seed * 0.4f;
-        float y  = pos.y * TunnelScale * 0.5f + VoxelData.seed * 0.5f;  // squash Y = more horizontal tunnels
-        float z  = pos.z * TunnelScale + VoxelData.seed * 0.6f;
+        float x = pos.x * TunnelScale + VoxelData.seed * 0.4f;
+        float y = pos.y * TunnelScale * 0.5f + VoxelData.seed * 0.5f;
+        float z = pos.z * TunnelScale + VoxelData.seed * 0.6f;
 
         float AB = Mathf.PerlinNoise(x, y);
         float BC = Mathf.PerlinNoise(y, z);

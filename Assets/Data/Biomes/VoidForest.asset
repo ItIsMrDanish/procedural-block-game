@@ -21,8 +21,9 @@ MonoBehaviour:
   elevationAmplitude: 0.29
   heightOffset: 0
   surfaceBlock: 29
-  subSurfaceBlock: 5
+  subSurfaceBlock: 33
   subsurfaceDepth: 4
+  undergroundBlock: 30
   placeMajorFlora: 1
   majorFloraIndex: 2
   majorFloraZoneScale: 1.3
@@ -31,7 +32,35 @@ MonoBehaviour:
   majorFloraPlacementThreshold: 0.755
   minHeight: 5
   maxHeight: 12
-  lodes: []
+  lodes:
+  - nodeName: Coal
+    blockID: 17
+    minHeight: -64
+    maxHeight: 120
+    scale: 0.08
+    threshold: 0.65
+    noiseOffset: 100
+  - nodeName: Iron
+    blockID: 18
+    minHeight: -64
+    maxHeight: 80
+    scale: 0.08
+    threshold: 0.67
+    noiseOffset: 200
+  - nodeName: Gold
+    blockID: 19
+    minHeight: -64
+    maxHeight: 20
+    scale: 0.08
+    threshold: 0.72
+    noiseOffset: 300
+  - nodeName: Emerald
+    blockID: 22
+    minHeight: -30
+    maxHeight: 50
+    scale: 0.1
+    threshold: 0.72
+    noiseOffset: 600
   offset: 87544
   scale: 0.17
   terrainHeight: 80
