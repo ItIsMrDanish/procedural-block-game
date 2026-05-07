@@ -1804,6 +1804,7 @@ MonoBehaviour:
   placeBlock: {fileID: 1989221164}
   checkIncrement: 0.1
   reach: 5
+  breakProgressBar: {fileID: 0}
   toolbar: {fileID: 2074229382}
   inventory: {fileID: 77128233}
   craftingMenu: {fileID: 2030817970}
@@ -4442,6 +4443,7 @@ MonoBehaviour:
     opacity: 0
     icon: {fileID: 0}
     isActive: 0
+    blockHealth: 0
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -4456,6 +4458,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -1472890361, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 9999999
     backFaceTexture: 9
     frontFaceTexture: 9
     topFaceTexture: 9
@@ -4470,6 +4473,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -1884098253, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 6
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -4484,6 +4488,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: 1364971111, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 2
     frontFaceTexture: 2
     topFaceTexture: 7
@@ -4498,6 +4503,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -1787744389, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 10
     frontFaceTexture: 10
     topFaceTexture: 10
@@ -4512,6 +4518,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -1940847377, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 1
     frontFaceTexture: 1
     topFaceTexture: 1
@@ -4526,6 +4533,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: 1326416554, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 5
     frontFaceTexture: 5
     topFaceTexture: 6
@@ -4540,6 +4548,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -1167449538, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 4
     frontFaceTexture: 4
     topFaceTexture: 4
@@ -4554,6 +4563,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -192675838, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 5
     backFaceTexture: 13
     frontFaceTexture: 12
     topFaceTexture: 15
@@ -4568,6 +4578,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -347473354, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 6
     backFaceTexture: 8
     frontFaceTexture: 8
     topFaceTexture: 8
@@ -4582,6 +4593,7 @@ MonoBehaviour:
     opacity: 0
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 3
     frontFaceTexture: 3
     topFaceTexture: 3
@@ -4596,6 +4608,7 @@ MonoBehaviour:
     opacity: 13
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 2
     backFaceTexture: 16
     frontFaceTexture: 16
     topFaceTexture: 16
@@ -4610,6 +4623,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 19
@@ -4624,6 +4638,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 17
@@ -4638,6 +4653,7 @@ MonoBehaviour:
     opacity: 0
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 0
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 17
@@ -4652,6 +4668,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 21
     backFaceTexture: 22
     frontFaceTexture: 22
     topFaceTexture: 22
@@ -4666,6 +4683,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 21
     frontFaceTexture: 21
     topFaceTexture: 21
@@ -4680,6 +4698,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 5
     backFaceTexture: 27
     frontFaceTexture: 27
     topFaceTexture: 27
@@ -4694,6 +4713,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 7
     backFaceTexture: 28
     frontFaceTexture: 28
     topFaceTexture: 28
@@ -4708,6 +4728,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 8
     backFaceTexture: 29
     frontFaceTexture: 29
     topFaceTexture: 29
@@ -4722,6 +4743,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 6
     backFaceTexture: 30
     frontFaceTexture: 30
     topFaceTexture: 30
@@ -4736,6 +4758,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 6
     backFaceTexture: 31
     frontFaceTexture: 31
     topFaceTexture: 31
@@ -4750,6 +4773,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 8
     backFaceTexture: 32
     frontFaceTexture: 32
     topFaceTexture: 32
@@ -4764,6 +4788,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 15
     backFaceTexture: 38
     frontFaceTexture: 38
     topFaceTexture: 38
@@ -4778,6 +4803,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 7
     backFaceTexture: 20
     frontFaceTexture: 20
     topFaceTexture: 20
@@ -4792,6 +4818,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 23
     frontFaceTexture: 23
     topFaceTexture: 24
@@ -4806,6 +4833,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 2
     backFaceTexture: 24
     frontFaceTexture: 24
     topFaceTexture: 24
@@ -4820,6 +4848,7 @@ MonoBehaviour:
     opacity: 12
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 3
     backFaceTexture: 26
     frontFaceTexture: 26
     topFaceTexture: 26
@@ -4834,6 +4863,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 5
     backFaceTexture: 33
     frontFaceTexture: 33
     topFaceTexture: 34
@@ -4848,6 +4878,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 35
     frontFaceTexture: 35
     topFaceTexture: 36
@@ -4862,6 +4893,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 7
     backFaceTexture: 37
     frontFaceTexture: 37
     topFaceTexture: 37
@@ -4876,6 +4908,7 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 5
     backFaceTexture: 40
     frontFaceTexture: 40
     topFaceTexture: 40
@@ -4890,6 +4923,7 @@ MonoBehaviour:
     opacity: 12
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 4
     backFaceTexture: 43
     frontFaceTexture: 43
     topFaceTexture: 43
