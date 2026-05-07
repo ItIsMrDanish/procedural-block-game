@@ -173,7 +173,7 @@ public static class TerrainGenerator {
         } else if (yPos >= surface - biome.subsurfaceDepth) {
             voxelValue = biome.subSurfaceBlock;
         } else {
-            voxelValue = 2;
+            voxelValue = biome.undergroundBlock;
         }
 
         if (voxelValue == 2 && biome.lodes != null) {

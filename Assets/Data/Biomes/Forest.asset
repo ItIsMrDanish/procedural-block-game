@@ -23,6 +23,7 @@ MonoBehaviour:
   surfaceBlock: 5
   subSurfaceBlock: 5
   subsurfaceDepth: 4
+  undergroundBlock: 2
   placeMajorFlora: 1
   majorFloraIndex: 1
   majorFloraZoneScale: 1.3

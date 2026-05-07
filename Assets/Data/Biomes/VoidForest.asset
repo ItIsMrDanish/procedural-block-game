@@ -21,8 +21,9 @@ MonoBehaviour:
   elevationAmplitude: 0.29
   heightOffset: 0
   surfaceBlock: 29
-  subSurfaceBlock: 5
+  subSurfaceBlock: 33
   subsurfaceDepth: 4
+  undergroundBlock: 30
   placeMajorFlora: 1
   majorFloraIndex: 2
   majorFloraZoneScale: 1.3

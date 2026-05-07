@@ -6,23 +6,13 @@ public class BiomeAttributes : ScriptableObject {
     [Header("Identity")]
     public string biomeName = "New Biome";
 
-    // Climate determines which biome is chosen at any XZ position.
-
     [Header("Climate (0=cold/dry, 1=hot/wet)")]
     [Range(0f, 1f)] public float temperature = 0.5f;
     [Range(0f, 1f)] public float humidity = 0.5f;
 
-    // Rarity controls how large this biome's territory is.
-    // Higher = more common (wins over a wider climate range).
-    // Lower = rarer (only appears near its exact climate point).
-    // 1.0 is neutral. 2.0 = twice as common. 0.5 = half as common.
-
     [Header("Rarity")]
     [Tooltip("Higher = more common, lower = rarer. 1 = default.")]
     [Range(0.1f, 5f)] public float rarity = 1f;
-
-    // Terrain shape — multipliers applied to global noise layers.
-    // Default of 1 means "use global noise as-is".
 
     [Header("Terrain Shape")]
 
@@ -38,16 +28,15 @@ public class BiomeAttributes : ScriptableObject {
     [Tooltip("Flat block offset applied to final surface height. Negative = lowlands, positive = plateaus.")]
     [Range(-48f, 48f)] public float heightOffset = 0f;
 
-    // Surface blocks
-
     [Header("Surface Blocks")]
-    public byte surfaceBlock = 3; // Grass
-    public byte subSurfaceBlock = 5; // Dirt
+    public byte surfaceBlock = 3;
+    public byte subSurfaceBlock = 5;
 
     [Tooltip("How many layers of subSurfaceBlock appear below the surface before stone.")]
     [Range(1, 12)] public int subsurfaceDepth = 4;
 
-    // Flora
+    [Tooltip("Block used for the underground (below subsurface depth). Defaults to 2 (stone).")]
+    public byte undergroundBlock = 2;
 
     [Header("Flora")]
     public bool placeMajorFlora = true;
@@ -61,13 +50,8 @@ public class BiomeAttributes : ScriptableObject {
     public int minHeight = 5;
     public int maxHeight = 12;
 
-    // Ore lodes
-
     [Header("Lodes")]
     public Lode[] lodes;
-
-    // Legacy kept so existing ScriptableObjects don't break.
-    // These are no longer used in height calculation.
 
     [HideInInspector] public int offset = 0;
     [HideInInspector] public float scale = 1f;
@@ -77,7 +61,6 @@ public class BiomeAttributes : ScriptableObject {
 
 [System.Serializable]
 public class Lode {
-    
     public string nodeName;
     public byte blockID;
     public int minHeight;
