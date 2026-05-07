@@ -795,6 +795,19 @@ public class BlockType
              "Set to 0 for instant-break (e.g. air, grass, flowers).")]
     public float blockHealth;
 
+    [Header("Drop")]
+    [Tooltip("Item name added to the player's inventory on break.\n" +
+             "Leave empty to use blockName.")]
+    public string dropItemName;
+
+    [Tooltip("How many items drop when this block is broken. Default 1.")]
+    [Min(0)]
+    public int dropAmount = 1;
+
+    [Tooltip("Icon sprite for the dropped item in the inventory UI.\n" +
+             "Leave null to use the block's own icon.")]
+    public Sprite dropIcon;
+
     [Header("Texture Values")]
     public int backFaceTexture, frontFaceTexture, topFaceTexture;
     public int bottomFaceTexture, leftFaceTexture, rightFaceTexture;

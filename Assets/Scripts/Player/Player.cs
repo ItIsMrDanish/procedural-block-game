@@ -434,6 +434,7 @@ public class Player : MonoBehaviour
         // Instant-break: health of 0 means no hold required.
         if (health <= 0f)
         {
+            SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
             ResetBreak();
             return;
@@ -450,9 +451,18 @@ public class Player : MonoBehaviour
         // Block broken!
         if (_breakProgress >= health)
         {
+            SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
             ResetBreak();
         }
+    }
+
+    // Spawns a world drop for the given block at its world position.
+    // Routes through ItemDropManager so all drop logic lives in one place.
+    private void SpawnDrop(byte blockId, Vector3 blockWorldPos)
+    {
+        if (ItemDropManager.Instance != null)
+            ItemDropManager.Instance.SpawnDrop(blockId, blockWorldPos);
     }
 
     // Called when the Attack button is released.

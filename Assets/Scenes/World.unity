@@ -153,7 +153,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -3}
+  m_AnchoredPosition: {x: 0, y: -3.000061}
   m_SizeDelta: {x: -920, y: -262}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3510707
@@ -4391,6 +4391,7 @@ GameObject:
   - component: {fileID: 922702475}
   - component: {fileID: 922702474}
   - component: {fileID: 922702476}
+  - component: {fileID: 922702477}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -4444,6 +4445,9 @@ MonoBehaviour:
     icon: {fileID: 0}
     isActive: 0
     blockHealth: 0
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -4459,6 +4463,9 @@ MonoBehaviour:
     icon: {fileID: -1472890361, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 9999999
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 9
     frontFaceTexture: 9
     topFaceTexture: 9
@@ -4474,6 +4481,9 @@ MonoBehaviour:
     icon: {fileID: -1884098253, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -4489,6 +4499,9 @@ MonoBehaviour:
     icon: {fileID: 1364971111, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 2
     frontFaceTexture: 2
     topFaceTexture: 7
@@ -4504,6 +4517,9 @@ MonoBehaviour:
     icon: {fileID: -1787744389, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 10
     frontFaceTexture: 10
     topFaceTexture: 10
@@ -4519,6 +4535,9 @@ MonoBehaviour:
     icon: {fileID: -1940847377, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 1
     frontFaceTexture: 1
     topFaceTexture: 1
@@ -4534,6 +4553,9 @@ MonoBehaviour:
     icon: {fileID: 1326416554, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 5
     frontFaceTexture: 5
     topFaceTexture: 6
@@ -4549,6 +4571,9 @@ MonoBehaviour:
     icon: {fileID: -1167449538, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 4
     frontFaceTexture: 4
     topFaceTexture: 4
@@ -4564,6 +4589,9 @@ MonoBehaviour:
     icon: {fileID: -192675838, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 13
     frontFaceTexture: 12
     topFaceTexture: 15
@@ -4579,6 +4607,9 @@ MonoBehaviour:
     icon: {fileID: -347473354, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 8
     frontFaceTexture: 8
     topFaceTexture: 8
@@ -4594,6 +4625,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 3
     frontFaceTexture: 3
     topFaceTexture: 3
@@ -4609,6 +4643,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 2
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 16
     frontFaceTexture: 16
     topFaceTexture: 16
@@ -4624,6 +4661,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 19
@@ -4639,6 +4679,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 17
@@ -4654,6 +4697,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 0
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 18
     frontFaceTexture: 18
     topFaceTexture: 17
@@ -4669,6 +4715,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 21
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 22
     frontFaceTexture: 22
     topFaceTexture: 22
@@ -4684,6 +4733,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 21
     frontFaceTexture: 21
     topFaceTexture: 21
@@ -4699,6 +4751,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 27
     frontFaceTexture: 27
     topFaceTexture: 27
@@ -4714,6 +4769,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 28
     frontFaceTexture: 28
     topFaceTexture: 28
@@ -4729,6 +4787,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 8
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 29
     frontFaceTexture: 29
     topFaceTexture: 29
@@ -4744,6 +4805,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 30
     frontFaceTexture: 30
     topFaceTexture: 30
@@ -4759,6 +4823,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 31
     frontFaceTexture: 31
     topFaceTexture: 31
@@ -4774,6 +4841,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 8
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 32
     frontFaceTexture: 32
     topFaceTexture: 32
@@ -4789,6 +4859,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 15
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 38
     frontFaceTexture: 38
     topFaceTexture: 38
@@ -4804,6 +4877,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 20
     frontFaceTexture: 20
     topFaceTexture: 20
@@ -4819,6 +4895,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 23
     frontFaceTexture: 23
     topFaceTexture: 24
@@ -4834,6 +4913,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 2
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 24
     frontFaceTexture: 24
     topFaceTexture: 24
@@ -4849,6 +4931,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 26
     frontFaceTexture: 26
     topFaceTexture: 26
@@ -4864,6 +4949,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 33
     frontFaceTexture: 33
     topFaceTexture: 34
@@ -4879,6 +4967,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 35
     frontFaceTexture: 35
     topFaceTexture: 36
@@ -4894,6 +4985,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 37
     frontFaceTexture: 37
     topFaceTexture: 37
@@ -4909,6 +5003,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 40
     frontFaceTexture: 40
     topFaceTexture: 40
@@ -4924,6 +5021,9 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 43
     frontFaceTexture: 43
     topFaceTexture: 43
@@ -4938,6 +5038,10 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
+    blockHealth: 0
+    dropItemName: 
+    dropAmount: 1
+    dropIcon: {fileID: 0}
     backFaceTexture: 44
     frontFaceTexture: 44
     topFaceTexture: 44
@@ -4990,6 +5094,22 @@ MonoBehaviour:
   maxSpawnDist: 64
   respawnBatchSize: 3
   avoidOceans: 1
+--- !u!114 &922702477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922702473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94d13ff44a7c5b34e808095796589586, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropManager
+  dropItemPrefab: {fileID: 7583213394840725132, guid: 3753eecd0e13f8841bf6b92aa9c6bd93, type: 3}
+  playerInventory: {fileID: 77128233}
+  playerTransform: {fileID: 357234897}
+  dropScale: 0.4
 --- !u!1 &951608391
 GameObject:
   m_ObjectHideFlags: 0
