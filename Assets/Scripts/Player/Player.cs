@@ -254,11 +254,12 @@ public class Player : MonoBehaviour
             _verticalVelocity = -2f;
         }
 
-        if (_jumpRequest)
-        {
+        if (_jumpRequest) {
 
             _verticalVelocity = jumpForce;
             _jumpRequest = false;
+            isGrounded = false;
+            _coyoteTimer = 0f;
         }
 
         _verticalVelocity += gravity * dt;
