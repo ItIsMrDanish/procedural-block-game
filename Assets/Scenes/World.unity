@@ -4392,6 +4392,7 @@ GameObject:
   - component: {fileID: 922702474}
   - component: {fileID: 922702476}
   - component: {fileID: 922702477}
+  - component: {fileID: 922702478}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -5110,6 +5111,30 @@ MonoBehaviour:
   playerInventory: {fileID: 77128233}
   playerTransform: {fileID: 357234897}
   dropScale: 0.4
+--- !u!114 &922702478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922702473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 032e4426370ced0b4bc1c69f16e675cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawnManager
+  world: {fileID: 0}
+  monsterPrefabs:
+  - {fileID: 3803067040186278091, guid: 4de841507691c67479f4960ce605e8e9, type: 3}
+  maxMonsters: 15
+  spawnInterval: 20
+  spawnBatchSize: 3
+  minSpawnDist: 16
+  maxSpawnDist: 48
+  avoidOceans: 1
+  despawnAtDawn: 1
+  cullingEnabled: 1
+  cullDistance: 80
 --- !u!1 &951608391
 GameObject:
   m_ObjectHideFlags: 0
@@ -6267,7 +6292,7 @@ MonoBehaviour:
   sunVisual: {fileID: 0}
   moonVisual: {fileID: 0}
   starsSystem: {fileID: 0}
-  dayLengthSeconds: 1200
+  dayLengthSeconds: 50
   startingTimeOfDay: 0.25
   orbitRadius: 500
   dawnLightColour: {r: 1, g: 0.7, b: 0.4, a: 1}

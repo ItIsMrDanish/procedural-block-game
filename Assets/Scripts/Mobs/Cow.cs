@@ -21,7 +21,7 @@ using UnityEngine;
 // ─────────────────────────────────────────────────────────────────────────────
 
 [RequireComponent(typeof(Collider))]
-public class Cow : MonoBehaviour
+public class Cow : MonoBehaviour, IMob
 {
 
     // ── Inspector ────────────────────────────────────────────────────────────
