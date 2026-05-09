@@ -54,6 +54,11 @@ public class Player : MonoBehaviour
     public Inventory inventory;
     public CraftingMenu craftingMenu;
 
+    [Header("Block Break Particles")]
+    // Assign the BlockBreakParticles component (on this same GameObject or a child).
+    // Leave null to disable particles entirely.
+    public BlockBreakParticles breakParticles;
+
     private Transform _cam;
     private World _world;
     private InputSystem _controls;
@@ -404,6 +409,7 @@ public class Player : MonoBehaviour
         // Nothing to do if button not held or no block targeted.
         if (!_breakHeld || !highlightBlock.gameObject.activeSelf)
         {
+            if (breakParticles != null) breakParticles.StopBreaking();
             ResetBreak();
             return;
         }
@@ -417,6 +423,7 @@ public class Player : MonoBehaviour
         // If the player has re-aimed at a different block, reset and start fresh.
         if (_breakTargetSet && currentTarget != _breakTarget)
         {
+            if (breakParticles != null) breakParticles.StopBreaking();
             ResetBreak(showBar: false);
         }
 
@@ -437,6 +444,7 @@ public class Player : MonoBehaviour
         {
             SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
+            if (breakParticles != null) breakParticles.StopBreaking();
             ResetBreak();
             return;
         }
@@ -449,11 +457,16 @@ public class Player : MonoBehaviour
         SetBreakBarFill(fill);
         SetBreakBarVisible(true);
 
+        // Drive particles every frame while breaking.
+        if (breakParticles != null)
+            breakParticles.UpdateBreaking(voxel.id, highlightBlock.position, fill);
+
         // Block broken!
         if (_breakProgress >= health)
         {
             SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
+            if (breakParticles != null) breakParticles.StopBreaking();
             ResetBreak();
         }
     }
@@ -470,6 +483,7 @@ public class Player : MonoBehaviour
     private void OnBreakReleased()
     {
         _breakHeld = false;
+        if (breakParticles != null) breakParticles.StopBreaking();
         ResetBreak();
     }
 

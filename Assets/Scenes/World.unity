@@ -1751,6 +1751,7 @@ GameObject:
   - component: {fileID: 357234897}
   - component: {fileID: 357234898}
   - component: {fileID: 357234899}
+  - component: {fileID: 357234900}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1808,6 +1809,7 @@ MonoBehaviour:
   toolbar: {fileID: 2074229382}
   inventory: {fileID: 77128233}
   craftingMenu: {fileID: 2030817970}
+  breakParticles: {fileID: 357234900}
 --- !u!114 &357234899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1831,6 +1833,23 @@ MonoBehaviour:
   maxTiltAngle: 60
   tiltRecoveryTime: 0.4
   tiltRecoverySmoothing: 8
+--- !u!114 &357234900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357234896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dc11ffdaf9a0241ca80ee46c54174d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlockBreakParticles
+  atlasTex: {fileID: 2800000, guid: 2b1b853ad7d50ba4fa81b4456128d2db, type: 3}
+  emitRate: 12
+  particleLifetime: 0.45
+  spreadSpeed: 2.8
+  particleSize: 0.12
 --- !u!1001 &361381038
 PrefabInstance:
   m_ObjectHideFlags: 0
