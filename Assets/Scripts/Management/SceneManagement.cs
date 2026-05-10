@@ -70,6 +70,7 @@ public class SceneManagement : MonoBehaviour {
 
     public void EnterWorldSelect() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         mainMenuObject.SetActive(false);
         worldSelectObject.SetActive(true);
         PopulateWorldList();
@@ -77,6 +78,7 @@ public class SceneManagement : MonoBehaviour {
 
     public void LeaveWorldSelect() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         worldSelectObject.SetActive(false);
         mainMenuObject.SetActive(true);
     }
@@ -115,6 +117,7 @@ public class SceneManagement : MonoBehaviour {
 
     void PlayWorld(string name) {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         int seed = 0;
         string path = SavesRoot + name + "/world.world";
 
@@ -146,6 +149,7 @@ public class SceneManagement : MonoBehaviour {
 
     void ConfirmDeleteWorld(string name) {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         string path = SavesRoot + name;
         if (Directory.Exists(path)) {
 
@@ -160,6 +164,7 @@ public class SceneManagement : MonoBehaviour {
 
     public void EnterCreateWorld() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         worldSelectObject.SetActive(false);
         createWorldObject.SetActive(true);
         if (worldNameInput != null) worldNameInput.text = "";
@@ -168,12 +173,15 @@ public class SceneManagement : MonoBehaviour {
 
     public void LeaveCreateWorld() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         createWorldObject.SetActive(false);
         worldSelectObject.SetActive(true);
         PopulateWorldList();
     }
 
     public void CreateWorld() {
+
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
 
         string name     = worldNameInput != null ? worldNameInput.text.Trim() : "";
         string seedText = seedInput != null ? seedInput.text.Trim() : "";
@@ -206,6 +214,7 @@ public class SceneManagement : MonoBehaviour {
 
     public void EnterSettings() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         viewDstSlider.value = settings.viewDistance;
         UpdateViewDstSlider();
         mouseSlider.value = settings.mouseSensitivity;
@@ -215,12 +224,38 @@ public class SceneManagement : MonoBehaviour {
         clouds.value = (int)settings.clouds;
         frameRate.value = settings.frameRateIndex;
 
+        // Register click sounds on every interactive control.
+        // RemoveListener first so re-opening the panel never double-registers.
+        threadingToggle.onValueChanged.RemoveListener(OnSettingsToggleChanged);
+        threadingToggle.onValueChanged.AddListener(OnSettingsToggleChanged);
+
+        chunkAnimToggle.onValueChanged.RemoveListener(OnSettingsToggleChanged);
+        chunkAnimToggle.onValueChanged.AddListener(OnSettingsToggleChanged);
+
+        clouds.onValueChanged.RemoveListener(OnSettingsDropdownChanged);
+        clouds.onValueChanged.AddListener(OnSettingsDropdownChanged);
+
+        frameRate.onValueChanged.RemoveListener(OnSettingsDropdownChanged);
+        frameRate.onValueChanged.AddListener(OnSettingsDropdownChanged);
+
+        viewDstSlider.onValueChanged.RemoveListener(OnSettingsSliderChanged);
+        viewDstSlider.onValueChanged.AddListener(OnSettingsSliderChanged);
+
+        mouseSlider.onValueChanged.RemoveListener(OnSettingsSliderChanged);
+        mouseSlider.onValueChanged.AddListener(OnSettingsSliderChanged);
+
         mainMenuObject.SetActive(false);
         settingsObject.SetActive(true);
     }
 
+    // Unified callbacks for settings controls — each just plays the click sound.
+    private void OnSettingsToggleChanged(bool _)   { if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick(); }
+    private void OnSettingsDropdownChanged(int _)  { if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick(); }
+    private void OnSettingsSliderChanged(float _)  { if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick(); }
+
     public void LeaveSettings() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         settings.viewDistance = (int)viewDstSlider.value;
         settings.mouseSensitivity = mouseSlider.value;
         settings.enableThreading = threadingToggle.isOn;
@@ -236,6 +271,7 @@ public class SceneManagement : MonoBehaviour {
 
     public void QuitGame() {
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
         Application.Quit();
     }
 

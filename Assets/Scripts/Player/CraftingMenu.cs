@@ -210,6 +210,8 @@ public class CraftingMenu : MonoBehaviour {
         if (_selectedRecipe.ItemIcon != null)
             inventory.SetIconForItem(_selectedRecipe.ItemName, _selectedRecipe.ItemIcon);
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayCraft();
+
         ShowFeedback($"Crafted {_selectedRecipe.outputAmount * amount}x {_selectedRecipe.ItemName}");
 
         // Refresh material counts to reflect new inventory state.

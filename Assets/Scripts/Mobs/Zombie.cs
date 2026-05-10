@@ -107,6 +107,11 @@ public class Zombie : MonoBehaviour, IMob
     private Transform      _playerTransform;
     private HealthAndHunger _playerHealth;   // to call TakeDamage on the player
 
+    // ── Sound timers ──────────────────────────────────────────────────────────
+    private float _footstepTimer = 0f;
+    private float _groanTimer    = 0f;
+    private const float ZombieFootstepInterval = 0.50f;
+
     // ── Unity lifecycle ────────────────────────────────────────────────────────
 
     private void Start()
@@ -132,6 +137,7 @@ public class Zombie : MonoBehaviour, IMob
                 meshRoot.localPosition.z);
 
         StartIdleTimer();
+        _groanTimer = Random.Range(8f, 25f); // first groan after 8-25 s
     }
 
     private void Update()
@@ -142,6 +148,44 @@ public class Zombie : MonoBehaviour, IMob
         UpdateState();
         ApplyMovement();
         FaceDirection();
+        UpdateSounds();
+    }
+
+    // ── Sound ──────────────────────────────────────────────────────────────────
+
+    private void UpdateSounds()
+    {
+        if (SoundManager.Instance == null) return;
+
+        bool isMoving = _state == State.Wander || _state == State.Chase || _state == State.Burning;
+
+        // Footsteps — faster cadence when chasing / burning
+        if (_isGrounded && isMoving)
+        {
+            float interval = (_state == State.Chase || _state == State.Burning)
+                ? ZombieFootstepInterval * 0.55f
+                : ZombieFootstepInterval;
+            _footstepTimer -= Time.deltaTime;
+            if (_footstepTimer <= 0f)
+            {
+                SoundManager.Instance.PlayZombieFootstep();
+                _footstepTimer = interval;
+            }
+        }
+        else
+        {
+            _footstepTimer = 0f;
+        }
+
+        // Periodic groan — more frequent while chasing
+        _groanTimer -= Time.deltaTime;
+        if (_groanTimer <= 0f)
+        {
+            SoundManager.Instance.PlayZombieGroan();
+            _groanTimer = _state == State.Chase
+                ? Random.Range(4f, 10f)
+                : Random.Range(10f, 30f);
+        }
     }
 
     // ── Public API (called by MobHitbox) ──────────────────────────────────────
@@ -151,6 +195,8 @@ public class Zombie : MonoBehaviour, IMob
         if (_isDead) return;
 
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
+
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayZombieHurt();
 
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         _flashCoroutine = StartCoroutine(HitFlash());

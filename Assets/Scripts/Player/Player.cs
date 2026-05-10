@@ -88,6 +88,15 @@ public class Player : MonoBehaviour
     private bool _breakTargetSet = false;
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── Footstep sound timer ──────────────────────────────────────────────────
+    private float _footstepTimer = 0f;
+    private const float FootstepInterval = 0.42f; // seconds between step sounds
+
+    // ── Block-chip sound timer ────────────────────────────────────────────────
+    private float _chipSoundTimer = 0f;
+    private const float ChipSoundInterval = 0.35f; // seconds between chip ticks
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Unity lifecycle
 
     private void Awake()
@@ -293,6 +302,24 @@ public class Player : MonoBehaviour
         else dy = CheckUpSpeed(dy);
 
         transform.position += new Vector3(dx, dy, dz);
+
+        // ── Footstep sounds ───────────────────────────────────────────────────
+        // Play a step sound whenever the player is moving on the ground.
+        bool isMoving = _moveInput.sqrMagnitude > 0.01f;
+        if (isGrounded && isMoving && SoundManager.Instance != null)
+        {
+            float interval = isSprinting ? FootstepInterval * 0.65f : FootstepInterval;
+            _footstepTimer -= dt;
+            if (_footstepTimer <= 0f)
+            {
+                SoundManager.Instance.PlayFootstep();
+                _footstepTimer = interval;
+            }
+        }
+        else
+        {
+            _footstepTimer = 0f; // reset so first step after stopping is immediate
+        }
     }
 
     private float CheckDownSpeed(float downSpeed)
@@ -461,12 +488,24 @@ public class Player : MonoBehaviour
         if (breakParticles != null)
             breakParticles.UpdateBreaking(voxel.id, highlightBlock.position, fill);
 
+        // Chip sound — fires on an interval so it ticks as you hold the button.
+        if (SoundManager.Instance != null)
+        {
+            _chipSoundTimer -= Time.deltaTime;
+            if (_chipSoundTimer <= 0f)
+            {
+                SoundManager.Instance.PlayBlockChip();
+                _chipSoundTimer = ChipSoundInterval;
+            }
+        }
+
         // Block broken!
         if (_breakProgress >= health)
         {
             SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
             if (breakParticles != null) breakParticles.StopBreaking();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayBlockBreak();
             ResetBreak();
         }
     }
@@ -490,8 +529,9 @@ public class Player : MonoBehaviour
     // Resets breaking state and optionally hides the bar immediately.
     private void ResetBreak(bool showBar = false)
     {
-        _breakProgress = 0f;
+        _breakProgress  = 0f;
         _breakTargetSet = false;
+        _chipSoundTimer = 0f; // fire immediately on the next break attempt
         if (!showBar) SetBreakBarVisible(false);
     }
 
@@ -566,6 +606,7 @@ public class Player : MonoBehaviour
         {
             chunk.EditVoxel(placeBlock.position, blockID);
             inventory.RemoveItem(_selectedItem.itemName, 1);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayBlockPlace();
             // _selectedItem is refreshed automatically:
             // inventory.RemoveItem → OnInventoryChanged → Toolbar.NotifyPlayer → SetSelectedItem
         }

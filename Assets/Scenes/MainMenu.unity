@@ -2490,6 +2490,103 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 526051139}
   m_CullTransparentMesh: 1
+--- !u!1 &534865556
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 534865558}
+  - component: {fileID: 534865557}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &534865557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534865556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d08aee47e357817f849ca6754c978cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundManager
+  footstepClips:
+  - {fileID: 8300000, guid: 9e748f0d5a1dc44398da98470bb6567c, type: 3}
+  - {fileID: 8300000, guid: bd7b30c07484dffc094e4f0c90a59e7b, type: 3}
+  - {fileID: 8300000, guid: 04e9546afb54fd380b7ee64e660daa91, type: 3}
+  blockBreakClips:
+  - {fileID: 8300000, guid: 6c96dd7b7d2c0e0508a33a7b916eaec8, type: 3}
+  blockPlaceClips:
+  - {fileID: 8300000, guid: 6bd7c84830637bd5d82a5b14c3cfb9c8, type: 3}
+  blockChipClips:
+  - {fileID: 8300000, guid: 4cf00f056856e7bfc8ae539109c74ffe, type: 3}
+  - {fileID: 8300000, guid: 580caaf33a0c0f73b9923218395df7dc, type: 3}
+  - {fileID: 8300000, guid: 15a88b4adb3bcf518ad290d8752a9eeb, type: 3}
+  - {fileID: 8300000, guid: 9dd536ed3fc72fe28a4765aef688e591, type: 3}
+  - {fileID: 8300000, guid: 803971dddb97fb066b4b3193b4e53e4d, type: 3}
+  craftingClips:
+  - {fileID: 8300000, guid: 56e1abc9845de5d2d9c9c5d62dc23920, type: 3}
+  cowFootstepClips: []
+  cowMooClips:
+  - {fileID: 8300000, guid: b12236ffc70a8b68eaa19961d5f45179, type: 3}
+  - {fileID: 8300000, guid: e54d08172512872399308eceef6dab1d, type: 3}
+  zombieFootstepClips: []
+  zombieGroanClips:
+  - {fileID: 8300000, guid: e27e9fa7942b5327d8dde2413cc391f6, type: 3}
+  - {fileID: 8300000, guid: ffbee3a56aea1b58e9ceb19b42f8537d, type: 3}
+  gameMusicTracks:
+  - {fileID: 8300000, guid: c0ded9061475b8dc7ba496eca5aa22c4, type: 3}
+  - {fileID: 8300000, guid: f5bd853ca2daef450bd6240d85d7b698, type: 3}
+  - {fileID: 8300000, guid: 90dccec8346badd25a7703ee646536c3, type: 3}
+  mainMenuMusic: {fileID: 8300000, guid: 7cc491537b95cbcc0a2985f32fd217b5, type: 3}
+  menuButtonClick: {fileID: 8300000, guid: b4db523ae3558bc1bb4595c16e96b027, type: 3}
+  ambientClips:
+  - {fileID: 8300000, guid: 9f84db56fde35c9cbb896b833ba84e6f, type: 3}
+  - {fileID: 8300000, guid: ba232fca26f03a8e5af1fb6f82b971b4, type: 3}
+  - {fileID: 8300000, guid: b8f9d467f36556681a53f288751361f7, type: 3}
+  - {fileID: 8300000, guid: 61ee1997d3412499ea23bb5183398d7c, type: 3}
+  playerHurtClips:
+  - {fileID: 8300000, guid: ea513f7ff6657817e87c164e53e72e83, type: 3}
+  cowHurtClips:
+  - {fileID: 8300000, guid: e86b218490d2e5768a51504c28a6517c, type: 3}
+  zombieHurtClips:
+  - {fileID: 8300000, guid: afe0f9c3d73a249a598777b2a08d24d9, type: 3}
+  footstepVolume: 0.3
+  blockVolume: 0.75
+  craftVolume: 0.65
+  mobFootstepVolume: 0.1
+  mobVoiceVolume: 0.526
+  hurtVolume: 0.7
+  musicVolume: 0.05
+  menuMusicVolume: 0.4
+  uiVolume: 0.25
+  ambientVolume: 0.3
+  ambientMinInterval: 20
+  ambientMaxInterval: 60
+--- !u!4 &534865558
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534865556}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 426.10254, y: 259.20963, z: -263.83923}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &570672932
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5980,7 +6077,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
+  m_AnchoredPosition: {x: 0, y: -49.99994}
   m_SizeDelta: {x: 0, y: -100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1507075385
@@ -9183,3 +9280,4 @@ SceneRoots:
   - {fileID: 875608968}
   - {fileID: 1500912115}
   - {fileID: 1687982480}
+  - {fileID: 534865558}

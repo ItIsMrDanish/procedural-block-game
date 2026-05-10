@@ -106,6 +106,11 @@ public class Cow : MonoBehaviour, IMob
     // Cached player transform (found once)
     private Transform _playerTransform;
 
+    // ── Sound timers ──────────────────────────────────────────────────────────
+    private float _footstepTimer = 0f;
+    private float _mooTimer = 0f;
+    private const float CowFootstepInterval = 0.52f;
+
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
     private void Start()
@@ -147,6 +152,7 @@ public class Cow : MonoBehaviour, IMob
         }
 
         StartIdleTimer();
+        _mooTimer = Random.Range(15f, 40f); // first moo after 15-40 s
     }
 
     private void Update()
@@ -157,6 +163,42 @@ public class Cow : MonoBehaviour, IMob
         UpdateState();
         ApplyMovement();
         FaceMovementDirection();
+        UpdateSounds();
+    }
+
+    // ── Sound ────────────────────────────────────────────────────────────────
+
+    private void UpdateSounds()
+    {
+        if (SoundManager.Instance == null) return;
+
+        bool isMoving = _state == State.Wander || _state == State.Flee;
+
+        // Footsteps
+        if (_isGrounded && isMoving)
+        {
+            float interval = _state == State.Flee
+                ? CowFootstepInterval * 0.6f
+                : CowFootstepInterval;
+            _footstepTimer -= Time.deltaTime;
+            if (_footstepTimer <= 0f)
+            {
+                SoundManager.Instance.PlayCowFootstep();
+                _footstepTimer = interval;
+            }
+        }
+        else
+        {
+            _footstepTimer = 0f;
+        }
+
+        // Periodic moo
+        _mooTimer -= Time.deltaTime;
+        if (_mooTimer <= 0f)
+        {
+            SoundManager.Instance.PlayCowMoo();
+            _mooTimer = Random.Range(15f, 45f);
+        }
     }
 
     // ── Public API ───────────────────────────────────────────────────────────
@@ -168,6 +210,8 @@ public class Cow : MonoBehaviour, IMob
         if (_isDead) return;
 
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
+
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayCowHurt();
 
         // Flash red
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);

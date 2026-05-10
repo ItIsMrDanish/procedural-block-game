@@ -144,6 +144,8 @@ public class HealthAndHunger : MonoBehaviour {
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
         RefreshHealthUI();
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayPlayerHurt();
+
         // Trigger damage tilt — randomly left or right for variety
         TriggerDamageTilt(amount);
 
