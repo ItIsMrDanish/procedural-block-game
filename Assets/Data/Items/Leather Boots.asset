@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Leather Boots
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Leather Boots
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a3089ed29920220408ce9e604eab0b3a, type: 3}

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Metal Helmet
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Metal Helmet
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ab0a651a8df8a6347b725f7f2e31e632, type: 3}

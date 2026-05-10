@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Stone Sword
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Stone Sword
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b59927647ab399042829886b1d83005f, type: 3}

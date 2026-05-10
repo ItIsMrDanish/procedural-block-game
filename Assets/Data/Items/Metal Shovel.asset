@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Metal Shovel
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Metal Shovel
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 01fdd06a2aa90e0488e81c75306bc34d, type: 3}

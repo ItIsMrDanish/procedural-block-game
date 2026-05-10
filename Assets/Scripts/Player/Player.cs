@@ -53,6 +53,7 @@ public class Player : MonoBehaviour
     public Toolbar toolbar;
     public Inventory inventory;
     public CraftingMenu craftingMenu;
+    public PauseMenu pauseMenu;        // Assign the PauseMenu component in the Inspector
 
     [Header("Block Break Particles")]
     // Assign the BlockBreakParticles component (on this same GameObject or a child).
@@ -62,6 +63,7 @@ public class Player : MonoBehaviour
     private Transform _cam;
     private World _world;
     private InputSystem _controls;
+    private PauseMenu _pauseMenu;
 
     private float _cameraPitch = 0f;   // Accumulated pitch angle, clamped
 
@@ -122,6 +124,8 @@ public class Player : MonoBehaviour
         _controls.Player.Use.performed += _ => PlaceBlock();
         _controls.Player.Inventory.performed += _ => ToggleUI(inventory.ToggleInventory, isInventoryToggle: true);
         _controls.Player.Crafting.performed += _ => ToggleUI(craftingMenu.ToggleMenu, isInventoryToggle: false);
+        _controls.Player.Pause.performed += _ => _pauseMenu?.TogglePause();
+
     }
 
     private void OnDisable() => _controls.Disable();
@@ -131,6 +135,7 @@ public class Player : MonoBehaviour
 
         _cam = GameObject.Find("Main Camera").transform;
         _world = GameObject.Find("World").GetComponent<World>();
+        _pauseMenu = pauseMenu;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;

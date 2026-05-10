@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Metal Axe
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Metal Axe
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c4aca2ffdf4bd8c47a1afa0b56913900, type: 3}

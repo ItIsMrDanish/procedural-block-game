@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Stone Axe
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Stone Axe
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 028578804a3edb44981c0c665a40f748, type: 3}

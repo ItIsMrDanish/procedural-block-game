@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Stone Shovel
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Stone Shovel
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 572ef7007326ed749a084803c681708a, type: 3}
