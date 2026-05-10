@@ -229,8 +229,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 65, y: 0}
-  m_SizeDelta: {x: -150, y: -20}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &10838877
 MonoBehaviour:
@@ -794,21 +794,40 @@ MonoBehaviour:
   slotUIPrefab: {fileID: 5369721320111526741, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
   emptySlotSprite: {fileID: 0}
   startingItems:
-  - itemName: Wood
-    amount: 2
-    icon: {fileID: 21300000, guid: 2b0d6acf66b850140bfd468e8be7f708, type: 3}
-  - itemName: Planks
-    amount: 3
-    icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
-  - itemName: Wooden Axe
+  - item: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
+    amount: 10
+  - item: {fileID: 11400000, guid: 393556f43ed60494196d74a7b664a26c, type: 2}
     amount: 1
-    icon: {fileID: 21300000, guid: 4ad53ad48460ece4d87aefb9f8f43e80, type: 3}
-  - itemName: Glimmer Pickaxe
+  - item: {fileID: 11400000, guid: d699637eeac1f0241806339acceb69f6, type: 2}
     amount: 1
-    icon: {fileID: 21300000, guid: 6caac75072b891545b1bea9247e2eb6f, type: 3}
-  - itemName: Tourmaline Shovel
+  - item: {fileID: 11400000, guid: dd9b5468583704a468f55b9ea9a0a995, type: 2}
     amount: 1
-    icon: {fileID: 21300000, guid: 1d8cc4d7412c4204199ce7786c13a7ee, type: 3}
+  - item: {fileID: 11400000, guid: 115f9f6b2b1de874a84037740b1b04b1, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 7133e892a5559bc48a0bc9f740edf48b, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 08ea9a53e53a0804c8d8acbf6fb93260, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: df11cf224a725f94b83ba6723bc8d5d7, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: c49b10c1241baa54c9af814aa88d6276, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 2b7f296c582a4da4fa0af4f03d03d2a9, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 255648ef482b684449913bec86792bbc, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 7f11967ee0e82584ca949cbe481abc57, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 730304ef84c9c134e953bb66fcafb378, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 930daf945efe8c543a3ce04f4ce91d27, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 3feafb8db5534b74caa1df4a13b812ab, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 7b42d89d08d65d94a86d095d973c6b8b, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 714f4f973b43f88419638ad8c4377b7c, type: 2}
+    amount: 1
 --- !u!1 &77769028
 GameObject:
   m_ObjectHideFlags: 0
@@ -3242,7 +3261,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.5, y: 0.5, z: 0.5}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1.01, y: 1.01, z: 1.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 37912307}
@@ -4487,6 +4506,8 @@ MonoBehaviour:
     icon: {fileID: 0}
     isActive: 0
     blockHealth: 0
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4505,6 +4526,8 @@ MonoBehaviour:
     icon: {fileID: -1472890361, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 9999999
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4523,6 +4546,8 @@ MonoBehaviour:
     icon: {fileID: -1884098253, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4541,6 +4566,8 @@ MonoBehaviour:
     icon: {fileID: 1364971111, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4559,6 +4586,8 @@ MonoBehaviour:
     icon: {fileID: -1787744389, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4577,6 +4606,8 @@ MonoBehaviour:
     icon: {fileID: -1940847377, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4595,6 +4626,8 @@ MonoBehaviour:
     icon: {fileID: 1326416554, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 1
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4613,6 +4646,8 @@ MonoBehaviour:
     icon: {fileID: -1167449538, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 1
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4631,6 +4666,8 @@ MonoBehaviour:
     icon: {fileID: -192675838, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4649,6 +4686,8 @@ MonoBehaviour:
     icon: {fileID: -347473354, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4667,6 +4706,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4685,6 +4726,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 2
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4703,6 +4746,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4721,6 +4766,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4739,6 +4786,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 0
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4757,6 +4806,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 21
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4775,6 +4826,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4793,6 +4846,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4811,6 +4866,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    preferredTool: 2
+    minimumMaterial: 2
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4829,6 +4886,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 8
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4847,6 +4906,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4865,6 +4926,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 6
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4883,6 +4946,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 8
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4901,6 +4966,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 15
+    preferredTool: 2
+    minimumMaterial: 4
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4919,6 +4986,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4937,6 +5006,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4955,6 +5026,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 2
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4973,6 +5046,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 3
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -4991,6 +5066,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    preferredTool: 1
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5009,6 +5086,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5027,6 +5106,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 7
+    preferredTool: 2
+    minimumMaterial: 1
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5045,6 +5126,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 5
+    preferredTool: 1
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5063,6 +5146,8 @@ MonoBehaviour:
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
     blockHealth: 4
+    preferredTool: 0
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5080,7 +5165,9 @@ MonoBehaviour:
     opacity: 15
     icon: {fileID: -715954974, guid: 8e9bef9b5a2ae174286b5c8047bd0b68, type: 3}
     isActive: 0
-    blockHealth: 0
+    blockHealth: 3
+    preferredTool: 3
+    minimumMaterial: 0
     dropItemName: 
     dropAmount: 1
     dropIcon: {fileID: 0}
@@ -5108,7 +5195,7 @@ Transform:
   m_GameObject: {fileID: 922702473}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.15119, y: 0, z: -2.48263}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7573,7 +7660,7 @@ MonoBehaviour:
     damageReduction: 0.15
   axeWeapon:
     damage: 6
-    reach: 1.8
+    reach: 2
     attackSpeed: 1
   sword:
     damage: 5
@@ -8690,7 +8777,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8674089398212472460, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_text
-      value: 'Quit to Main Menu
+      value: 'Exit to Main Menu
 
 '
       objectReference: {fileID: 0}
@@ -10127,7 +10214,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8674089398212472460, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_text
-      value: 'Quit to Main Menu
+      value: 'Exit to Main Menu
 
 '
       objectReference: {fileID: 0}

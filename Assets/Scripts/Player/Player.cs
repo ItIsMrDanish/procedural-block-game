@@ -428,9 +428,12 @@ public class Player : MonoBehaviour
     //
     // Design:
     //   • blockHealth on BlockType is the number of seconds needed to break
-    //     the block.  Set it to 0 (or ≤ 0) for instant-break (air, etc.).
-    //   • Each frame we advance _breakProgress by Time.deltaTime while the
-    //     attack button is held AND the cursor is on the same block.
+    //     the block with bare hands (efficiency = 1).
+    //   • The held tool's damage multiplier speeds this up when the tool type
+    //     matches the block's preferredTool.
+    //   • The tool's material tier is compared against the block's minimumMaterial
+    //     to decide whether a drop spawns.
+    //   • Each frame we advance _breakProgress by Time.deltaTime * efficiency.
     //   • If the player looks away, the target changes → progress resets.
     //   • If the button is released, progress resets.
     //   • When progress >= blockHealth the block is destroyed.
@@ -469,20 +472,27 @@ public class Player : MonoBehaviour
         VoxelState voxel = chunk.GetVoxelFromGlobalVector3(highlightBlock.position);
         if (voxel == null) { ResetBreak(); return; }
 
-        float health = _world.blocktypes[voxel.id].blockHealth;
+        BlockType blockType = _world.blocktypes[voxel.id];
+        float health = blockType.blockHealth;
 
         // Instant-break: health of 0 means no hold required.
         if (health <= 0f)
         {
-            SpawnDrop(voxel.id, highlightBlock.position);
+            // Even instant-break blocks respect the harvest check (e.g. leaves need axe to silk-touch).
+            bool instantCanHarvest = GetHarvestable(blockType);
+            if (instantCanHarvest) SpawnDrop(voxel.id, highlightBlock.position);
             chunk.EditVoxel(highlightBlock.position, 0);
             if (breakParticles != null) breakParticles.StopBreaking();
             ResetBreak();
             return;
         }
 
-        // Advance progress.
-        _breakProgress += Time.deltaTime;
+        // Resolve how efficiently the held tool breaks this block.
+        float efficiency = GetBreakEfficiency(blockType);
+
+        // Advance progress scaled by tool efficiency.
+        // efficiency 1 = bare-hands speed; 3 = three times faster, etc.
+        _breakProgress += Time.deltaTime * efficiency;
 
         // Update progress bar fill (0 → 1).
         float fill = Mathf.Clamp01(_breakProgress / health);
@@ -507,12 +517,79 @@ public class Player : MonoBehaviour
         // Block broken!
         if (_breakProgress >= health)
         {
-            SpawnDrop(voxel.id, highlightBlock.position);
+            // Only drop loot when the held tool meets the block's minimum material tier.
+            if (GetHarvestable(blockType))
+                SpawnDrop(voxel.id, highlightBlock.position);
+
             chunk.EditVoxel(highlightBlock.position, 0);
             if (breakParticles != null) breakParticles.StopBreaking();
             if (SoundManager.Instance != null) SoundManager.Instance.PlayBlockBreak();
             ResetBreak();
         }
+    }
+
+    // ── Tool-vs-block helpers ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the speed multiplier the held tool applies to breaking this block.
+    ///
+    /// Speed is only boosted when the held tool type exactly matches the block's
+    /// preferredTool. Everything else — bare hands, wrong tool, no tool preference
+    /// on the block — always returns 1 (bare-hands speed).
+    /// </summary>
+    private float GetBreakEfficiency(BlockType block)
+    {
+        // Block has no preferred tool → always bare-hands speed, no exceptions.
+        if (block.preferredTool == ToolType.None)
+            return 1f;
+
+        string heldName = _selectedItem?.itemName ?? string.Empty;
+        ToolType heldTool = RecipeManager.GetToolType(heldName);
+
+        // Correct tool type → apply the material's damage multiplier.
+        if (heldTool == block.preferredTool)
+        {
+            (float damage, float _) = RecipeManager.GetToolStats(heldName);
+            return damage;
+        }
+
+        // Wrong tool type or bare hands → bare-hands speed.
+        return 1f;
+    }
+
+    /// <summary>
+    /// Returns true when the held tool can yield a drop from this block.
+    ///
+    /// Two conditions must both pass:
+    ///   1. Tool TYPE matches the block's preferredTool (a shovel never harvests stone).
+    ///   2. Tool MATERIAL tier meets or exceeds the block's minimumMaterial.
+    ///
+    /// Blocks with preferredTool = None can always be harvested (bare hands or any tool).
+    /// Blocks with minimumMaterial = None only require the correct tool type (if any).
+    /// </summary>
+    private bool GetHarvestable(BlockType block)
+    {
+        // No preferred tool and no minimum material → always drops (e.g. flowers, torches).
+        if (block.preferredTool == ToolType.None && block.minimumMaterial == MaterialType.None)
+            return true;
+
+        string heldName   = _selectedItem?.itemName ?? string.Empty;
+        ToolType heldTool = RecipeManager.GetToolType(heldName);
+
+        // If the block requires a specific tool type, the held tool must match.
+        // A Metal Shovel cannot harvest Stone no matter its tier.
+        if (block.preferredTool != ToolType.None && heldTool != block.preferredTool)
+            return false;
+
+        // Tool type is correct (or block has no preference). Now check material tier.
+        if (block.minimumMaterial == MaterialType.None)
+            return true;
+
+        MaterialType heldMaterial = RecipeManager.GetToolMaterial(heldName);
+
+        // MaterialType must be ordered weakest to strongest in the enum definition:
+        // None=0, Wood=1, Stone=2, Iron/Metal=3, Gold=4, Diamond=5, etc.
+        return (int)heldMaterial >= (int)block.minimumMaterial;
     }
 
     // Spawns a world drop for the given block at its world position.

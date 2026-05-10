@@ -149,6 +149,73 @@ public class RecipeManager : ScriptableObject
             inventory.AddItem(ItemName, outputAmount * times);
     }
 
+    // ── Static tool-lookup helpers (called by Player.cs) ─────────────────────
+
+    // Registry populated explicitly by CraftingMenu.RegisterRecipesForLookup()
+    // at Start(). Using a registration pattern instead of Resources.FindObjectsOfTypeAll
+    // because ScriptableObjects are only guaranteed to be loaded if they are directly
+    // referenced by a scene object — which CraftingMenu's serialized list already ensures.
+    private static readonly Dictionary<string, RecipeManager> _recipeByItemName
+        = new Dictionary<string, RecipeManager>();
+
+    /// <summary>
+    /// Called by CraftingMenu.Start() to register all its recipes into the lookup.
+    /// Must be called before the player can hold any tool.
+    /// </summary>
+    public static void RegisterRecipes(IEnumerable<RecipeManager> recipes)
+    {
+        foreach (var r in recipes)
+            if (r != null && !string.IsNullOrEmpty(r.ItemName))
+                _recipeByItemName[r.ItemName] = r;
+    }
+
+    /// <summary>
+    /// Returns (damage, hardness) for the item currently held by the player.
+    /// Returns (1, 1) — bare-hands values — for non-tool items or an empty hand.
+    /// </summary>
+    public static (float damage, float hardness) GetToolStats(string heldItemName)
+    {
+        if (string.IsNullOrEmpty(heldItemName)) return (1f, 1f);
+
+        var settings = RecipeManagerSettings.Instance;
+        if (settings == null) return (1f, 1f);
+
+        if (!_recipeByItemName.TryGetValue(heldItemName, out var recipe)) return (1f, 1f);
+        if (recipe.itemType != ItemType.Tool && recipe.itemType != ItemType.Weapon) return (1f, 1f);
+
+        MaterialStats mat = settings.GetMaterialStats(recipe.material);
+        if (mat == null) return (1f, 1f);
+
+        return (mat.damage, mat.hardness);
+    }
+
+    /// <summary>
+    /// Returns the ToolType of the held item, or ToolType.None if it is not a tool.
+    /// Weapons intentionally return None — they don't mine blocks.
+    /// </summary>
+    public static ToolType GetToolType(string heldItemName)
+    {
+        if (string.IsNullOrEmpty(heldItemName)) return ToolType.None;
+
+        if (!_recipeByItemName.TryGetValue(heldItemName, out var recipe)) return ToolType.None;
+        if (recipe.itemType == ItemType.Tool) return recipe.toolType;
+
+        return ToolType.None;
+    }
+
+    /// <summary>
+    /// Returns the MaterialType of the held tool, or MaterialType.None for non-tools.
+    /// </summary>
+    public static MaterialType GetToolMaterial(string heldItemName)
+    {
+        if (string.IsNullOrEmpty(heldItemName)) return MaterialType.None;
+
+        if (!_recipeByItemName.TryGetValue(heldItemName, out var recipe)) return MaterialType.None;
+        if (recipe.itemType != ItemType.Tool && recipe.itemType != ItemType.Weapon) return MaterialType.None;
+
+        return recipe.material;
+    }
+
     // ── Runtime stat helpers ──────────────────────────────────────────────────
 
     /// <summary>

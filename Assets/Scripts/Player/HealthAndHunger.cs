@@ -421,7 +421,7 @@ public class HealthAndHunger : MonoBehaviour {
 #if UNITY_EDITOR
     private void OnGUI() {
         
-        GUILayout.BeginArea(new Rect(10, 10, 200, 60));
+        GUILayout.BeginArea(new Rect(750, 700, 200, 60));
         GUILayout.Label($"HP: {_currentHealth} / {maxHealth}");
         GUILayout.Label($"Hunger: {_currentHunger} / {maxHunger}");
         GUILayout.EndArea();

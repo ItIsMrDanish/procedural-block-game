@@ -109,8 +109,8 @@ public class Inventory : MonoBehaviour, IInventory {
         inventoryPanel.SetActive(false);
 
         foreach (StartingItem entry in startingItems)
-            if (!string.IsNullOrWhiteSpace(entry.itemName) && entry.amount > 0)
-                AddItem(entry.itemName, entry.amount, entry.icon);
+            if (!string.IsNullOrWhiteSpace(entry.ItemName) && entry.amount > 0)
+                AddItem(entry.ItemName, entry.amount, entry.Icon);
 
         RefreshUI();
 
@@ -502,10 +502,12 @@ public class InventorySlot {
 
 [System.Serializable]
 public class StartingItem {
-    public string itemName;
+    [Tooltip("Drag an ItemDefinition asset here. The item name and icon are read from it automatically.")]
+    public ItemDefinition item;
     [Min(1)] public int amount = 1;
-    [Tooltip("Optional icon shown in the inventory UI slot.")]
-    public Sprite icon;
+
+    public string ItemName => item != null ? item.itemName : string.Empty;
+    public Sprite Icon     => item != null ? item.icon     : null;
 }
 
 public class SlotUI {

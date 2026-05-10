@@ -100,6 +100,11 @@ public class CraftingMenu : MonoBehaviour {
         craftButton.onClick.AddListener(OnCraftClicked);
         PopulateRecipeList();
 
+        // Register all recipes into the static lookup used by Player.cs for
+        // tool-vs-block efficiency and harvest checks. Must happen at Start()
+        // so the lookup is ready before the player can hold any item.
+        RecipeManager.RegisterRecipes(recipes);
+
         // Register unstackable items with the inventory so it enforces 1-per-slot.
         if (inventory != null) {
             foreach (RecipeManager recipe in recipes)
