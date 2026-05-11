@@ -2083,7 +2083,7 @@ GameObject:
   m_Component:
   - component: {fileID: 357234897}
   - component: {fileID: 357234898}
-  - component: {fileID: 357234899}
+  - component: {fileID: 357234901}
   - component: {fileID: 357234900}
   m_Layer: 0
   m_Name: Player
@@ -2144,7 +2144,25 @@ MonoBehaviour:
   craftingMenu: {fileID: 2030817970}
   pauseMenu: {fileID: 1483120142}
   breakParticles: {fileID: 357234900}
---- !u!114 &357234899
+  eatHoldDuration: 2
+--- !u!114 &357234900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357234896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dc11ffdaf9a0241ca80ee46c54174d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlockBreakParticles
+  atlasTex: {fileID: 2800000, guid: 2b1b853ad7d50ba4fa81b4456128d2db, type: 3}
+  emitRate: 12
+  particleLifetime: 0.45
+  spreadSpeed: 2.8
+  particleSize: 0.12
+--- !u!114 &357234901
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2167,23 +2185,6 @@ MonoBehaviour:
   maxTiltAngle: 60
   tiltRecoveryTime: 0.4
   tiltRecoverySmoothing: 8
---- !u!114 &357234900
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 357234896}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dc11ffdaf9a0241ca80ee46c54174d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BlockBreakParticles
-  atlasTex: {fileID: 2800000, guid: 2b1b853ad7d50ba4fa81b4456128d2db, type: 3}
-  emitRate: 12
-  particleLifetime: 0.45
-  spreadSpeed: 2.8
-  particleSize: 0.12
 --- !u!1001 &361381038
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5650,7 +5651,7 @@ PrefabInstance:
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 357234899}
+      objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -7767,6 +7768,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EscapeMenu
   pauseMenuPanel: {fileID: 1483120138}
   player: {fileID: 357234898}
+  inventory: {fileID: 77128233}
+  craftingMenu: {fileID: 2030817970}
 --- !u!1 &1557619260
 GameObject:
   m_ObjectHideFlags: 0
@@ -7874,27 +7877,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManagerSettings
   wood:
-    damage: 1
-    hardness: 1
-  stone:
     damage: 2
     hardness: 2
+  stone:
+    damage: 3
+    hardness: 3
   leather:
     damageReduction: 0.05
   metal:
-    damage: 3
-    hardness: 3
-    damageReduction: 0.1
-  tourmaline:
     damage: 4
     hardness: 4
+    damageReduction: 0.1
+  tourmaline:
+    damage: 5
+    hardness: 5
     damageReduction: 0.15
   axeWeapon:
-    damage: 6
+    damage: 3
     reach: 2
     attackSpeed: 1
   sword:
-    damage: 5
+    damage: 2
     reach: 2
     attackSpeed: 1.5
 --- !u!4 &1573545102
@@ -8989,7 +8992,7 @@ PrefabInstance:
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 357234899}
+      objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -10341,12 +10344,12 @@ RectTransform:
   - {fileID: 311216140}
   - {fileID: 2074229379}
   - {fileID: 1694077348}
+  - {fileID: 89920340}
+  - {fileID: 2043937409}
   - {fileID: 77128232}
   - {fileID: 2030817969}
-  - {fileID: 89920340}
-  - {fileID: 1610508765}
   - {fileID: 1483120139}
-  - {fileID: 2043937409}
+  - {fileID: 1610508765}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

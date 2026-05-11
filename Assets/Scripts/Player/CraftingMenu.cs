@@ -133,6 +133,20 @@ public class CraftingMenu : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Closes the crafting panel without toggling. Safe to call when already closed.
+    /// Used by PauseMenu so Esc closes this UI before the pause screen can open.
+    /// Note: Player.cs still owns world.inUI and cursor state — call Player.ForceCloseUI()
+    /// alongside this if you need those side-effects.
+    /// </summary>
+    public void CloseMenu() {
+        if (!_menuOpen) return;
+        _menuOpen = false;
+        menuPanel.SetActive(false);
+        _selectedRecipe = null;
+        recipeDetailPanel.SetActive(false);
+    }
+
     // ─────────────────────────────── Left panel ───────────────────────────────
 
     private void PopulateRecipeList() {

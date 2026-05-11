@@ -103,6 +103,9 @@ public class HealthAndHunger : MonoBehaviour {
 
     // Public API
 
+    /// <summary>True when the hunger bar is at its maximum value.</summary>
+    public bool IsHungerFull => _currentHunger >= maxHunger;
+
     // Called by a UI Button to respawn the player.
     public void Respawn() {
 

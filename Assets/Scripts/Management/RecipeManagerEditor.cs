@@ -17,6 +17,8 @@ public class RecipeManagerEditor : Editor
     SerializedProperty _toolType;
     SerializedProperty _weaponType;
     SerializedProperty _material;
+    SerializedProperty _isFood;
+    SerializedProperty _foodValue;
     SerializedProperty _isArmor;
     SerializedProperty _armorSlot;
     SerializedProperty _ingredients;
@@ -30,6 +32,8 @@ public class RecipeManagerEditor : Editor
         _toolType     = serializedObject.FindProperty("toolType");
         _weaponType   = serializedObject.FindProperty("weaponType");
         _material     = serializedObject.FindProperty("material");
+        _isFood       = serializedObject.FindProperty("isFood");
+        _foodValue    = serializedObject.FindProperty("foodValue");
         _isArmor      = serializedObject.FindProperty("isArmor");
         _armorSlot    = serializedObject.FindProperty("armorSlot");
         _ingredients  = serializedObject.FindProperty("ingredients");
@@ -70,8 +74,21 @@ public class RecipeManagerEditor : Editor
                 DrawWeaponStatPreview();
                 break;
 
-            // ── Item (may be armour) ─────────────────────────────────────────
+            // ── Item (may be food or armour) ─────────────────────────────────
             case ItemType.Item:
+                // ── Food ────────────────────────────────────────────────────
+                EditorGUILayout.PropertyField(_isFood, new GUIContent("Is Food?"));
+                if (_isFood.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(_foodValue, new GUIContent("Food Value",
+                        "How much hunger this item restores when eaten (hold right-click ~2 s)."));
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.Space(2);
+
+                // ── Armour ───────────────────────────────────────────────────
                 EditorGUILayout.PropertyField(_isArmor, new GUIContent("Is Armor?"));
                 if (_isArmor.boolValue)
                 {

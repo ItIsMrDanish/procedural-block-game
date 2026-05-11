@@ -100,6 +100,15 @@ public class RecipeManager : ScriptableObject
     [Tooltip("Which armour slot this piece occupies.")]
     public ArmorSlotType armorSlot = ArmorSlotType.Helmet;
 
+    // ── Food settings (visible when itemType == Item && isFood) ───────────────
+
+    [Tooltip("Check to mark this item as food. Hold right-click for ~2 s to eat it.")]
+    public bool isFood = false;
+
+    [Tooltip("How much hunger this item restores when eaten.")]
+    [Min(1)]
+    public int foodValue = 2;
+
     // ── Ingredients ───────────────────────────────────────────────────────────
 
     [Header("Ingredients")]
@@ -116,6 +125,9 @@ public class RecipeManager : ScriptableObject
 
     /// <summary>True when this recipe produces an armour item.</summary>
     public bool IsArmor      => itemType == ItemType.Item && isArmor;
+
+    /// <summary>True when this recipe produces a food item.</summary>
+    public bool IsFood       => itemType == ItemType.Item && isFood;
 
     /// <summary>True when a material dropdown is relevant for this recipe.</summary>
     public bool HasMaterial  => itemType == ItemType.Tool
@@ -214,6 +226,16 @@ public class RecipeManager : ScriptableObject
         if (recipe.itemType != ItemType.Tool && recipe.itemType != ItemType.Weapon) return MaterialType.None;
 
         return recipe.material;
+    }
+
+    /// <summary>
+    /// Returns the food value of the named item, or 0 if it is not a food item.
+    /// </summary>
+    public static int GetFoodValue(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName)) return 0;
+        if (!_recipeByItemName.TryGetValue(itemName, out var recipe)) return 0;
+        return recipe.IsFood ? recipe.foodValue : 0;
     }
 
     // ── Runtime stat helpers ──────────────────────────────────────────────────

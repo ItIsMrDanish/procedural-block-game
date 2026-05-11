@@ -2,40 +2,9 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Permanently displays the held item's icon in the bottom-right corner of the
-/// screen with a Minecraft-style "semi-3D" look: the icon is tilted on X/Y axes
+/// Displays the held item's icon in the bottom-right corner of the
+/// screen with a Minecraft-style look: the icon is tilted on X/Y axes
 /// and a dark offset copy sits behind it to sell the depth illusion.
-///
-/// No text label — icon only.
-///
-/// HIERARCHY SETUP
-/// ───────────────
-/// Create this structure under your HUD Canvas:
-///
-///   HeldItemDisplay  (RectTransform — anchored bottom-right, this script here)
-///   ├─ Shadow        (UI Image — the dark offset copy, drawn first / lower in hierarchy)
-///   └─ Icon          (UI Image — the actual item sprite, drawn on top)
-///
-/// INSPECTOR SETUP
-/// ───────────────
-///  • iconImage   → drag the Icon   child Image here
-///  • shadowImage → drag the Shadow child Image here
-///
-/// TOOLBAR WIRING  (already done if you have the updated Toolbar.cs)
-/// ──────────────
-/// In Toolbar.NotifyPlayer() one line calls:
-///   HeldItemDisplay.Instance.Show(slot);
-///
-/// SIZING GUIDE
-/// ────────────
-/// • Anchor HeldItemDisplay to bottom-right.
-/// • Set Width/Height to 160 × 160.
-/// • Pivot (0.5, 0.5).
-/// • Anchored position: roughly (-110, 110) so it sits just inside the corner,
-///   clear of the hotbar. Adjust to match your layout.
-/// • Icon and Shadow children: Width/Height 160 × 160, anchored to centre of parent.
-/// </summary>
 public class HeldItemDisplay : MonoBehaviour
 {
     // ── Singleton ─────────────────────────────────────────────────────────────
@@ -89,6 +58,8 @@ public class HeldItemDisplay : MonoBehaviour
     private Coroutine     _wiggleCoroutine;
     private string        _currentItemName;
     private bool          _wiggling;
+    private bool          _foodWiggling;
+    private Coroutine     _foodWiggleCoroutine;
 
     // ── Unity lifecycle ───────────────────────────────────────────────────────
 
@@ -150,6 +121,9 @@ public class HeldItemDisplay : MonoBehaviour
         // Only animate when the item actually changes.
         if (itemChanged && swapAnimDuration > 0f)
         {
+            // Cancel any food-wiggle that was in progress for the previous item.
+            StopFoodWiggle();
+
             if (_swapCoroutine != null) StopCoroutine(_swapCoroutine);
             _swapCoroutine = StartCoroutine(SwapAnim());
         }
@@ -172,6 +146,51 @@ public class HeldItemDisplay : MonoBehaviour
         _wiggling = false;
         // WiggleCoroutine checks _wiggling each cycle and exits cleanly,
         // then snaps rotation back to the baked tilt.
+    }
+
+    // ── Food wiggle API (called by Player.cs on right-click with food) ────────
+
+    /// <summary>
+    /// Starts a slower, gentler right-to-left rock animation while the player
+    /// holds right-click on a food item. Mirrors the left-click wiggle API.
+    /// </summary>
+    public void StartFoodWiggle()
+    {
+        if (_foodWiggling) return;
+        _foodWiggling = true;
+        if (_foodWiggleCoroutine != null) StopCoroutine(_foodWiggleCoroutine);
+        _foodWiggleCoroutine = StartCoroutine(FoodWiggleCoroutine());
+    }
+
+    /// <summary>Call when the player releases right-click or finishes eating.</summary>
+    public void StopFoodWiggle()
+    {
+        _foodWiggling = false;
+        // FoodWiggleCoroutine checks _foodWiggling each cycle and exits cleanly.
+    }
+
+    private IEnumerator FoodWiggleCoroutine()
+    {
+        // Slightly slower and shallower than the break wiggle — feels like chewing.
+        float angle = wiggleAngle * 0.6f;
+        float speed = wiggleSpeed * 0.55f;
+
+        while (_foodWiggling)
+        {
+            float t      = 0f;
+            float period = 1f / speed;
+            while (t < period && _foodWiggling)
+            {
+                t += Time.deltaTime;
+                float zOffset = Mathf.Sin(t / period * Mathf.PI * 2f) * angle;
+                ApplyRotationWithZ(iconRotation.z + zOffset);
+                yield return null;
+            }
+        }
+
+        // Snap back to rest rotation cleanly.
+        ApplyRotationWithZ(iconRotation.z);
+        _foodWiggleCoroutine = null;
     }
 
     private IEnumerator WiggleCoroutine()

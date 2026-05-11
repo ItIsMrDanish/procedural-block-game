@@ -22,6 +22,12 @@ public class PauseMenu : MonoBehaviour
     [Tooltip("Assign the Player component so the pause menu can sync inUI and cursor state.")]
     [SerializeField] private Player player;
 
+    [Tooltip("Assign the Inventory component. Esc will close it before the pause menu can open.")]
+    [SerializeField] private Inventory inventory;
+
+    [Tooltip("Assign the CraftingMenu component. Esc will close it before the pause menu can open.")]
+    [SerializeField] private CraftingMenu craftingMenu;
+
     public bool IsPaused { get; private set; } = false;
 
     private World _world;
@@ -30,15 +36,52 @@ public class PauseMenu : MonoBehaviour
     {
         _world = GameObject.Find("World").GetComponent<World>();
         pauseMenuPanel.SetActive(false);
+
+        // Auto-resolve optional references if not wired in the Inspector.
+        if (player == null)
+            player = FindFirstObjectByType<Player>();
+        if (inventory == null)
+            inventory = FindFirstObjectByType<Inventory>();
+        if (craftingMenu == null)
+            craftingMenu = FindFirstObjectByType<CraftingMenu>();
+
+        if (player == null)
+            Debug.LogError("PauseMenu: No Player found — ForceCloseUI() will not work. Drag the Player into the Inspector slot.");
+        if (craftingMenu == null)
+            Debug.LogWarning("PauseMenu: No CraftingMenu found — Esc will not close it before pausing.");
+        if (inventory == null)
+            Debug.LogWarning("PauseMenu: No Inventory found — Esc will not close it before pausing.");
+
         ResumeGame();
     }
 
     /// <summary>
     /// Called by Player.cs via the Pause input action.
-    /// Toggles the pause menu open or closed.
+    /// If Inventory or CraftingMenu is open, Esc closes that UI first and does NOT
+    /// open the pause menu. A second Esc press (with both UIs already closed) pauses.
     /// </summary>
     public void TogglePause()
     {
+        // Close whichever gameplay UI is open and bail out — don't pause yet.
+        bool closedSomething = false;
+
+        if (inventory != null && inventory.IsOpen)
+        {
+            inventory.CloseInventory();
+            player?.ForceCloseUI(); // Player owns inUI + cursor state
+            closedSomething = true;
+        }
+
+        if (craftingMenu != null && craftingMenu.IsOpen)
+        {
+            craftingMenu.CloseMenu();
+            player?.ForceCloseUI();
+            closedSomething = true;
+        }
+
+        if (closedSomething) return;
+
+        // No gameplay UI was open — toggle the pause menu as normal.
         if (IsPaused)
             ResumeGame();
         else

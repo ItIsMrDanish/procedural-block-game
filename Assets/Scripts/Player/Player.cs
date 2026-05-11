@@ -7,63 +7,66 @@ using TMPro;
 
 public class Player : MonoBehaviour
 {
-
-    public bool isGrounded;
+    // ── State readable by other scripts ──────────────────────────────────────
+    public bool isGrounded;   // written by collision; read by Toolbar / external scripts
     public bool isSprinting;
-    public int orientation;
+    public int  orientation;  // 0=N 1=S 4=W 5=E — read by World chunk placement
+
+    // ── Height-probe sample count (feet / mid / just-below-head) ─────────────
+    private const int HeightProbes = 3;
 
     [Header("Movement")]
-    public float walkSpeed = 4.5f;
-    public float sprintSpeed = 7.5f;
-    public float jumpForce = 6.5f;
+    [SerializeField] private float walkSpeed    = 4.5f;
+    [SerializeField] private float sprintSpeed  = 7.5f;
+    [SerializeField] private float jumpForce    = 6.5f;
 
     // Stronger gravity = snappier jumps, less floaty feel.
-    public float gravity = -22f;
+    [SerializeField] private float gravity      = -22f;
 
     // How fast horizontal velocity ramps up / decelerates (units/s²).
-    public float groundAccel = 60f;   // Responsive on the ground
-    public float groundDecel = 50f;   // Stops quickly when key released
-    public float airAccel = 18f;   // Less control mid-air — feels natural
+    [SerializeField] private float groundAccel  = 60f;  // Responsive on the ground
+    [SerializeField] private float groundDecel  = 50f;  // Stops quickly when key released
+    [SerializeField] private float airAccel     = 18f;  // Less control mid-air — feels natural
 
     // Brief window after walking off a ledge where you can still jump.
-    public float coyoteTime = 0.12f;
+    [SerializeField] private float coyoteTime   = 0.12f;
 
     [Header("Body")]
     // Player is 2 blocks tall. Feet at transform.position, head top at +playerHeight.
     // 1.8 fits through a 2-block gap; raise to 1.95 for a tighter fit.
-    public float playerHeight = 1.8f;
-    public float playerWidth = 0.25f;  // Half-width of the AABB
+    [SerializeField] private float playerHeight = 1.8f;
+    [SerializeField] private float playerWidth  = 0.25f; // Half-width of the AABB
 
     [Header("Look")]
-    public float maxLookAngle = 89f;
+    [SerializeField] private float maxLookAngle = 89f;
 
     [Header("Block Interaction")]
-    public Transform highlightBlock;
-    public Transform placeBlock;
-    public float checkIncrement = 0.1f;
-    public float reach = 8f;
+    [SerializeField] private Transform highlightBlock;
+    [SerializeField] private Transform placeBlock;
+    [SerializeField] private float checkIncrement = 0.1f;
+    [SerializeField] private float reach          = 8f;
 
     [Header("Block Breaking UI")]
     // Assign a UI Image (set Image Type = Filled, Fill Method = Horizontal) in the Inspector.
     // It will fill left-to-right as the player holds the break button.
     // Leave null to disable the progress bar entirely.
-    public Image breakProgressBar;
+    [SerializeField] private Image breakProgressBar;
 
     [Header("References")]
-    public Toolbar toolbar;
-    public Inventory inventory;
-    public CraftingMenu craftingMenu;
-    public PauseMenu pauseMenu;        // Assign the PauseMenu component in the Inspector
+    [SerializeField] private Toolbar      toolbar;
+    [SerializeField] private Inventory    inventory;
+    [SerializeField] private CraftingMenu craftingMenu;
+    [SerializeField] private PauseMenu    pauseMenu;
 
     [Header("Block Break Particles")]
     // Assign the BlockBreakParticles component (on this same GameObject or a child).
     // Leave null to disable particles entirely.
-    public BlockBreakParticles breakParticles;
+    [SerializeField] private BlockBreakParticles breakParticles;
 
-    private Transform _cam;
-    private World _world;
+    private Transform   _cam;
+    private World       _world;
     private InputSystem _controls;
-    private PauseMenu _pauseMenu;
+    private HealthAndHunger _healthAndHunger;
 
     private float _cameraPitch = 0f;   // Accumulated pitch angle, clamped
 
@@ -99,6 +102,14 @@ public class Player : MonoBehaviour
     private const float ChipSoundInterval = 0.35f; // seconds between chip ticks
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── Eating state ──────────────────────────────────────────────────────────
+    [Header("Eating")]
+    [SerializeField] private float eatHoldDuration = 2f; // seconds of right-hold to eat
+
+    private bool  _useHeld      = false; // true while right-click is physically held
+    private float _eatProgress  = 0f;   // seconds the player has held right-click on food
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Unity lifecycle
 
     private void Awake()
@@ -121,21 +132,26 @@ public class Player : MonoBehaviour
         _controls.Player.Attack.performed += _ => { _breakHeld = true;  if (HeldItemDisplay.Instance != null) HeldItemDisplay.Instance.StartWiggle(); };
         _controls.Player.Attack.canceled  += _ => OnBreakReleased();
 
-        _controls.Player.Use.performed += _ => PlaceBlock();
+        _controls.Player.Use.performed += _ => OnUsePressed();
+        _controls.Player.Use.canceled  += _ => OnUseReleased();
         _controls.Player.Inventory.performed += _ => ToggleUI(inventory.ToggleInventory, isInventoryToggle: true);
         _controls.Player.Crafting.performed += _ => ToggleUI(craftingMenu.ToggleMenu, isInventoryToggle: false);
-        _controls.Player.Pause.performed += _ => _pauseMenu?.TogglePause();
+        _controls.Player.Pause.performed += _ => pauseMenu?.TogglePause();
 
     }
 
-    private void OnDisable() => _controls.Disable();
+    private void OnEnable()  => _controls?.Enable();
+    private void OnDisable() => _controls?.Disable();
 
     private void Start()
     {
-
-        _cam = GameObject.Find("Main Camera").transform;
+        _cam   = GameObject.Find("Main Camera").transform;
         _world = GameObject.Find("World").GetComponent<World>();
-        _pauseMenu = pauseMenu;
+
+        // HealthAndHunger lives on the same GameObject as Player.
+        _healthAndHunger = GetComponent<HealthAndHunger>();
+        if (_healthAndHunger == null)
+            Debug.LogError("[Player] HealthAndHunger component not found on this GameObject!");
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -173,15 +189,18 @@ public class Player : MonoBehaviour
             PlaceCursorBlocks();
             PushCameraOutOfBlocks();
             UpdateBlockBreaking();   // ← new: advance break timer each frame
+            UpdateEating();          // ← advance eat timer each frame
         }
 
         // Block-placement orientation (which cardinal direction the player faces).
-        Vector3 xzFwd = transform.forward;
-        xzFwd.y = 0f;
-        if (Vector3.Angle(xzFwd, Vector3.forward) <= 45f) orientation = 0;
-        else if (Vector3.Angle(xzFwd, Vector3.right) <= 45f) orientation = 5;
-        else if (Vector3.Angle(xzFwd, Vector3.back) <= 45f) orientation = 1;
-        else orientation = 4;
+        // Dot product is cheaper than Vector3.Angle — avoids acos + sqrt.
+        Vector3 xzFwd = new Vector3(transform.forward.x, 0f, transform.forward.z).normalized;
+        float dot = Vector3.Dot(xzFwd, Vector3.forward); // +1=N, -1=S
+        float cross = xzFwd.x;                           // +right, -left
+        if      (dot  >=  0.707f) orientation = 0; // North
+        else if (dot  <= -0.707f) orientation = 1; // South
+        else if (cross >= 0f)     orientation = 5; // East
+        else                      orientation = 4; // West
     }
 
     // Look
@@ -304,7 +323,13 @@ public class Player : MonoBehaviour
         if (CheckSideZ(dz)) { dz = 0f; _horizontalVelocity.z = 0f; }
 
         if (dy < 0f) dy = CheckDownSpeed(dy);
-        else dy = CheckUpSpeed(dy);
+        else
+        {
+            float checkedDy = CheckUpSpeed(dy);
+            // Head hit a block — kill upward momentum so velocity doesn't keep accumulating.
+            if (checkedDy < dy) _verticalVelocity = 0f;
+            dy = checkedDy;
+        }
 
         transform.position += new Vector3(dx, dy, dz);
 
@@ -323,7 +348,9 @@ public class Player : MonoBehaviour
         }
         else
         {
-            _footstepTimer = 0f; // reset so first step after stopping is immediate
+            // Reset to the full interval so the first step after pausing feels natural,
+            // not instant. Previously resetting to 0 caused an immediate step on re-move.
+            _footstepTimer = FootstepInterval;
         }
     }
 
@@ -383,10 +410,9 @@ public class Player : MonoBehaviour
         float w = playerWidth;
         float edgeX = px + Mathf.Sign(deltaX) * w;  // leading face in X
 
-        // Sample the two Z corners at three heights: feet, mid, just-below-head.
-        for (int i = 0; i < 3; i++)
+        // Sample the two Z corners at HeightProbes heights: feet, mid, just-below-head.
+        for (int i = 0; i < HeightProbes; i++)
         {
-
             float h = py + (i == 0 ? 0f : i == 1 ? 1f : playerHeight - 0.1f);
             if (_world.CheckForVoxel(new Vector3(edgeX, h, pz - w))) return true;
             if (_world.CheckForVoxel(new Vector3(edgeX, h, pz + w))) return true;
@@ -405,9 +431,8 @@ public class Player : MonoBehaviour
         float w = playerWidth;
         float edgeZ = pz + Mathf.Sign(deltaZ) * w; // leading face in Z
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < HeightProbes; i++)
         {
-
             float h = py + (i == 0 ? 0f : i == 1 ? 1f : playerHeight - 0.1f);
             if (_world.CheckForVoxel(new Vector3(px - w, h, edgeZ))) return true;
             if (_world.CheckForVoxel(new Vector3(px + w, h, edgeZ))) return true;
@@ -645,6 +670,69 @@ public class Player : MonoBehaviour
     /// </summary>
     public void SetSelectedItem(InventorySlot slot) => _selectedItem = slot;
 
+    // ── Use button (right-click): place block OR eat food ────────────────────
+
+    private void OnUsePressed()
+    {
+        _useHeld     = true;
+        _eatProgress = 0f;
+
+        // If not holding a food item, place a block immediately (original behaviour).
+        int foodVal = RecipeManager.GetFoodValue(_selectedItem?.itemName ?? string.Empty);
+        if (foodVal <= 0)
+        {
+            PlaceBlock();
+        }
+        else
+        {
+            // Start food-hold wiggle — only when hunger isn't already full.
+            if (_healthAndHunger == null || !_healthAndHunger.IsHungerFull)
+                HeldItemDisplay.Instance?.StartFoodWiggle();
+        }
+    }
+
+    private void OnUseReleased()
+    {
+        _useHeld     = false;
+        _eatProgress = 0f;
+        HeldItemDisplay.Instance?.StopFoodWiggle();
+    }
+
+    // Advances the eat timer each frame.  When the hold threshold is reached,
+    // consumes one food item and restores hunger via HealthAndHunger.Eat().
+    private void UpdateEating()
+    {
+        if (!_useHeld) return;
+        if (_selectedItem == null) return;
+
+        int foodVal = RecipeManager.GetFoodValue(_selectedItem.itemName);
+        if (foodVal <= 0) return; // Not a food item — nothing to do.
+
+        // Hunger already full — can't eat.
+        if (_healthAndHunger != null && _healthAndHunger.IsHungerFull) return;
+
+        _eatProgress += Time.deltaTime;
+
+        // TODO: drive an eat-progress bar here if you add one later
+        // (same pattern as breakProgressBar: fill = _eatProgress / eatHoldDuration)
+
+        if (_eatProgress >= eatHoldDuration)
+        {
+            _eatProgress = 0f; // Reset so holding longer doesn't chain-eat instantly
+
+            // Consume one item from the inventory.
+            inventory.RemoveItem(_selectedItem.itemName, 1);
+            // _selectedItem is refreshed automatically via Toolbar → SetSelectedItem
+
+            // Restore hunger.
+            if (_healthAndHunger != null)
+                _healthAndHunger.Eat(foodVal);
+
+            // Stop wiggle after successfully eating.
+            HeldItemDisplay.Instance?.StopFoodWiggle();
+        }
+    }
+
     private void PlaceBlock()
     {
 
@@ -744,16 +832,28 @@ public class Player : MonoBehaviour
     private void ToggleUI(System.Action panelToggle, bool isInventoryToggle)
     {
         // Mutual exclusion: block open attempts while the other panel is up.
-        if (isInventoryToggle && craftingMenu.IsOpen) return;
-        if (!isInventoryToggle && inventory.IsOpen) return;
+        if (isInventoryToggle  && craftingMenu.IsOpen) return;
+        if (!isInventoryToggle && inventory.IsOpen)    return;
 
         panelToggle();
 
         // Derive inUI from actual panel states (both checked in case of edge cases).
         bool anyOpen = inventory.IsOpen || craftingMenu.IsOpen;
-        _world.inUI = anyOpen;
-        Cursor.lockState = anyOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = anyOpen;
+        _world.inUI          = anyOpen;
+        Cursor.lockState     = anyOpen ? CursorLockMode.None   : CursorLockMode.Locked;
+        Cursor.visible       = anyOpen;
+    }
+
+    /// <summary>
+    /// Called by PauseMenu when Esc forcibly closes Inventory or CraftingMenu.
+    /// Restores cursor lock and clears world.inUI so Player doesn't need to
+    /// duplicate that logic.
+    /// </summary>
+    public void ForceCloseUI()
+    {
+        _world.inUI      = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible   = false;
     }
 
     // Compatibility shim - World.cs accesses _player.orientation directly.

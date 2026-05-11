@@ -21,6 +21,8 @@ MonoBehaviour:
   material: 0
   isArmor: 0
   armorSlot: 0
+  isFood: 1
+  foodValue: 8
   ingredients:
   - item: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
     amount: 1
