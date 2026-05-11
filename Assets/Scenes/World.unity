@@ -794,8 +794,6 @@ MonoBehaviour:
   slotUIPrefab: {fileID: 5369721320111526741, guid: 1ec74ae9c40d18746ada817a3e28e18c, type: 3}
   emptySlotSprite: {fileID: 0}
   startingItems:
-  - item: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
-    amount: 10
   - item: {fileID: 11400000, guid: 393556f43ed60494196d74a7b664a26c, type: 2}
     amount: 1
   - item: {fileID: 11400000, guid: d699637eeac1f0241806339acceb69f6, type: 2}
@@ -828,6 +826,8 @@ MonoBehaviour:
     amount: 1
   - item: {fileID: 11400000, guid: 714f4f973b43f88419638ad8c4377b7c, type: 2}
     amount: 1
+  - item: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
+    amount: 10
 --- !u!1 &77769028
 GameObject:
   m_ObjectHideFlags: 0
@@ -10195,18 +10195,18 @@ PrefabInstance:
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 357234899}
+      objectReference: {fileID: 1483120142}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: MainMenu
+      value: ExitToMainMenu
       objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: HealthAndHunger, Assembly-CSharp
+      value: PauseMenu, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8359291797284392689, guid: 8bd6b89bba14e524d9be01d523955d8d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName

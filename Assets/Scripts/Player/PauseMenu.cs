@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Pause Menu — integrates with the Player / World inUI pattern.
@@ -29,6 +30,7 @@ public class PauseMenu : MonoBehaviour
     {
         _world = GameObject.Find("World").GetComponent<World>();
         pauseMenuPanel.SetActive(false);
+        ResumeGame();
     }
 
     /// <summary>
@@ -73,8 +75,11 @@ public class PauseMenu : MonoBehaviour
         Cursor.visible = false;
     }
 
-    /// <summary>
+    public void ExitToMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
     /// Wire this to your Resume Button's OnClick event in the Inspector.
-    /// </summary>
     public void OnResumeButtonClicked() => ResumeGame();
 }
