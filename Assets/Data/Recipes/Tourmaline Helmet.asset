@@ -18,7 +18,7 @@ MonoBehaviour:
   itemType: 0
   toolType: 0
   weaponType: 1
-  material: 4
+  material: 5
   isArmor: 1
   armorSlot: 0
   ingredients:

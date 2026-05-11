@@ -16,9 +16,9 @@ MonoBehaviour:
   outputAmount: 1
   unstackable: 1
   itemType: 2
-  toolType: 2
+  toolType: 3
   weaponType: 1
-  material: 0
+  material: 1
   isArmor: 0
   armorSlot: 0
   ingredients:

@@ -149,7 +149,12 @@ public class Toolbar : MonoBehaviour
     private void NotifyPlayer()
     {
         if (player == null || inventory == null) return;
-        player.SetSelectedItem(inventory.GetSlot(slotIndex));
+        InventorySlot slot = inventory.GetSlot(slotIndex);
+        player.SetSelectedItem(slot);
+
+        // Notify the held-item display so it can show the new item name + icon.
+        if (HeldItemDisplay.Instance != null)
+            HeldItemDisplay.Instance.Show(slot);
     }
 
     // ───────────────────────────── Public API ────────────────────────────────

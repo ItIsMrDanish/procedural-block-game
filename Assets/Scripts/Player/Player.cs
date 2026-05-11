@@ -118,8 +118,8 @@ public class Player : MonoBehaviour
         _controls.Player.Sprint.canceled += _ => isSprinting = false;
 
         // Attack: track held/released rather than single-frame callbacks.
-        _controls.Player.Attack.performed += _ => _breakHeld = true;
-        _controls.Player.Attack.canceled += _ => OnBreakReleased();
+        _controls.Player.Attack.performed += _ => { _breakHeld = true;  if (HeldItemDisplay.Instance != null) HeldItemDisplay.Instance.StartWiggle(); };
+        _controls.Player.Attack.canceled  += _ => OnBreakReleased();
 
         _controls.Player.Use.performed += _ => PlaceBlock();
         _controls.Player.Inventory.performed += _ => ToggleUI(inventory.ToggleInventory, isInventoryToggle: true);
@@ -539,21 +539,18 @@ public class Player : MonoBehaviour
     /// </summary>
     private float GetBreakEfficiency(BlockType block)
     {
-        // Block has no preferred tool → always bare-hands speed, no exceptions.
         if (block.preferredTool == ToolType.None)
             return 1f;
 
         string heldName = _selectedItem?.itemName ?? string.Empty;
         ToolType heldTool = RecipeManager.GetToolType(heldName);
 
-        // Correct tool type → apply the material's damage multiplier.
         if (heldTool == block.preferredTool)
         {
             (float damage, float _) = RecipeManager.GetToolStats(heldName);
             return damage;
         }
 
-        // Wrong tool type or bare hands → bare-hands speed.
         return 1f;
     }
 
@@ -569,26 +566,30 @@ public class Player : MonoBehaviour
     /// </summary>
     private bool GetHarvestable(BlockType block)
     {
-        // No preferred tool and no minimum material → always drops (e.g. flowers, torches).
+        // No preferred tool and no minimum material → always drops (bare hands fine).
         if (block.preferredTool == ToolType.None && block.minimumMaterial == MaterialType.None)
             return true;
 
+        // Shovel and axe blocks are always droppable regardless of what the player holds.
+        // Only pickaxe blocks (ores, stone) enforce a minimum material tier.
+        if (block.preferredTool == ToolType.Shovel || block.preferredTool == ToolType.Axe)
+            return true;
+
+        // From here on: block.preferredTool == Pickaxe (or some future tool that needs tier gating).
         string heldName   = _selectedItem?.itemName ?? string.Empty;
         ToolType heldTool = RecipeManager.GetToolType(heldName);
 
-        // If the block requires a specific tool type, the held tool must match.
-        // A Metal Shovel cannot harvest Stone no matter its tier.
-        if (block.preferredTool != ToolType.None && heldTool != block.preferredTool)
+        // Wrong tool type → no drop (e.g. shovel on stone).
+        if (heldTool != block.preferredTool)
             return false;
 
-        // Tool type is correct (or block has no preference). Now check material tier.
+        // Correct tool type. If no minimum material is set, any tier works.
         if (block.minimumMaterial == MaterialType.None)
             return true;
 
+        // Check material tier — enum must be ordered weakest→strongest:
+        // None=0, Wood=1, Stone=2, Leather=3, Metal=4, Tourmaline=5
         MaterialType heldMaterial = RecipeManager.GetToolMaterial(heldName);
-
-        // MaterialType must be ordered weakest to strongest in the enum definition:
-        // None=0, Wood=1, Stone=2, Iron/Metal=3, Gold=4, Diamond=5, etc.
         return (int)heldMaterial >= (int)block.minimumMaterial;
     }
 
@@ -604,6 +605,7 @@ public class Player : MonoBehaviour
     private void OnBreakReleased()
     {
         _breakHeld = false;
+        if (HeldItemDisplay.Instance != null) HeldItemDisplay.Instance.StopWiggle();
         if (breakParticles != null) breakParticles.StopBreaking();
         ResetBreak();
     }
