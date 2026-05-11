@@ -17,7 +17,6 @@ public enum ItemType
 /// <summary>Material tier applied to tools, weapons, and armour.</summary>
 public enum MaterialType
 {
-    None = 0,
     Wood,
     Stone,
     Leather,
@@ -28,7 +27,6 @@ public enum MaterialType
 /// <summary>Sub-type for tool recipes.</summary>
 public enum ToolType
 {
-    None = 0,
     Axe,
     Pickaxe,
     Shovel
@@ -144,25 +142,25 @@ public class RecipeManagerSettings : MonoBehaviour
     public MaterialStats wood = new MaterialStats { damage = 1f, hardness = 1f };
 
     [Tooltip("Stats for Stone-tier items. No damage reduction (Stone cannot be armour).")]
-    public MaterialStats stone = new MaterialStats { damage = 2f, hardness = 2f };
+    public MaterialStats stone = new MaterialStats { damage = 1f, hardness = 1f };
 
     [Tooltip("Stats for Leather-tier items. Armour-only material — no damage or hardness.")]
-    public LeatherStats leather = new LeatherStats { damageReduction = 0.05f };
+    public LeatherStats leather = new LeatherStats { damageReduction = 0f };
 
     [Tooltip("Stats for Metal-tier items. Supports armour damage reduction.")]
-    public ArmorMaterialStats metal = new ArmorMaterialStats { damage = 2f, hardness = 2f, damageReduction = 0.1f };
+    public ArmorMaterialStats metal = new ArmorMaterialStats { damage = 1f, hardness = 1f, damageReduction = 0f };
 
     [Tooltip("Stats for Tourmaline-tier items. Supports armour damage reduction.")]
-    public ArmorMaterialStats tourmaline = new ArmorMaterialStats { damage = 2f, hardness = 2f, damageReduction = 0.15f };
+    public ArmorMaterialStats tourmaline = new ArmorMaterialStats { damage = 1f, hardness = 1f, damageReduction = 0f };
 
     // ── Weapon type stats ─────────────────────────────────────────────────────
 
     [Header("Weapon Type Stats")]
     [Tooltip("Base stats for Axe weapons (multiplied by material damage at runtime).")]
-    public WeaponTypeStats axeWeapon = new WeaponTypeStats { damage = 6f, reach = 2f, attackSpeed = 1f };
+    public WeaponTypeStats axeWeapon = new WeaponTypeStats { damage = 6f, reach = 1.8f, attackSpeed = 0.8f };
 
     [Tooltip("Base stats for Sword weapons (multiplied by material damage at runtime).")]
-    public WeaponTypeStats sword = new WeaponTypeStats { damage = 5f, reach = 2f, attackSpeed = 1.5f };
+    public WeaponTypeStats sword = new WeaponTypeStats { damage = 5f, reach = 2f, attackSpeed = 1.2f };
 
     // ── Convenience accessors ─────────────────────────────────────────────────
 

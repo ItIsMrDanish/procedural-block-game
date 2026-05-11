@@ -14,7 +14,7 @@ public class HealthAndHunger : MonoBehaviour {
     [Header("UI")]
     public Slider healthSlider;
     public Slider hungerSlider;
-    public GameObject deathScreen;
+    public Canvas deathScreenCanvas;
 
     [Header("Hunger")]
     [Tooltip("Seconds between each -1 hunger tick.")]
@@ -76,8 +76,8 @@ public class HealthAndHunger : MonoBehaviour {
             Debug.LogWarning("[PlayerHealth] Could not find 'Main Camera' for damage tilt.");
 
         // Hide death screen at game start
-        if (deathScreen != null)
-            deathScreen.gameObject.SetActive(false);
+        if (deathScreenCanvas != null)
+            deathScreenCanvas.gameObject.SetActive(false);
 
         // Kick off the passive hunger drain loop
         _hungerCoroutine = StartCoroutine(HungerDrainLoop());
@@ -112,8 +112,8 @@ public class HealthAndHunger : MonoBehaviour {
         InitStats();
 
         // Hide death screen, re-enable movement
-        if (deathScreen != null)
-            deathScreen.gameObject.SetActive(false);
+        if (deathScreenCanvas != null)
+            deathScreenCanvas.gameObject.SetActive(false);
 
         SetMovementEnabled(true);
 
@@ -236,8 +236,8 @@ public class HealthAndHunger : MonoBehaviour {
         SetMovementEnabled(false);
         StopAllPassiveCoroutines();
 
-        if (deathScreen != null)
-            deathScreen.gameObject.SetActive(true);
+        if (deathScreenCanvas != null)
+            deathScreenCanvas.gameObject.SetActive(true);
 
         // Unlock and show cursor so the player can click the respawn button
         Cursor.lockState = CursorLockMode.None;
@@ -421,7 +421,7 @@ public class HealthAndHunger : MonoBehaviour {
 #if UNITY_EDITOR
     private void OnGUI() {
         
-        GUILayout.BeginArea(new Rect(750, 700, 200, 60));
+        GUILayout.BeginArea(new Rect(10, 10, 200, 60));
         GUILayout.Label($"HP: {_currentHealth} / {maxHealth}");
         GUILayout.Label($"Hunger: {_currentHunger} / {maxHunger}");
         GUILayout.EndArea();

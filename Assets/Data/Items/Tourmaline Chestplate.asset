@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Tourmaline Chestplate
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Tourmaline Chestplate
-  icon: {fileID: 21300000, guid: 3ead22893b12ea440807e2735040c214, type: 3}
+  icon: {fileID: 0}

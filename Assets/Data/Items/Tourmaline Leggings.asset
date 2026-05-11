@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Tourmaline Leggings
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Tourmaline Leggings
-  icon: {fileID: 21300000, guid: b7d0d407091e2c8479f4cbfc109d7ca5, type: 3}
+  icon: {fileID: 0}

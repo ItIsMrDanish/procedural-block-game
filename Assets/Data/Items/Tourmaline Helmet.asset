@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Tourmaline Helmet
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Tourmaline Helmet
-  icon: {fileID: 21300000, guid: 9fe02b71c4482054e82995e6b4faa06a, type: 3}
+  icon: {fileID: 0}

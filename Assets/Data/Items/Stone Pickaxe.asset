@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Stone Pickaxe
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Stone Pickaxe
-  icon: {fileID: 21300000, guid: 05ead0ab15f001e46b98edd9bcc1608f, type: 3}
+  icon: {fileID: 0}

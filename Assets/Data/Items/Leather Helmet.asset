@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Leather Helmet
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Leather Helmet
-  icon: {fileID: 21300000, guid: 50e674682c4d4884ca31492113c6aa82, type: 3}
+  icon: {fileID: 0}

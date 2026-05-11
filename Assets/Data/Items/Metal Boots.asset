@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Metal Boots
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Metal Boots
-  icon: {fileID: 21300000, guid: 6f08b3c1e8d41f04e8fc8b0cb60c6205, type: 3}
+  icon: {fileID: 0}

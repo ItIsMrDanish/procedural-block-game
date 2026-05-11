@@ -795,16 +795,6 @@ public class BlockType
              "Set to 0 for instant-break (e.g. air, grass, flowers).")]
     public float blockHealth;
 
-    [Tooltip("Which tool type mines this block at full speed.\n" +
-             "A mismatched tool always falls back to bare-hands speed (damage = 1).\n" +
-             "Leave as None for blocks that any tool mines at full efficiency (e.g. dirt with a shovel is faster, but any tool works the same — adjust to taste).")]
-    public ToolType preferredTool = ToolType.None;
-
-    [Tooltip("Minimum material tier required to obtain a drop from this block.\n" +
-             "Breaking it with a lower-tier tool destroys the block but yields nothing.\n" +
-             "Leave as None to allow bare-hands harvesting.")]
-    public MaterialType minimumMaterial = MaterialType.None;
-
     [Header("Drop")]
     [Tooltip("Item name added to the player's inventory on break.\n" +
              "Leave empty to use blockName.")]

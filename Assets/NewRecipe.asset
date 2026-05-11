@@ -10,17 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c02ed4198861c4f448593216c869a1d8, type: 3}
-  m_Name: Cooked Beef
+  m_Name: NewRecipe
   m_EditorClassIdentifier: Assembly-CSharp::RecipeManager
-  outputItem: {fileID: 11400000, guid: 5e2e3f10090dc4f4fb354c7a314d19d9, type: 2}
+  itemName: 
+  itemIcon: {fileID: 0}
   outputAmount: 1
   unstackable: 0
-  itemType: 0
-  toolType: 0
-  weaponType: 1
-  material: 0
-  isArmor: 0
   armorSlot: 0
-  ingredients:
-  - item: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
-    amount: 1
+  ingredients: []

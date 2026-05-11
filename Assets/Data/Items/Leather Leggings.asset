@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Leather Leggings
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Leather Leggings
-  icon: {fileID: 21300000, guid: fc015934e5f147247a768fd0df0e2f48, type: 3}
+  icon: {fileID: 0}

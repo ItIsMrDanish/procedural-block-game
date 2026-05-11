@@ -284,9 +284,4 @@ public class SceneManagement : MonoBehaviour {
 
         mouseTxtSlider.text = "Mouse Sensitivity: " + mouseSlider.value.ToString("F1");
     }
-
-    public void ReturnToMainMenu() {
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayMenuClick();
-        SceneManager.LoadScene(0);
-    }
 }

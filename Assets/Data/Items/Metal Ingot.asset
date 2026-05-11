@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Metal Ingot
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Metal Ingot
-  icon: {fileID: 21300000, guid: fbbbc9197cd09d6449f4da2d73401436, type: 3}
+  icon: {fileID: 0}
