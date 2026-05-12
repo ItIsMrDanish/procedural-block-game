@@ -8,8 +8,7 @@ using System.IO;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
-public class World : MonoBehaviour
-{
+public class World : MonoBehaviour {
 
     public Settings settings;
 
@@ -84,6 +83,11 @@ public class World : MonoBehaviour
     Thread ChunkUpdateThread;
     public object ChunkListThreadLock = new object();
 
+    // Static mirror of ChunkListThreadLock — assigned in Awake() immediately after
+    // _instance is set.  Background threads use this instead of
+    // World.Instance.ChunkListThreadLock so they never race on a null Instance.
+    public static object StaticChunkListLock { get; private set; }
+
     private CancellationTokenSource _threadCancelSource;
 
     private static World _instance;
@@ -115,20 +119,22 @@ public class World : MonoBehaviour
 
     // -------------------------------------------------------
 
-    private static int ChunkYToIndex(int chunkY)
-    {
+    private static int ChunkYToIndex(int chunkY) {
         return chunkY - VoxelData.MinChunkY;
     }
 
     // Unity lifecycle
 
-    private void Awake()
-    {
+    private void Awake() {
 
-        if (_instance != null && _instance != this)
+        if (_instance != null && _instance != this) {
             Destroy(this.gameObject);
-        else
+        } else {
             _instance = this;
+            // Assign the static lock immediately so background threads can use it
+            // without ever dereferencing Instance, eliminating the Windows race.
+            StaticChunkListLock = ChunkListThreadLock;
+        }
 
         appPath = Application.persistentDataPath;
         _player = player.GetComponent<Player>();
@@ -144,15 +150,13 @@ public class World : MonoBehaviour
         mainCanvas.gameObject.SetActive(false);
     }
 
-    private void Start()
-    {
+    private void Start() {
 
         _mainCamera = Camera.main;
         StartCoroutine(InitWorld());
     }
 
-    private IEnumerator InitWorld()
-    {
+    private IEnumerator InitWorld() {
 
         Debug.Log($"Loading world '{VoxelData.worldName}' with seed {VoxelData.seed}");
 
@@ -164,8 +168,7 @@ public class World : MonoBehaviour
         string settingsPath = Application.dataPath + "/settings.cfg";
         if (File.Exists(settingsPath))
             settings = JsonUtility.FromJson<Settings>(File.ReadAllText(settingsPath));
-        else
-        {
+        else {
 
             settings = new Settings();
             File.WriteAllText(settingsPath, JsonUtility.ToJson(settings));
@@ -206,8 +209,7 @@ public class World : MonoBehaviour
         LoadProgress = 0.95f;
         yield return null;
 
-        if (settings.enableThreading)
-        {
+        if (settings.enableThreading) {
 
             _threadCancelSource = new CancellationTokenSource();
             ChunkUpdateThread = new Thread(() => ThreadedUpdate(_threadCancelSource.Token));
@@ -230,8 +232,7 @@ public class World : MonoBehaviour
         StartCoroutine(Tick());
     }
 
-    private IEnumerator LoadWorldAsync()
-    {
+    private IEnumerator LoadWorldAsync() {
 
         int hd = settings.loadDistance;
         int vd = settings.verticalViewDistance;
@@ -241,14 +242,11 @@ public class World : MonoBehaviour
         int totalColumns = (hd * 2) * (hd * 2);
         int done = 0;
 
-        for (int x = cx - hd; x < cx + hd; x++)
-        {
+        for (int x = cx - hd; x < cx + hd; x++) {
 
-            for (int z = cx - hd; z < cx + hd; z++)
-            {
+            for (int z = cx - hd; z < cx + hd; z++) {
 
-                for (int y = cy - vd; y < cy + vd; y++)
-                {
+                for (int y = cy - vd; y < cy + vd; y++) {
 
                     if (!IsChunkInWorld(x, y, z)) continue;
                     worldData.LoadChunk(new Vector3Int(
@@ -267,8 +265,7 @@ public class World : MonoBehaviour
 
     // -------------------------------------------------------
 
-    public void SetGlobalLightValue()
-    {
+    public void SetGlobalLightValue() {
 
         Shader.SetGlobalFloat("GlobalLightLevel", globalLightLevel);
         Color sky = Color.Lerp(night, day, globalLightLevel);
@@ -276,11 +273,9 @@ public class World : MonoBehaviour
         _mainCamera.backgroundColor = sky;
     }
 
-    IEnumerator Tick()
-    {
+    IEnumerator Tick() {
 
-        while (true)
-        {
+        while (true) {
 
             yield return new WaitForSeconds(VoxelData.tickLength);
 
@@ -289,8 +284,7 @@ public class World : MonoBehaviour
             // if the coroutine yields; iterating a list while it's being modified
             // throws InvalidOperationException.
             int count;
-            lock (_activeChunksLock)
-            {
+            lock (_activeChunksLock) {
 
                 count = activeChunks.Count;
                 if (_tickSnapshot.Length != count)
@@ -298,8 +292,7 @@ public class World : MonoBehaviour
                 activeChunks.CopyTo(_tickSnapshot);
             }
 
-            for (int i = 0; i < count; i++)
-            {
+            for (int i = 0; i < count; i++) {
 
                 ChunkCoord c = _tickSnapshot[i];
                 int yi = ChunkYToIndex(c.y);
@@ -309,21 +302,18 @@ public class World : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
+    private void Update() {
 
         if (!IsReady) return;
 
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
 
-        if (!playerChunkCoord.Equals(playerLastChunkCoord))
-        {
+        if (!playerChunkCoord.Equals(playerLastChunkCoord)) {
 
             CheckViewDistance();
 
             _chunkMovesSinceLastTrim++;
-            if (_chunkMovesSinceLastTrim >= TrimEveryNMoves)
-            {
+            if (_chunkMovesSinceLastTrim >= TrimEveryNMoves) {
 
                 _chunkMovesSinceLastTrim = 0;
                 HeightmapCache.Trim(
@@ -342,15 +332,13 @@ public class World : MonoBehaviour
         // need a stable view of it for this loop.
         int activeCount;
         ChunkCoord[] frustumSnapshot;
-        lock (_activeChunksLock)
-        {
+        lock (_activeChunksLock) {
 
             activeCount = activeChunks.Count;
             frustumSnapshot = activeChunks.ToArray();
         }
 
-        for (int i = 0; i < activeCount; i++)
-        {
+        for (int i = 0; i < activeCount; i++) {
 
             ChunkCoord c = frustumSnapshot[i];
             int yi = ChunkYToIndex(c.y);
@@ -366,13 +354,11 @@ public class World : MonoBehaviour
         }
 
         // Time-budgeted mesh upload
-        if (!chunksToDraw.IsEmpty)
-        {
+        if (!chunksToDraw.IsEmpty) {
 
             _frameTimer.Restart();
             while (!chunksToDraw.IsEmpty &&
-                   _frameTimer.Elapsed.TotalMilliseconds < MeshBudgetMs)
-            {
+                   _frameTimer.Elapsed.TotalMilliseconds < MeshBudgetMs) {
 
                 if (chunksToDraw.TryDequeue(out Chunk toDraw))
                     toDraw.CreateMesh();
@@ -381,24 +367,20 @@ public class World : MonoBehaviour
 
         // Drain pending chunk GameObject creations (threaded mode).
         // The bg thread did the expensive Populate(); we just create the GameObject here.
-        if (settings.enableThreading)
-        {
+        if (settings.enableThreading) {
 
             _frameTimer.Restart();
-            while (_frameTimer.Elapsed.TotalMilliseconds < 4.0)
-            {
+            while (_frameTimer.Elapsed.TotalMilliseconds < 4.0) {
 
                 ChunkCoord cc;
-                lock (_pendingChunkObjectsLock)
-                {
+                lock (_pendingChunkObjectsLock) {
 
                     if (_pendingChunkObjects.Count == 0) break;
                     cc = _pendingChunkObjects.Dequeue();
                 }
 
                 int yi = ChunkYToIndex(cc.y);
-                if (chunks[cc.x, yi, cc.z] == null)
-                {
+                if (chunks[cc.x, yi, cc.z] == null) {
 
                     chunks[cc.x, yi, cc.z] = new Chunk(cc);
 
@@ -411,11 +393,9 @@ public class World : MonoBehaviour
             }
         }
 
-        if (!settings.enableThreading)
-        {
+        if (!settings.enableThreading) {
 
-            if (!_applyingModifications)
-            {
+            if (!_applyingModifications) {
                 _applyingModifications = true;
                 ApplyModifications();
             }
@@ -424,19 +404,16 @@ public class World : MonoBehaviour
     }
 
     public void AddChunkToUpdate(Chunk chunk) { AddChunkToUpdate(chunk, false); }
-    public void AddChunkToUpdate(Chunk chunk, bool insert)
-    {
+    public void AddChunkToUpdate(Chunk chunk, bool insert) {
 
-        lock (_chunksToUpdateSetLock)
-        {
+        lock (_chunksToUpdateSetLock) {
 
             if (chunksToUpdateSet.Add(chunk))
                 chunksToUpdate.Enqueue(chunk);
         }
     }
 
-    void UpdateChunks()
-    {
+    void UpdateChunks() {
 
         // Process multiple chunks per frame with a time budget to reduce visual
         // pop-in while keeping frame times bounded.
@@ -444,8 +421,7 @@ public class World : MonoBehaviour
         const double budgetMs = 4.0;
 
         while (!chunksToUpdate.IsEmpty &&
-               _frameTimer.Elapsed.TotalMilliseconds < budgetMs)
-        {
+               _frameTimer.Elapsed.TotalMilliseconds < budgetMs) {
 
             if (!chunksToUpdate.TryDequeue(out Chunk c)) break;
             lock (_chunksToUpdateSetLock) { chunksToUpdateSet.Remove(c); }
@@ -453,26 +429,22 @@ public class World : MonoBehaviour
         }
     }
 
-    void ThreadedUpdate(CancellationToken token)
-    {
+    void ThreadedUpdate(CancellationToken token) {
 
-        while (!token.IsCancellationRequested)
-        {
+        while (!token.IsCancellationRequested) {
 
             // Pre-populate chunk data for coords queued by CheckViewDistance.
             // This is the expensive Populate() work — done here off the main thread.
             // Once data is ready, hand off to main thread for GameObject creation.
             ChunkCoord ccToPrep;
             bool hadPrep = false;
-            lock (_pendingChunkCreationsLock)
-            {
+            lock (_pendingChunkCreationsLock) {
 
                 hadPrep = _pendingChunkCreations.Count > 0;
                 ccToPrep = hadPrep ? _pendingChunkCreations.Dequeue() : default;
             }
 
-            if (hadPrep)
-            {
+            if (hadPrep) {
 
                 // Don't read chunks[] array here — it's main-thread-only.
                 // RequestChunk is safe to call from bg thread; it checks internally
@@ -485,12 +457,24 @@ public class World : MonoBehaviour
 
                 // Hand off to main thread for GameObject creation.
                 lock (_pendingChunkObjectsLock) { _pendingChunkObjects.Enqueue(ccToPrep); }
+
+                // FIX: drain modifications here too, not only when the prep queue is empty.
+                // Previously the `continue` skipped ApplyModifications() entirely while
+                // _pendingChunkCreations was non-empty.  Flora mods (trees, void trees) are
+                // enqueued by Populate() itself, so they were never applied before the chunk
+                // mesh was built → trees missing on all platforms, most visibly on Windows.
+                bool shouldApplyMid;
+                lock (_modificationsLock) {
+                    shouldApplyMid = !_applyingModifications && modifications.Count > 0;
+                    if (shouldApplyMid) _applyingModifications = true;
+                }
+                if (shouldApplyMid) ApplyModifications();
+
                 continue; // Keep draining prep queue before sleeping.
             }
 
             bool shouldApply;
-            lock (_modificationsLock)
-            {
+            lock (_modificationsLock) {
 
                 shouldApply = !_applyingModifications && modifications.Count > 0;
                 if (shouldApply) _applyingModifications = true;
@@ -503,11 +487,9 @@ public class World : MonoBehaviour
         }
     }
 
-    private void OnDisable()
-    {
+    private void OnDisable() {
 
-        if (settings.enableThreading && _threadCancelSource != null)
-        {
+        if (settings.enableThreading && _threadCancelSource != null) {
 
             _threadCancelSource.Cancel();
             ChunkUpdateThread?.Join(500);
@@ -518,52 +500,42 @@ public class World : MonoBehaviour
         HeightmapCache.Clear();
     }
 
-    void ApplyModifications()
-    {
+    void ApplyModifications() {
 
         // Drain the queue. _applyingModifications was already set to true by the caller
         // (either ThreadedUpdate or the non-threaded Update path).
         // We only need the lock to safely dequeue batches.
-        try
-        {
+        try {
 
-            while (true)
-            {
+            while (true) {
 
                 Queue<VoxelMod> q;
-                lock (_modificationsLock)
-                {
+                lock (_modificationsLock) {
 
                     if (modifications.Count == 0) break;
                     q = modifications.Dequeue();
                 }
 
-                while (q.Count > 0)
-                {
+                while (q.Count > 0) {
 
                     VoxelMod v = q.Dequeue();
                     worldData.SetVoxel(v.position, v.id, 1);
                 }
             }
-        }
-        finally
-        {
+        } finally {
 
             lock (_modificationsLock) { _applyingModifications = false; }
         }
     }
 
-    public void EnqueueModification(Queue<VoxelMod> queue)
-    {
+    public void EnqueueModification(Queue<VoxelMod> queue) {
 
-        lock (_modificationsLock)
-        {
+        lock (_modificationsLock) {
             modifications.Enqueue(queue);
         }
     }
 
-    ChunkCoord GetChunkCoordFromVector3(Vector3 pos)
-    {
+    ChunkCoord GetChunkCoordFromVector3(Vector3 pos) {
 
         return new ChunkCoord(
             Mathf.FloorToInt(pos.x / VoxelData.ChunkSize),
@@ -571,8 +543,7 @@ public class World : MonoBehaviour
             Mathf.FloorToInt(pos.z / VoxelData.ChunkSize));
     }
 
-    public Chunk GetChunkFromVector3(Vector3 pos)
-    {
+    public Chunk GetChunkFromVector3(Vector3 pos) {
 
         int cx = Mathf.FloorToInt(pos.x / VoxelData.ChunkSize);
         int cy = Mathf.FloorToInt(pos.y / VoxelData.ChunkSize);
@@ -581,8 +552,7 @@ public class World : MonoBehaviour
         return chunks[cx, ChunkYToIndex(cy), cz];
     }
 
-    void CheckViewDistance()
-    {
+    void CheckViewDistance() {
 
         clouds.UpdateClouds();
 
@@ -601,12 +571,9 @@ public class World : MonoBehaviour
         _previouslyActiveChunks.Clear();
         lock (_activeChunksLock) { _previouslyActiveChunks.AddRange(activeChunks); }
 
-        for (int x = coord.x - hd; x < coord.x + hd; x++)
-        {
-            for (int z = coord.z - hd; z < coord.z + hd; z++)
-            {
-                for (int y = coord.y - vd; y < coord.y + vd; y++)
-                {
+        for (int x = coord.x - hd; x < coord.x + hd; x++) {
+            for (int z = coord.z - hd; z < coord.z + hd; z++) {
+                for (int y = coord.y - vd; y < coord.y + vd; y++) {
 
                     if (!IsChunkInWorld(x, y, z)) continue;
 
@@ -632,23 +599,18 @@ public class World : MonoBehaviour
                                ChunkUpdateThread != null &&
                                ChunkUpdateThread.IsAlive;
 
-        if (bgThreadRunning)
-        {
+        if (bgThreadRunning) {
 
             // Enqueue for bg thread to Populate() then hand back to main thread.
-            lock (_pendingChunkCreationsLock)
-            {
+            lock (_pendingChunkCreationsLock) {
                 foreach (ChunkCoord cc in chunksToCreate)
                     _pendingChunkCreations.Enqueue(cc);
             }
-        }
-        else
-        {
+        } else {
 
             // Synchronous creation: main thread does everything.
             // This handles both: threading disabled, and the initial load before bg thread starts.
-            foreach (ChunkCoord cc in chunksToCreate)
-            {
+            foreach (ChunkCoord cc in chunksToCreate) {
 
                 int yi = ChunkYToIndex(cc.y);
                 if (chunks[cc.x, yi, cc.z] == null)
@@ -657,8 +619,7 @@ public class World : MonoBehaviour
         }
 
         // --- Phase 3: swap activeChunks under lock, activate/deactivate ---
-        lock (_activeChunksLock)
-        {
+        lock (_activeChunksLock) {
 
             activeChunks.Clear();
             activeChunks.AddRange(newActiveChunks);
@@ -666,16 +627,14 @@ public class World : MonoBehaviour
 
         // Only activate chunks that actually exist. Chunks enqueued in _pendingChunkCreations
         // don't exist yet — they'll call AddChunkToUpdate themselves when created.
-        foreach (ChunkCoord cc in newActiveChunks)
-        {
+        foreach (ChunkCoord cc in newActiveChunks) {
 
             int yi = ChunkYToIndex(cc.y);
             if (chunks[cc.x, yi, cc.z] != null)
                 chunks[cc.x, yi, cc.z].isActive = true;
         }
 
-        foreach (ChunkCoord c in _previouslyActiveChunks)
-        {
+        foreach (ChunkCoord c in _previouslyActiveChunks) {
 
             int yi = ChunkYToIndex(c.y);
             if (chunks[c.x, yi, c.z] != null)
@@ -693,30 +652,25 @@ public class World : MonoBehaviour
     // Spirals outward from the world centre until it finds a column whose surface
     // is at or above sea level (not ocean). Spawns the player 2 blocks above
     // that surface so they land cleanly on solid ground.
-    private Vector3 FindLandSpawn()
-    {
+    private Vector3 FindLandSpawn() {
 
         int centre = VoxelData.WorldCentre;
         const int stepSize = 8;
         const int maxRadius = 400;
 
-        for (int radius = 0; radius <= maxRadius; radius += stepSize)
-        {
+        for (int radius = 0; radius <= maxRadius; radius += stepSize) {
 
-            if (radius == 0)
-            {
+            if (radius == 0) {
                 var col = HeightmapCache.GetOrCompute(centre, centre, biomes);
                 if (col.surfaceHeight >= VoxelData.SeaLevel)
                     return new Vector3(centre, col.surfaceHeight + 2f, centre);
                 continue;
             }
 
-            for (int i = -radius; i <= radius; i += stepSize)
-            {
+            for (int i = -radius; i <= radius; i += stepSize) {
                 int[] xs = { centre + i, centre + i, centre - radius, centre + radius };
                 int[] zs = { centre - radius, centre + radius, centre + i, centre + i };
-                for (int side = 0; side < 4; side++)
-                {
+                for (int side = 0; side < 4; side++) {
                     int wx = xs[side];
                     int wz = zs[side];
                     if (wx < 0 || wx >= VoxelData.WorldSizeInVoxels) continue;
@@ -731,8 +685,7 @@ public class World : MonoBehaviour
         Debug.LogWarning("FindLandSpawn: no land found, using fallback.");
         return new Vector3(centre, VoxelData.SeaLevel + 30f, centre);
     }
-    public bool CheckForVoxel(Vector3 pos)
-    {
+    public bool CheckForVoxel(Vector3 pos) {
 
         VoxelState voxel = worldData.GetVoxel(pos);
         if (voxel == null) return false;
@@ -741,11 +694,9 @@ public class World : MonoBehaviour
 
     public VoxelState GetVoxelState(Vector3 pos) { return worldData.GetVoxel(pos); }
 
-    public bool inUI
-    {
+    public bool inUI {
         get { return _inUI; }
-        set
-        {
+        set {
             _inUI = value;
             // Only manage cursor lock here.
             // Each UI panel (inventory, crafting) manages its own visibility.
@@ -759,15 +710,13 @@ public class World : MonoBehaviour
     /// Opens or closes the creative inventory window specifically.
     /// Also sets inUI so player input is blocked while it is open.
     /// </summary>
-    public void SetCreativeInventory(bool open)
-    {
+    public void SetCreativeInventory(bool open) {
         creativeInventoryWindow.SetActive(open);
         cursorSlot.SetActive(open);
         inUI = open;
     }
 
-    bool IsChunkInWorld(int cx, int cy, int cz)
-    {
+    bool IsChunkInWorld(int cx, int cy, int cz) {
 
         return cx > 0 && cx < VoxelData.WorldSizeInChunks - 1 &&
                cy >= VoxelData.MinChunkY && cy < VoxelData.MaxChunkY &&
@@ -778,8 +727,7 @@ public class World : MonoBehaviour
 // Supporting data types
 
 [System.Serializable]
-public class BlockType
-{
+public class BlockType {
 
     public string blockName;
     public bool isSolid;
@@ -822,11 +770,9 @@ public class BlockType
     public int backFaceTexture, frontFaceTexture, topFaceTexture;
     public int bottomFaceTexture, leftFaceTexture, rightFaceTexture;
 
-    public int GetTextureID(int faceIndex)
-    {
+    public int GetTextureID(int faceIndex) {
 
-        switch (faceIndex)
-        {
+        switch (faceIndex) {
 
             case 0: return backFaceTexture;
             case 1: return frontFaceTexture;
@@ -839,8 +785,7 @@ public class BlockType
     }
 }
 
-public class VoxelMod
-{
+public class VoxelMod {
 
     public Vector3 position;
     public byte id;
@@ -849,8 +794,7 @@ public class VoxelMod
 }
 
 [System.Serializable]
-public class Settings
-{
+public class Settings {
 
     [Header("Game Data")]
     public string version = "0.0.0.01";

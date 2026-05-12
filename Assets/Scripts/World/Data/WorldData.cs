@@ -73,7 +73,7 @@ public class WorldData {
             bool shouldPopulate = false;
             bool needsPopulate = false;
 
-            lock (World.Instance.ChunkListThreadLock) {
+            lock (World.StaticChunkListLock) {
 
                 if (chunks.TryGetValue(blockOrigin, out ChunkData existing))
                     return existing;
@@ -120,7 +120,7 @@ public class WorldData {
     // LoadChunk: used by LoadWorldAsync (main thread, before threading starts).
     public void LoadChunk(Vector3Int blockOrigin) {
 
-        lock (World.Instance.ChunkListThreadLock) {
+        lock (World.StaticChunkListLock) {
             if (chunks.ContainsKey(blockOrigin)) return;
         }
 
@@ -131,7 +131,7 @@ public class WorldData {
             chunk.Populate();
         }
 
-        lock (World.Instance.ChunkListThreadLock) {
+        lock (World.StaticChunkListLock) {
             if (!chunks.ContainsKey(blockOrigin))
                 chunks[blockOrigin] = chunk;
         }
