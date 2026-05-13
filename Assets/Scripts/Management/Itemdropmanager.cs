@@ -21,9 +21,11 @@
 /// PER-BLOCK DROPS
 /// ───────────────
 ///  Each BlockType in World.blocktypes has a new "drop" section (added to World.cs):
-///   • dropItemName   – the item name added to inventory (defaults to blockName if empty)
+///   • dropItem       – (NEW) an ItemDefinition asset; name and icon are read from it.
+///                      Assign this to connect block drops to the crafting system.
+///   • dropItemName   – (legacy) item name string; only used when dropItem is null
 ///   • dropAmount     – how many items drop (default 1)
-///   • dropIcon       – sprite for the inventory slot (defaults to block's icon)
+///   • dropIcon       – (legacy) icon sprite; only used when dropItem is null
 ///  Air (id 0) never drops anything.
 /// </summary>
 public class ItemDropManager : MonoBehaviour
@@ -86,10 +88,26 @@ public class ItemDropManager : MonoBehaviour
 
         BlockType bt = World.Instance.blocktypes[blockId];
 
-        // Resolve drop parameters — fall back to the block's own name/icon.
-        string dropName = string.IsNullOrWhiteSpace(bt.dropItemName) ? bt.blockName : bt.dropItemName;
+        // Resolve drop parameters.
+        // Priority: ItemDefinition asset → legacy string fields → block name/icon.
+        string dropName;
+        Sprite dropIcon;
+
+        if (bt.dropItem != null)
+        {
+            // ItemDefinition is assigned — use it as the single source of truth.
+            // This guarantees the item name matches whatever the crafting recipes expect.
+            dropName = bt.dropItem.itemName;
+            dropIcon = bt.dropItem.icon != null ? bt.dropItem.icon : bt.icon;
+        }
+        else
+        {
+            // Fall back to the legacy per-block string/sprite fields.
+            dropName = string.IsNullOrWhiteSpace(bt.dropItemName) ? bt.blockName : bt.dropItemName;
+            dropIcon = bt.dropIcon != null ? bt.dropIcon : bt.icon;
+        }
+
         int dropAmount = bt.dropAmount <= 0 ? 1 : bt.dropAmount;
-        Sprite dropIcon = bt.dropIcon != null ? bt.dropIcon : bt.icon;
 
         if (string.IsNullOrWhiteSpace(dropName)) return;       // unnamed block — skip
 
@@ -119,9 +137,44 @@ public class ItemDropManager : MonoBehaviour
         droppedItem.Init(dropName, dropAmount, dropIcon, playerInventory, playerTransform);
     }
 
-    // ──────────────────── Helpers ─────────────────────────────────────────────
+    /// <summary>
+    /// Spawns a single world pickup directly from an <see cref="ItemDefinition"/>.
+    /// Use this for mob drops (and any other non-block source) so the item name
+    /// and icon come from the same asset the crafting system uses.
+    /// </summary>
+    public void SpawnDropFromItem(ItemDefinition item, Vector3 worldPos)
+    {
+        if (item == null) return;
+        if (string.IsNullOrWhiteSpace(item.itemName)) return;
+
+        GameObject go = Instantiate(dropItemPrefab, worldPos, Quaternion.identity);
+        go.transform.localScale = Vector3.one * dropScale;
+        go.name = $"Drop_{item.itemName}";
+
+        // Tint the pickup cube with the icon's centre pixel if possible.
+        ApplyVisualFromSprite(go, item.icon);
+
+        var rb = go.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(
+                Random.Range(-1.5f, 1.5f),
+                Random.Range(2f, 4f),
+                Random.Range(-1.5f, 1.5f));
+        }
+
+        var droppedItem = go.GetComponent<DroppedItem>();
+        if (droppedItem == null) droppedItem = go.AddComponent<DroppedItem>();
+
+        droppedItem.Init(item.itemName, 1, item.icon, playerInventory, playerTransform);
+    }
 
     private void ApplyVisual(GameObject go, BlockType bt, Sprite icon)
+    {
+        ApplyVisualFromSprite(go, icon);
+    }
+
+    private void ApplyVisualFromSprite(GameObject go, Sprite icon)
     {
         var rend = go.GetComponent<Renderer>();
         if (rend == null) return;

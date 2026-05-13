@@ -861,8 +861,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cow
   world: {fileID: 0}
-  dropPrefab: {fileID: 0}
-  dropCount: 2
+  dropItem1: {fileID: 11400000, guid: eed9a367cd373104e91d4a6b3fc1c1cc, type: 2}
+  dropAmount1: 1
+  dropItem2: {fileID: 11400000, guid: 48e1b02870800b94492b5ea2b7e3865e, type: 2}
+  dropAmount2: 1
   maxHealth: 10
   mobHeight: 1.4
   mobWidth: 1

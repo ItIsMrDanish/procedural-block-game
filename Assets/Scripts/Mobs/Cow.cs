@@ -30,12 +30,21 @@ public class Cow : MonoBehaviour, IMob
     [Tooltip("Assign the World GameObject (the one with the World component).")]
     public World world;
 
-    [Tooltip("Optional item GameObject spawned when the cow dies.")]
-    public GameObject dropPrefab;
+    [Tooltip("First item dropped on death (e.g. Raw Beef).\n" +
+             "Drag an ItemDefinition asset — the same one used in crafting recipes.")]
+    public ItemDefinition dropItem1;
 
-    [Range(1, 3)]
-    [Tooltip("How many drop items to spawn.")]
-    public int dropCount = 2;
+    [Min(0)]
+    [Tooltip("How many of drop item 1 to spawn.")]
+    public int dropAmount1 = 2;
+
+    [Tooltip("Second item dropped on death (e.g. Leather).\n" +
+             "Leave null to disable the second drop.")]
+    public ItemDefinition dropItem2;
+
+    [Min(0)]
+    [Tooltip("How many of drop item 2 to spawn.")]
+    public int dropAmount2 = 1;
 
     [Header("Stats")]
     public int maxHealth = 10;
@@ -491,21 +500,38 @@ public class Cow : MonoBehaviour, IMob
         // Stop coroutines
         if (_flashCoroutine != null) { StopCoroutine(_flashCoroutine); _flashCoroutine = null; }
 
-        // Spawn drops
-        if (dropPrefab != null)
+        // Spawn drops via ItemDropManager so items feed directly into the
+        // crafting-compatible inventory (same path as block drops).
+        if (ItemDropManager.Instance != null)
         {
-
-            for (int i = 0; i < dropCount; i++)
-            {
-
-                Vector3 spawnPos = transform.position + Vector3.up * 0.5f
-                                   + Random.insideUnitSphere * 0.4f;
-                Instantiate(dropPrefab, spawnPos, Quaternion.identity);
-            }
+            SpawnMobDrop(dropItem1, dropAmount1);
+            SpawnMobDrop(dropItem2, dropAmount2);
+        }
+        else
+        {
+            Debug.LogWarning("[Cow] ItemDropManager.Instance is null — drops skipped. " +
+                             "Make sure an ItemDropManager exists in the scene.");
         }
 
         // Play tip-over animation then destroy
         _deathCoroutine = StartCoroutine(DeathAnim());
+    }
+
+    /// <summary>
+    /// Calls ItemDropManager to spawn <paramref name="amount"/> pickups for the given
+    /// ItemDefinition at this cow's position. Each pickup is a separate world entity
+    /// with a small random scatter, matching how block drops behave.
+    /// </summary>
+    private void SpawnMobDrop(ItemDefinition item, int amount)
+    {
+        if (item == null || amount <= 0) return;
+
+        for (int i = 0; i < amount; i++)
+        {
+            Vector3 spawnPos = transform.position + Vector3.up * 0.5f
+                               + Random.insideUnitSphere * 0.4f;
+            ItemDropManager.Instance.SpawnDropFromItem(item, spawnPos);
+        }
     }
 
     private IEnumerator DeathAnim()

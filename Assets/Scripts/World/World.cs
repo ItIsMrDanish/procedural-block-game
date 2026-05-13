@@ -754,7 +754,14 @@ public class BlockType {
     public MaterialType minimumMaterial = MaterialType.None;
 
     [Header("Drop")]
-    [Tooltip("Item name added to the player's inventory on break.\n" +
+    [Tooltip("ItemDefinition asset for the item this block drops.\n" +
+             "This is the same asset used by the crafting system, so picking up\n" +
+             "the drop will give exactly the ingredient the recipes expect.\n" +
+             "When set, dropItemName and dropIcon below are ignored.")]
+    public ItemDefinition dropItem;
+
+    [Tooltip("(Legacy — ignored when dropItem is assigned)\n" +
+             "Item name added to the player's inventory on break.\n" +
              "Leave empty to use blockName.")]
     public string dropItemName;
 
@@ -762,7 +769,8 @@ public class BlockType {
     [Min(0)]
     public int dropAmount = 1;
 
-    [Tooltip("Icon sprite for the dropped item in the inventory UI.\n" +
+    [Tooltip("(Legacy — ignored when dropItem is assigned)\n" +
+             "Icon sprite for the dropped item in the inventory UI.\n" +
              "Leave null to use the block's own icon.")]
     public Sprite dropIcon;
 
