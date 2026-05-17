@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Planks
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Planks
-  icon: {fileID: 21300000, guid: 4f2456a5244344d498b2ecc8d11e1eea, type: 3}
+  icon: {fileID: 21300000, guid: 07b1961ea3e05794d90315a945dec5f4, type: 3}

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Cactus
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Cactus
-  icon: {fileID: 21300000, guid: c453c31b176b0a8468a6b9c43fecf93e, type: 3}
+  icon: {fileID: 21300000, guid: 195c2c72a965e144fad5aebc4f294e59, type: 3}
